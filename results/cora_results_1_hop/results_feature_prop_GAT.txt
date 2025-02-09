@@ -1,0 +1,9 @@
+DEVICE: cuda
+Data loading option is feature_prop
+Model type is GAT
+The global test results: [0.795, 0.791, 0.781, 0.774, 0.782, 0.782, 0.783, 0.781, 0.791, 0.801]
+The client test results: [0.7104413991127806, 0.7450011416159539, 0.7109723859836119, 0.7167404620026885, 0.7078514872105346, 0.7438057618606793, 0.7249796850484692, 0.7225740682700498, 0.7281205830610619, 0.7210636428306942]
+The average global test results: 0.7861
+The average client test results: 0.7231550616996525
+The standard deviation global is: 0.007687002016391052
+The standard deviation client is: 0.012336130468050734

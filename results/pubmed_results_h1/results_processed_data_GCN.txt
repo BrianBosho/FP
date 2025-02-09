@@ -1,0 +1,9 @@
+DEVICE: cuda
+Data loading option is processed_data
+Model type is GCN
+The global test results: [0.719, 0.746, 0.782, 0.737, 0.777, 0.776, 0.773, 0.759, 0.757, 0.769]
+The client test results: [0.7357452148528549, 0.7287610123253958, 0.7371532854914651, 0.7375171012755891, 0.7379678892907693, 0.7309188890448547, 0.7455831928455947, 0.7376548609834213, 0.7304419068145827, 0.7497147203296252]
+The average global test results: 0.7595
+The average client test results: 0.7371458073254152
+The standard deviation global is: 0.019215878850575654
+The standard deviation client is: 0.006214685493465364

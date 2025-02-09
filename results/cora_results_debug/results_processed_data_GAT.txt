@@ -1,0 +1,7 @@
+DEVICE: cuda
+Data loading option is processed_dataModel type is GATThe global test results: [0.788, 0.802, 0.788, 0.803, 0.801]
+The client test results: [0.6693496368812405, 0.6783643790130565, 0.6756835097052372, 0.685959307222687, 0.660135386749895]
+The average global test results: 0.7964
+The average client test results: 0.6738984439144231
+The standard deviation global is: 0.006887670143089032
+The standard deviation client is: 0.008702974754215559
