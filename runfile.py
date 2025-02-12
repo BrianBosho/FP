@@ -5,7 +5,7 @@ from client import FLClient
 from models import GCN, GAT
 from server import Server
 from utils import load_config
-from dataset import load_processed_data
+from dataprocessingset import load_processed_data
 from feature_propagation import load_with_feature_prop
 
 def initialize_device():

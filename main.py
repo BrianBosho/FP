@@ -1,6 +1,6 @@
 from client import FLClient
 import torch
-from dataset import load_processed_data
+from dataprocessingset import load_processed_data
 from models import GCN, GAT, VanillaGNN, MLP
 import ray
 

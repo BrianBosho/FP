@@ -5,7 +5,7 @@ from models import GCN, GAT
 from server import Server
 import pandas as pd
 from utils import load_config
-from data.loaders import (
+from dataprocessing.loaders import (
     load_dataset,
     load_and_split,
     load_and_split_with_khop,

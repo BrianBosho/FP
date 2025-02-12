@@ -1,24 +1,21 @@
-# Data folders
-data/
-dataset/
-Monte carlo results/
-Cora/
-Citeseer/
-Pubmed/
+# Dataset folders (actual data)
+datasets/
+!datasets/__init__.py
+
+# Processed data
 processed/
 raw/
+
+# Notebook data
 notebooks/Cora/
 notebooks/processed/
 notebooks/raw/
-data/ogbn_arxiv/
 
 # Results folders
 results/
 centralized_results/
 *.csv
-
 results.txt
-
 
 # Python cache files
 __pycache__/

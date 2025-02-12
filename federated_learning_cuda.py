@@ -5,7 +5,7 @@ from models import GCN, GAT
 from server import Server
 import pandas as pd
 from utils import load_config
-from dataset import load_processed_data, load_processed_data_with_hop
+from dataprocessingset import load_processed_data, load_processed_data_with_hop
 from feature_propagation import load_with_feature_prop, load_with_no_feature_prop, load_ogbn_arxiv
 import numpy as np
 

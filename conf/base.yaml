@@ -3,3 +3,11 @@ num_rounds: 50
 epochs: 3
 beta: 10000
 lr: 0.5
+paths:
+  datasets_dir: "datasets"
+  planetoid:
+    cora: "datasets/cora"
+    citeseer: "datasets/citeseer"
+    pubmed: "datasets/pubmed"
+  ogbn:
+    arxiv: "datasets/ogbn_arxiv"
