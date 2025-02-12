@@ -1,7 +1,0 @@
-DEVICE: cuda
-Data loading option is no_feature_propModel type is GCNThe global test results: [0.695, 0.536, 0.574, 0.629, 0.65]
-The client test results: [0.4192438059356717, 0.29251545718654215, 0.3583033987425438, 0.43478649944272707, 0.40545159021565425]
-The average global test results: 0.6167999999999999
-The average client test results: 0.3820601503046278
-The standard deviation global is: 0.05608350916267632
-The standard deviation client is: 0.05156061852039147

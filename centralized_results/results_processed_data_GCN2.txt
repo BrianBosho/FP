@@ -1,9 +1,0 @@
-DEVICE: cpu
-Data loading option is processed_data
-Model type is GCN
-The global test results: [0.391]
-The client test results: [0.33792816541395493]
-The average global test results: 0.391
-The average client test results: 0.33792816541395493
-The standard deviation global is: 0.0
-The standard deviation client is: 0.0
