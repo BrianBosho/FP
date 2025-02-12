@@ -2,10 +2,22 @@
 data/
 dataset/
 Monte carlo results/
+Cora/
+Citeseer/
+Pubmed/
+processed/
+raw/
+notebooks/Cora/
+notebooks/processed/
+notebooks/raw/
 
 # Results folders
 results/
 centralized_results/
+*.csv
+results.ipynb
+results.txt
+dataset_explorer.ipynb
 
 # Python cache files
 __pycache__/
@@ -15,6 +27,7 @@ __pycache__/
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb_checkpoints/
+*.ipynb
 
 # Distribution / packaging
 dist/
