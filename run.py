@@ -85,7 +85,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     ray.init(num_gpus=1)
     print(f"data_loading_option: {data_loading_option}")
 
-    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name)
+    data, dataset, clients_data, test_data, client_data_dict = load_data(data_loading_option, num_clients, beta, dataset_name)
     test_data = clients_data
     data = data.to(DEVICE)
     print(f"Device is {DEVICE}")
@@ -113,9 +113,11 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     average_results = sum(client_test_results) / len(client_test_results)
     print(f"The average client test results: {average_results}")
     print(f"The final global test results: {test_results}")
+
+    
     
     ray.shutdown()
-    return test_results, average_results
+    return test_results, average_results, client_data_dict
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora"):
     test_results = []
@@ -125,16 +127,22 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     output += f"Data loading option is {data_loading_option}\n"
     output += f"Model type is {model_type}\n"
 
-    
     for i in range(1):  # Change 1 to the desired number of repetitions
-        global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg)
+        global_results, client_results, client_data_dict = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg)
         test_results.append(global_results)
         client_test_results.append(client_results)
         print(f"Round {i+1} is complete")
+        
+        # Add client metrics to output
+        output += f"\nClient Metrics for Round {i+1}:\n"
+        output += "-" * 40 + "\n"
+        for key, value in client_data_dict.items():
+            output += f"{key}: {value}\n"
+        output += "-" * 40 + "\n"
     
     print(f"The global test results: {test_results}")
     print(f"The client test results: {client_test_results}")
-   
+    print(f"The client data dict: {client_data_dict}")
 
     average_global_results = np.mean(test_results)
     average_client_results = np.mean(client_test_results)
@@ -142,13 +150,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     std_global = np.std(test_results)
     std_client = np.std(client_test_results)
 
-
-    
     print(f"The average global test results: {average_global_results}")
     print(f"The average client test results: {average_client_results}")
     print(f"The standad deviation global is: {std_global}")
     print(f"The standad deviation client is: {std_client}")
 
+    output += f"\nFinal Results:\n"
     output += f"The global test results: {test_results}\n"
     output += f"The client test results: {client_test_results}\n"
     output += f"The average global test results: {average_global_results}\n"
@@ -158,4 +165,4 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
     return output
     
-    111
+    
