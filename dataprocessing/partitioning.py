@@ -5,7 +5,7 @@ from torch_geometric.utils import k_hop_subgraph
 from dataprocessing.data_utils import propagate_features
 # from utils import propagate_features
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE =  "cpu"
 
 def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float) -> list:
     """
@@ -137,6 +137,50 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
     return communicate_indexes, [], []
 
+
+def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0, 
+                  use_feature_prop: bool = False) -> tuple[list, list, list]:
+    """
+    Main partitioning function that handles both feature propagation and non-feature propagation cases.
+    """
+    # Move data to CPU for initial processing
+    labels = data.y.cpu().numpy()
+    N = len(labels)
+    K = len(np.unique(labels))
+
+    # Get initial partition
+    split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
+    
+    # Create test data
+    initial_subgraphs = [create_subgraph(data, indices) for indices in split_data_indexes]
+    
+    # Create client data
+    clients_data = []
+    for i in range(num_clients):
+        # Create k-hop subgraph
+        subgraph, node_map, original_nodes_mask = create_k_hop_subgraph(data, split_data_indexes[i], hop)
+        
+        if use_feature_prop:
+            # Apply feature propagation
+            zero_vector_mask = (subgraph.x == 0).all(dim=1)
+            non_zero_vector_mask = ~zero_vector_mask
+            subgraph.x = propagate_features(subgraph.x, subgraph.edge_index, non_zero_vector_mask)
+                
+        clients_data.append(subgraph)
+
+    final_subgraphs = []
+    for i in range(num_clients):
+        final_subgraphs.append(prepare_expanded_subgraph_for_propagation(initial_subgraphs[i], clients_data[i], split_data_indexes[i]))
+    
+    # apply feature propagation to final subgraphs if use_feature_prop is True
+    if use_feature_prop:
+        for i in range(num_clients):
+            zero_vector_mask = (final_subgraphs[i].x == 0).all(dim=1)
+            non_zero_vector_mask = ~zero_vector_mask
+            final_subgraphs[i].x = propagate_features(final_subgraphs[i].x, final_subgraphs[i].edge_index, non_zero_vector_mask)
+
+    return final_subgraphs, initial_subgraphs, split_data_indexes
+
 # def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0, 
 #                   use_feature_prop: bool = False) -> tuple[list, list, dict]:
 #     """
@@ -218,39 +262,7 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
                 
 #         clients_data.append(subgraph)
 
-#     return clients_data, test_data, client_metrics, split_data_indexes
-
-def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0, 
-                  use_feature_prop: bool = False) -> tuple[list, list, list]:
-    """
-    Main partitioning function that handles both feature propagation and non-feature propagation cases.
-    """
-    # Move data to CPU for initial processing
-    labels = data.y.cpu().numpy()
-    N = len(labels)
-    K = len(np.unique(labels))
-
-    # Get initial partition
-    split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
-    
-    # Create test data
-    test_data = [create_subgraph(data, indices) for indices in split_data_indexes]
-    
-    # Create client data
-    clients_data = []
-    for i in range(num_clients):
-        # Create k-hop subgraph
-        subgraph, node_map, original_nodes_mask = create_k_hop_subgraph(data, split_data_indexes[i], hop)
-        
-        if use_feature_prop:
-            # Apply feature propagation
-            zero_vector_mask = (subgraph.x == 0).all(dim=1)
-            non_zero_vector_mask = ~zero_vector_mask
-            subgraph.x = propagate_features(subgraph.x, subgraph.edge_index, non_zero_vector_mask)
-                
-        clients_data.append(subgraph)
-
-    return clients_data, test_data, split_data_indexes
+#     return clients_data, test_data,  split_data_indexes
 
 def prepare_expanded_subgraph_for_propagation(original_subgraph: Data, expanded_subgraph: Data, original_indices: torch.Tensor):
     """
@@ -270,9 +282,9 @@ def prepare_expanded_subgraph_for_propagation(original_subgraph: Data, expanded_
     original_nodes_mask[:len(original_indices)] = True
     
     # Print some verification info
-    print(f"Original nodes: {len(original_indices)}")
-    print(f"Expanded nodes: {expanded_subgraph.num_nodes}")
-    print(f"Original nodes in expanded graph: {original_nodes_mask.sum().item()}")
+    # print(f"Original nodes: {len(original_indices)}")
+    # print(f"Expanded nodes: {expanded_subgraph.num_nodes}")
+    # print(f"Original nodes in expanded graph: {original_nodes_mask.sum().item()}")
     
     # Create new feature matrix (all zeros initially)
     new_x = torch.zeros_like(expanded_subgraph.x, device=device)

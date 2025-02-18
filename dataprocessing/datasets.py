@@ -10,7 +10,7 @@ import os
 import yaml
 from pathlib import Path
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE =  "cpu"
 
 def load_config():
     # Get the project root directory (parent of conf/)

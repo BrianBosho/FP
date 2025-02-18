@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 from torch_geometric.data import Data
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE =  "cpu"
 
 # Feature Propagation Functions
 def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int) -> Tensor:

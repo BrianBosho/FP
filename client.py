@@ -8,7 +8,7 @@ gpu_nums = 1/10
 @ray.remote(num_gpus=gpu_nums)
 class FLClient:
     def __init__(self, data, dataset, client_id, cfg, model_type="GCN"):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.DEVICE =  "cpu"
         self.data = data.to(self.device)
         dataset = dataset
 

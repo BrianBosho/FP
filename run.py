@@ -15,7 +15,7 @@ import numpy as np
 
 import numpy as np
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE =  "cpu"
 print(f"DEVICE: {DEVICE}")
 
 def load_configuration(config_path="conf/base.yaml"):

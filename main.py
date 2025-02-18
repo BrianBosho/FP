@@ -4,7 +4,7 @@ from dataprocessingset import load_processed_data
 from models import GCN, GAT, VanillaGNN, MLP
 import ray
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE =  "cpu"
 
 ray.init()
 
