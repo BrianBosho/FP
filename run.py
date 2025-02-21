@@ -50,28 +50,29 @@ def save_results_to_csv(results, filename="results.csv"):
     results_df = pd.DataFrame(results)
     results_df.to_csv(filename)
 
-def load_data(data_loading_option, num_clients, beta, dataset_name, device):
+def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1):
     """
     Args:
         dat_loading_option: full_dataset, split_dataset, split_dataset_with_khop, split_dataset_with_feature_prop
         num_clients: number of clients
         beta: beta for dirichlet distribution
         dataset_name: name of the dataset
+        hop: number of hops for k-hop subgraph
     """
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name)
     elif data_loading_option == "split_dataset":
         return load_and_split(dataset_name, device, num_clients, beta)
     elif data_loading_option == "split_dataset_with_khop":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta)
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop)
     elif data_loading_option == "split_dataset_with_feature_prop":
-        return load_and_split_with_feature_prop(dataset_name, device, num_clients, beta)
+        return load_and_split_with_feature_prop(dataset_name, device, num_clients, beta, hop=hop)
     else:
         raise ValueError(f"Unsupported data loading option: {data_loading_option}")
         
 
 
-def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device):
+def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1):
     """
     Run federated learning with a server coordinating multiple clients.
     Args:
@@ -87,7 +88,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     ray.init(num_gpus=1)
     print(f"data_loading_option: {data_loading_option}")
 
-    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE)
+    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop)
     test_data = clients_data
     print("Data loaded")
     data = data.to(DEVICE)
@@ -122,7 +123,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     ray.shutdown()
     return test_results, average_results
 
-def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora"):
+def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1):
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # DEVICE = "cpu"
     test_results = []
@@ -133,7 +134,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     output += f"Model type is {model_type}\n"
 
     for i in range(2):  # Change 1 to the desired number of repetitions
-        global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE)
+        global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1)
         test_results.append(global_results)
         client_test_results.append(client_results)
         print(f"Round {i+1} is complete")
