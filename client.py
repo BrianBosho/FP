@@ -7,8 +7,9 @@ gpu_nums = 1/10
 
 @ray.remote(num_gpus=gpu_nums)
 class FLClient:
-    def __init__(self, data, dataset, client_id, cfg, model_type="GCN"):
-        self.DEVICE =  "cpu"
+    def __init__(self, data, dataset, client_id, cfg, device, model_type="GCN"):
+        self.DEVICE = device
+        self.device = self.DEVICE
         self.data = data.to(self.device)
         dataset = dataset
 

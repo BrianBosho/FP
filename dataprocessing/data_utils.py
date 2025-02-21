@@ -2,11 +2,12 @@ import torch
 from torch import Tensor
 from torch_geometric.data import Data
 
-DEVICE =  "cpu"
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Feature Propagation Functions
-def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int) -> Tensor:
+def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int, device = "cuda") -> Tensor:
     """Get symmetrically normalized adjacency matrix for feature propagation."""
+    DEVICE = device
     # Validate input shape
     if edge_index.dim() != 2 or edge_index.size(0) != 2:
         raise ValueError(f"edge_index must have shape [2, E], got {edge_index.shape}")
@@ -75,10 +76,11 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
         mask[idx] = True
     return mask
 
-def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, num_iterations: int = 50) -> Tensor:
+def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 50) -> Tensor:
     """
     Propagate features through the graph.
     """
+    DEVICE = device
     x = x.to(DEVICE)
     mask = mask.bool().to(DEVICE)
     edge_index = edge_index.to(DEVICE)

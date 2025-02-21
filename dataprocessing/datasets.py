@@ -10,7 +10,6 @@ import os
 import yaml
 from pathlib import Path
 
-DEVICE =  "cpu"
 
 def load_config():
     # Get the project root directory (parent of conf/)
@@ -95,15 +94,17 @@ class GraphDataset:
         else:
             raise ValueError(f"Dataset {name} not supported. Available datasets: {self.get_available_datasets()}")
 
-    def _load_planetoid(self, name: str):
+    def _load_planetoid(self, name: str, device = "cuda"):
         """Load and process Planetoid dataset."""
+        DEVICE = device
         dataset_path = self._get_dataset_path(name)
         dataset = Planetoid(root=dataset_path, name=name)
         data = dataset[0].to(DEVICE)
         return data, dataset
 
-    def _load_facebook(self):
+    def _load_facebook(self, device = "cuda"):
         """Load and process Facebook dataset."""
+        DEVICE = device
         dataset_path = self._get_dataset_path("FacebookPagePage")
         dataset = FacebookPagePage(root=dataset_path)
         data = dataset[0]
@@ -113,8 +114,9 @@ class GraphDataset:
         data.test_mask = range(20001, 22470)
         return data.to(DEVICE), dataset
 
-    def _load_ogb(self, name: str):
+    def _load_ogb(self, name: str, device = "cuda"):
         """Load and process OGB dataset."""
+        DEVICE = device
         dataset_path = self._get_dataset_path(name)
         dataset = PygNodePropPredDataset(name=name, root=dataset_path)
         data = dataset[0]

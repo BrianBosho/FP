@@ -5,7 +5,7 @@ from torch_geometric.utils import k_hop_subgraph
 from dataprocessing.data_utils import propagate_features
 # from utils import propagate_features
 
-DEVICE =  "cpu"
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float) -> list:
     """
@@ -42,10 +42,11 @@ def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int
         split_data_indexes.append(idx_batch[j])
     return split_data_indexes
 
-def create_subgraph(data: Data, node_indices: torch.Tensor) -> Data:
+def create_subgraph(data: Data, node_indices: torch.Tensor, device = "cuda") -> Data:
     """
     Creates a simple subgraph containing ONLY the specified nodes and their direct connections.
     """
+    DEVICE = device
     # Process on CPU first
     node_indices = node_indices.cpu() if isinstance(node_indices, torch.Tensor) else torch.tensor(node_indices, device='cpu')
     node_mask = torch.zeros(data.num_nodes, dtype=torch.bool, device='cpu')
@@ -70,16 +71,17 @@ def create_subgraph(data: Data, node_indices: torch.Tensor) -> Data:
         test_mask=data.test_mask.cpu()[node_mask].to(DEVICE)
     )
 
-def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int) -> tuple[Data, torch.Tensor, torch.Tensor]:
+def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int, device = "cuda") -> tuple[Data, torch.Tensor, torch.Tensor]:
     """
     Creates a k-hop subgraph with zeroed features for non-original nodes.
     """
+    DEVICE = device
     # Move everything to CPU for processing
     edge_index_cpu = data.edge_index.cpu()
     node_indices_cpu = node_indices.cpu() if isinstance(node_indices, torch.Tensor) else torch.tensor(node_indices)
     
     # Get k-hop subgraph
-    subset, edge_index, _, _ = k_hop_subgraph(node_indices_cpu, num_hops, edge_index_cpu, relabel_nodes=False)
+    subset, edge_index, mapping, _ = k_hop_subgraph(node_indices_cpu, num_hops, edge_index_cpu, relabel_nodes=True)
     
     # Create node mapping on CPU
     node_map = torch.zeros(data.num_nodes, dtype=torch.long)
@@ -105,7 +107,7 @@ def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int)
         test_mask=data.test_mask.cpu()[subset].to(DEVICE)
     )
 
-    return subgraph, node_map.to(DEVICE), subset_mask.to(DEVICE)
+    return subgraph, node_map.to(DEVICE), subset_mask.to(DEVICE), mapping.to(DEVICE)
 
 def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list, 
                        num_clients: int, L_hop: int, idx_train: torch.Tensor, 
@@ -138,12 +140,13 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
     return communicate_indexes, [], []
 
 
-def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0, 
+def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
                   use_feature_prop: bool = False) -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
     """
     # Move data to CPU for initial processing
+    DEVICE = device
     labels = data.y.cpu().numpy()
     N = len(labels)
     K = len(np.unique(labels))
@@ -153,31 +156,32 @@ def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0,
     
     # Create test data
     initial_subgraphs = [create_subgraph(data, indices) for indices in split_data_indexes]
-    
-    # Create client data
-    clients_data = []
-    for i in range(num_clients):
-        # Create k-hop subgraph
-        subgraph, node_map, original_nodes_mask = create_k_hop_subgraph(data, split_data_indexes[i], hop)
-        
-        if use_feature_prop:
-            # Apply feature propagation
-            zero_vector_mask = (subgraph.x == 0).all(dim=1)
-            non_zero_vector_mask = ~zero_vector_mask
-            subgraph.x = propagate_features(subgraph.x, subgraph.edge_index, non_zero_vector_mask)
-                
-        clients_data.append(subgraph)
 
-    final_subgraphs = []
-    for i in range(num_clients):
-        final_subgraphs.append(prepare_expanded_subgraph_for_propagation(initial_subgraphs[i], clients_data[i], split_data_indexes[i]))
-    
-    # apply feature propagation to final subgraphs if use_feature_prop is True
-    if use_feature_prop:
+    if hop > 0:
+        # get k-hop subgraph for each client
+        k_hop_subgraphs = []
         for i in range(num_clients):
-            zero_vector_mask = (final_subgraphs[i].x == 0).all(dim=1)
+            k_hop_subgraphs.append(create_k_hop_subgraph(data, split_data_indexes[i], hop))
+
+        # prepare expanded subgraph for feature propagation
+        clients_data = []
+        for i in range(num_clients):
+            subgraph, node_map, original_nodes_mask, mapping = k_hop_subgraphs[i]
+            clients_data.append(prepare_expanded_subgraph_for_propagation(initial_subgraphs[i], subgraph, mapping))
+    else:
+        clients_data = initial_subgraphs    
+   
+    if use_feature_prop:
+        # apply feature propagation to final subgraphs if use_feature_prop is True
+        final_subgraphs = []
+        for i in range(num_clients):
+            zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
             non_zero_vector_mask = ~zero_vector_mask
-            final_subgraphs[i].x = propagate_features(final_subgraphs[i].x, final_subgraphs[i].edge_index, non_zero_vector_mask)
+            clients_data[i].x = propagate_features(clients_data[i].x, clients_data[i].edge_index, non_zero_vector_mask, DEVICE)
+            final_subgraphs.append(clients_data[i])
+
+    else:
+        final_subgraphs = clients_data
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 

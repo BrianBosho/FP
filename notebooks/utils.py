@@ -2,11 +2,12 @@ import torch
 from torch import Tensor
 from torch_geometric.data import Data
 
-DEVICE =  "cpu"
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Feature Propagation Functions
-def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int) -> Tensor:
+def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int, device = "cuda") -> Tensor:
     """Get symmetrically normalized adjacency matrix for feature propagation."""
+    DEVICE = device
     edge_index, edge_weight = get_symmetrically_normalized_adjacency(edge_index, n_nodes)
     edge_index = edge_index.to(DEVICE)
     edge_weight = edge_weight.to(DEVICE)
@@ -15,11 +16,12 @@ def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int) -> Tenso
         size=(n_nodes, n_nodes)
     ).to(DEVICE)
 
-def monte_carlo_random_walk(edge_index, num_nodes, walk_length=5, num_walks=10):
+def monte_carlo_random_walk(edge_index, num_nodes, walk_length=5, num_walks=10, device = "cuda"):
     """
     Compute the random walk-based propagation matrix.
     Each node starts multiple random walks and we estimate transition probabilities.
     """
+    DEVICE = device
     row, col = edge_index[0], edge_index[1]
     transition_matrix = torch.zeros((num_nodes, num_nodes), dtype=torch.float, device=DEVICE)
 
@@ -59,7 +61,7 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
         mask[idx] = True
     return mask
 
-def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, num_iterations: int = 50) -> Tensor:
+def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, num_iterations: int = 50, device = "cuda") -> Tensor:
     """
     Propagate features through the graph.
     
@@ -72,6 +74,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, num_iteratio
     Returns:
         Propagated feature matrix
     """
+    DEVICE = device
     x = x.to(DEVICE)
     mask = mask.bool().to(DEVICE)
     edge_index = edge_index.to(DEVICE)

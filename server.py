@@ -4,8 +4,9 @@ from train import evaluate, test
 
 
 class Server():
-    def __init__(self, clients, model) -> None:
-        self.DEVICE =  "cpu"
+    def __init__(self, clients, model, device) -> None:
+        self.DEVICE = device
+        self.device = self.DEVICE
         self.clients = clients
         self.model = model.to(self.device)
         self.num_of_trainers = len(clients)
