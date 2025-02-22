@@ -32,11 +32,12 @@ def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int, device =
         size=(n_nodes, n_nodes)
     ).to(DEVICE)
 
-def monte_carlo_random_walk(edge_index, num_nodes, walk_length=5, num_walks=10):
+def monte_carlo_random_walk(edge_index, num_nodes, device, walk_length=5, num_walks=10):
     """
     Compute the random walk-based propagation matrix.
     Each node starts multiple random walks and we estimate transition probabilities.
     """
+    DEVICE = device
     row, col = edge_index[0], edge_index[1]
     transition_matrix = torch.zeros((num_nodes, num_nodes), dtype=torch.float, device=DEVICE)
 
@@ -91,8 +92,8 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
 
     # Compute propagation matrix once
     n_nodes = x.size(0)
-    adj = get_propagation_matrix(out, edge_index, n_nodes, device)
-    
+    # adj = get_propagation_matrix(out, edge_index, n_nodes, device)
+    adj = monte_carlo_random_walk(edge_index, n_nodes, device, walk_length=5, num_walks=10)
     # Track previous iteration for convergence
     prev_out = None
     
