@@ -107,6 +107,11 @@ def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int,
         test_mask=data.test_mask.cpu()[subset].to(DEVICE)
     )
 
+    reset_masks = True
+
+    if reset_masks:
+        subgraph = reset_subgraph_features2(subgraph, mapping)
+
     return subgraph, node_map.to(DEVICE), subset_mask.to(DEVICE), mapping.to(DEVICE)
 
 def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list, 
@@ -151,6 +156,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     N = len(labels)
     K = len(np.unique(labels))
 
+
     # Get initial partition
     split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
     
@@ -159,15 +165,12 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     if hop > 0:
         # get k-hop subgraph for each client
-        k_hop_subgraphs = []
-        for i in range(num_clients):
-            k_hop_subgraphs.append(create_k_hop_subgraph(data, split_data_indexes[i], hop, device))
-
-        # prepare expanded subgraph for feature propagation
         clients_data = []
         for i in range(num_clients):
-            subgraph, node_map, original_nodes_mask, mapping = k_hop_subgraphs[i]
-            clients_data.append(prepare_expanded_subgraph_for_propagation(initial_subgraphs[i], subgraph, mapping))
+            subgraph, node_map, original_nodes_mask, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device)
+            clients_data.append(subgraph)
+        
+        # clients_data = k_hop_subgraphs
     else:
         clients_data = initial_subgraphs    
    
@@ -185,89 +188,99 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 
-# def partition_data(data: Data, num_clients: int, beta: float, hop: int = 0, 
-#                   use_feature_prop: bool = False) -> tuple[list, list, dict]:
-#     """
-#     Main partitioning function that handles both feature propagation and non-feature propagation cases.
-#     """
-#     # Move data to CPU for initial processing
-#     labels = data.y.cpu().numpy()
-#     N = len(labels)
-#     K = len(np.unique(labels))
+def reset_subgraph_features(subset_data: Data, mapping: torch.Tensor) -> Data:
 
-#     # Get initial partition
-#     split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
+    """
+    Reset features of non-original nodes to zero while maintaining graph structure and masks.
     
-#     # Create test data
-#     test_data = [create_subgraph(data, indices) for indices in split_data_indexes]
+    Args:
+        subset_data (Data): PyG Data object containing the subgraph
+        mapping (torch.Tensor): Tensor containing indices of original nodes in the subgraph
     
-#     # Track metrics for first client
-#     client_metrics = {
-#         'Initial number of nodes': len(split_data_indexes[0]),
-#         'K-hop value': hop
-#     }
+    Returns:
+        Data: New PyG Data object with reset features for non-original nodes
+    """
+    # Create mask for original nodes in the subgraph
+    subset_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+    subset_mask[mapping] = True
     
-#     # Get communication indexes if using hops
-#     # if hop > 0:
-#     #     communicate_indexes, _, _ = get_in_comm_indexes(
-#     #         data.edge_index, 
-#     #         split_data_indexes, 
-#     #         num_clients, 
-#     #         hop, 
-#     #         data.train_mask, 
-#     #         data.test_mask
-#     #     )
-#     #     client_metrics['Number of nodes after subgraph expansion'] = len(communicate_indexes[0])
-#     # else:
-#     #     communicate_indexes = split_data_indexes
-#     communicate_indexes = split_data_indexes
-       
+    # Initialize tensors with zeros, maintaining the original size
+    reset_x = torch.zeros_like(subset_data.x)
+    reset_y = torch.zeros_like(subset_data.y)
+    
+    # Copy only the original nodes' data, leaving others as zeros
+    reset_x[subset_mask] = subset_data.x[subset_mask]
+    reset_y[subset_mask] = subset_data.y[subset_mask]
+    
+    # Clone original masks
+    reset_train_mask = subset_data.train_mask.clone()
+    reset_val_mask = subset_data.val_mask.clone()
+    reset_test_mask = subset_data.test_mask.clone()
+    
+    # Create new Data object
+    reset_data = Data(
+        x=reset_x,
+        y=reset_y,
+        train_mask=reset_train_mask,
+        val_mask=reset_val_mask,
+        test_mask=reset_test_mask,
+        edge_index=subset_data.edge_index,
+        mapping=mapping
+    )
+    
+    return reset_data
 
-#     # Create client data
-#     clients_data = []
-#     for i in range(num_clients):
-#         # Always create k-hop subgraph first
-#         subgraph, node_map, original_nodes_mask = create_k_hop_subgraph(data, communicate_indexes[i], hop)
-#         #
-        
-#         if i == 0:  # Track metrics for first client before FP
-#             zero_vectors_before = (subgraph.x == 0).all(dim=1).sum().item()
-            
-#             total_nodes = subgraph.num_nodes
-#             client_metrics.update({
-#                 'Number of nodes after subgraph expansion': subgraph.num_nodes,
-#                 'Zero feature vectors before FP': zero_vectors_before,
-#                 'Non-zero feature vectors before FP': subgraph.num_nodes - zero_vectors_before,
-#                 'Percentage of zero vectors before FP': f"{(zero_vectors_before/total_nodes)*100:.2f}%"
-#             })
-        
-#         if use_feature_prop:
-#             # Apply feature propagation
-#             zero_vector_mask = (subgraph.x == 0).all(dim=1)
-#             non_zero_vector_mask = ~zero_vector_mask
-#             subgraph.x = propagate_features(subgraph.x, subgraph.edge_index, non_zero_vector_mask)
-            
-#             if i == 0:  # Track metrics for first client after FP
-#                 zero_vectors_after = (subgraph.x == 0).all(dim=1).sum().item()
-#                 client_metrics.update({
-#                     'Number of nodes after feature propagation': subgraph.num_nodes,
-#                     'Zero feature vectors after FP': zero_vectors_after,
-#                     'Non-zero feature vectors after FP': subgraph.num_nodes - zero_vectors_after,
-#                     'Percentage of zero vectors after FP': f"{(zero_vectors_after/subgraph.num_nodes)*100:.2f}%"
-#                 })
-#         else:
-#             if i == 0:  # Track metrics for first client (no FP)
-#                 client_metrics.update({
-#                     'Number of nodes after feature propagation': subgraph.num_nodes,
-#                     'Zero feature vectors': zero_vectors_before,
-#                     'Non-zero feature vectors': subgraph.num_nodes - zero_vectors_before,
-#                     'Percentage of zero vectors': f"{(zero_vectors_before/total_nodes)*100:.2f}%"
-#                 })
-                
-#         clients_data.append(subgraph)
 
-#     return clients_data, test_data,  split_data_indexes
+def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor) -> Data:
+    """
+    Reset features of non-original nodes to zero while maintaining graph structure and masks.
+    Only original nodes specified in the mapping will be used for train/val/test splits.
+    
+    Args:
+        subset_data (Data): PyG Data object containing the subgraph
+        mapping (torch.Tensor): Tensor containing indices of original nodes in the subgraph
+    
+    Returns:
+        Data: New PyG Data object with reset features for non-original nodes
+    """
+    # Create mask for original nodes in the subgraph
+    subset_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+    subset_mask[mapping] = True
+    
+    # Initialize tensors with zeros, maintaining the original size
+    reset_x = torch.zeros_like(subset_data.x)
+    reset_y = torch.zeros_like(subset_data.y)
+    
+    # Copy only the original nodes' data, leaving others as zeros
+    reset_x[subset_mask] = subset_data.x[subset_mask]
+    reset_y[subset_mask] = subset_data.y[subset_mask]
+    
+    # Create new masks based on the mapping
+    reset_train_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+    reset_val_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+    reset_test_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
 
+    # Set the masks for original nodes only
+    for orig_idx in mapping:
+        if subset_data.train_mask[orig_idx]:
+            reset_train_mask[orig_idx] = True
+        if subset_data.val_mask[orig_idx]:
+            reset_val_mask[orig_idx] = True
+        if subset_data.test_mask[orig_idx]:
+            reset_test_mask[orig_idx] = True
+    
+    # Create new Data object
+    reset_data = Data(
+        x=reset_x,
+        y=reset_y,
+        train_mask=reset_train_mask,
+        val_mask=reset_val_mask,
+        test_mask=reset_test_mask,
+        edge_index=subset_data.edge_index,
+        mapping=mapping
+    )
+    
+    return reset_data
 def prepare_expanded_subgraph_for_propagation(original_subgraph: Data, expanded_subgraph: Data, mapping: torch.Tensor):
     """
     Prepares expanded subgraph for feature propagation by:
