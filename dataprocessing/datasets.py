@@ -36,10 +36,12 @@ class GraphDataset:
         "ogb": ["ogbn-arxiv"]
     }
 
-    def __init__(self):
+    def __init__(self, device = "cuda"):
         self.data = None
         self.dataset = None
         self.config = load_config()
+        self.device = device
+
         
         # Create dataset directories if they don't exist
         for path in [
@@ -72,7 +74,7 @@ class GraphDataset:
         else:
             raise ValueError(f"Dataset {name} not supported")
 
-    def load_dataset(self, name: str) -> Tuple[torch_geometric.data.Data, object]:
+    def load_dataset(self, name: str, device) -> Tuple[torch_geometric.data.Data, object]:
         """
         Load any supported dataset with consistent structure.
         
@@ -86,15 +88,15 @@ class GraphDataset:
         name_lower = name.lower()
         
         if name in self.SUPPORTED_DATASETS["planetoid"]:
-            return self._load_planetoid(name)
+            return self._load_planetoid(name, device)
         elif name in self.SUPPORTED_DATASETS["facebook"]:
-            return self._load_facebook()
+            return self._load_facebook(device)
         elif name in self.SUPPORTED_DATASETS["ogb"]:
-            return self._load_ogb(name)
+            return self._load_ogb(name, device)
         else:
             raise ValueError(f"Dataset {name} not supported. Available datasets: {self.get_available_datasets()}")
 
-    def _load_planetoid(self, name: str, device = "cuda"):
+    def _load_planetoid(self, name: str, device):
         """Load and process Planetoid dataset."""
         DEVICE = device
         dataset_path = self._get_dataset_path(name)

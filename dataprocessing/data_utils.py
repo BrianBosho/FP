@@ -76,37 +76,76 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
         mask[idx] = True
     return mask
 
-def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 50) -> Tensor:
+def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 10) -> Tensor:
     """
-    Propagate features through the graph.
+    Improved feature propagation with better stability
     """
     DEVICE = device
     x = x.to(DEVICE)
     mask = mask.bool().to(DEVICE)
     edge_index = edge_index.to(DEVICE)
 
-    if mask is not None:
-        out = torch.zeros_like(x)
-        out[mask] = x[mask]
-    else:
-        out = x.clone()
+    # Initialize output tensor
+    out = torch.zeros_like(x)
+    out[mask] = x[mask]
 
+    # Compute propagation matrix once
     n_nodes = x.size(0)
+    adj = get_propagation_matrix(out, edge_index, n_nodes, device)
     
-    # Debug information
-    # print(f"Feature matrix shape: {x.shape}")
-    # print(f"Edge index shape: {edge_index.shape}")
-    # print(f"Edge index max before remapping: {edge_index.max().item()}")
-    # print(f"Number of nodes: {n_nodes}")
+    # Track previous iteration for convergence
+    prev_out = None
     
-    adj = get_propagation_matrix(out, edge_index, n_nodes)
-    
-    for _ in range(num_iterations):
-        # Diffuse current features
-        out = torch.sparse.mm(adj, out)
-        # number of nodes with zero features
-        zero_features = (out == 0).sum().item()
-        # print(f"Number of nodes with zero features: {zero_features}")
+    for i in range(num_iterations):
+        # Diffuse features
+        new_out = torch.sparse.mm(adj, out)
+        
+        # Combine with original features (weighted combination)
+        alpha = 0.8  # Retention rate for original features
+        out = alpha * new_out + (1 - alpha) * out
+        
         # Reset original known features
         out[mask] = x[mask]
+        
+        # Check for convergence
+        if prev_out is not None and torch.allclose(out, prev_out, rtol=1e-5):
+            break
+            
+        prev_out = out.clone()
+    
     return out
+
+# def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 5) -> Tensor:
+#     """
+#     Propagate features through the graph.
+#     """
+#     DEVICE = device
+#     x = x.to(DEVICE)
+#     mask = mask.bool().to(DEVICE)
+#     edge_index = edge_index.to(DEVICE)
+
+#     if mask is not None:
+#         out = torch.zeros_like(x)
+#         out[mask] = x[mask]
+#     else:
+#         out = x.clone()
+
+#     n_nodes = x.size(0)
+    
+#     # Debug information
+#     # print(f"Feature matrix shape: {x.shape}")
+#     # print(f"Edge index shape: {edge_index.shape}")
+#     # print(f"Edge index max before remapping: {edge_index.max().item()}")
+#     # print(f"Number of nodes: {n_nodes}")
+    
+#     adj = get_propagation_matrix(out, edge_index, n_nodes, device)
+    
+#     for _ in range(num_iterations):
+#         # Diffuse current features
+#         out = torch.sparse.mm(adj, out)
+#         # number of nodes with zero features
+#         zero_features = (out == 0).sum().item()
+#         # print(f"Number of nodes with zero features: {zero_features}")
+#         # Reset original known features
+#         out[mask] = x[mask]
+#     return out

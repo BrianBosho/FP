@@ -85,7 +85,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         tuple: A tuple containing the final global test results and the average client test results.
     """
     DEVICE = device
-    ray.init(num_gpus=1)
+    ray.init(num_cpus=4)
+    # ray.init(num_gpus=4)
     print(f"data_loading_option: {data_loading_option}")
 
     data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop)
@@ -133,7 +134,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     output += f"Data loading option is {data_loading_option}\n"
     output += f"Model type is {model_type}\n"
 
-    for i in range(2):  # Change 1 to the desired number of repetitions
+    for i in range(5):  # Change 1 to the desired number of repetitions
         global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1)
         test_results.append(global_results)
         client_test_results.append(client_results)

@@ -155,13 +155,13 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
     
     # Create test data
-    initial_subgraphs = [create_subgraph(data, indices) for indices in split_data_indexes]
+    initial_subgraphs = [create_subgraph(data, indices, device) for indices in split_data_indexes]
 
     if hop > 0:
         # get k-hop subgraph for each client
         k_hop_subgraphs = []
         for i in range(num_clients):
-            k_hop_subgraphs.append(create_k_hop_subgraph(data, split_data_indexes[i], hop))
+            k_hop_subgraphs.append(create_k_hop_subgraph(data, split_data_indexes[i], hop, device))
 
         # prepare expanded subgraph for feature propagation
         clients_data = []
@@ -268,57 +268,55 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
 #     return clients_data, test_data,  split_data_indexes
 
-def prepare_expanded_subgraph_for_propagation(original_subgraph: Data, expanded_subgraph: Data, original_indices: torch.Tensor):
+def prepare_expanded_subgraph_for_propagation(original_subgraph: Data, expanded_subgraph: Data, mapping: torch.Tensor):
     """
     Prepares expanded subgraph for feature propagation by:
     - Zeroing features of new nodes (non-original nodes)
-    - Setting appropriate masks (only original nodes used for training)
+    - Setting appropriate masks based on original node mappings
     - Maintaining original features and labels for initial nodes
+    
+    Args:
+        original_subgraph: The initial subgraph containing only the original nodes
+        expanded_subgraph: The k-hop expanded subgraph
+        mapping: Tensor mapping original node indices to their positions in expanded subgraph
+                (returned by k_hop_subgraph)
     """
     # Determine device from original subgraph
     device = original_subgraph.x.device
     
-    # Get the mapping of original nodes in the expanded graph
-    original_nodes_mask = torch.zeros(expanded_subgraph.num_nodes, dtype=torch.bool, device=device)
-    
-    # The k_hop_subgraph function returns nodes in order where original nodes come first
-    # This is guaranteed by the relabel_nodes=True parameter
-    original_nodes_mask[:len(original_indices)] = True
-    
-    # Print some verification info
-    # print(f"Original nodes: {len(original_indices)}")
-    # print(f"Expanded nodes: {expanded_subgraph.num_nodes}")
-    # print(f"Original nodes in expanded graph: {original_nodes_mask.sum().item()}")
-    
     # Create new feature matrix (all zeros initially)
     new_x = torch.zeros_like(expanded_subgraph.x, device=device)
-    # Copy original features for original nodes
-    new_x[original_nodes_mask] = original_subgraph.x
     
-    # Create new masks (only original nodes are used for training)
+    # Create new masks (all False initially)
     new_train_mask = torch.zeros(expanded_subgraph.num_nodes, dtype=torch.bool, device=device)
     new_val_mask = torch.zeros(expanded_subgraph.num_nodes, dtype=torch.bool, device=device)
     new_test_mask = torch.zeros(expanded_subgraph.num_nodes, dtype=torch.bool, device=device)
     
-    # Copy original masks for original nodes
-    new_train_mask[original_nodes_mask] = original_subgraph.train_mask
-    new_val_mask[original_nodes_mask] = original_subgraph.val_mask
-    new_test_mask[original_nodes_mask] = original_subgraph.test_mask
+    # Create original nodes mask
+    original_nodes_mask = torch.zeros(expanded_subgraph.num_nodes, dtype=torch.bool, device=device)
+    original_nodes_mask[mapping] = True
+    
+    # Copy features and labels only for original nodes using the mapping
+    new_x[mapping] = original_subgraph.x
     
     # Create new labels (zeros for new nodes)
     new_y = torch.zeros(expanded_subgraph.num_nodes, dtype=expanded_subgraph.y.dtype, device=device)
-    new_y[original_nodes_mask] = original_subgraph.y
+    new_y[mapping] = original_subgraph.y
+    
+    # Copy masks only for original nodes using the mapping
+    new_train_mask[mapping] = original_subgraph.train_mask
+    new_val_mask[mapping] = original_subgraph.val_mask
+    new_test_mask[mapping] = original_subgraph.test_mask
     
     # Create new Data object
     prepared_subgraph = Data(
         x=new_x,
-        edge_index=expanded_subgraph.edge_index.to(device),  # Ensure edge_index is also on correct device
+        edge_index=expanded_subgraph.edge_index.to(device),
         y=new_y,
         train_mask=new_train_mask,
         val_mask=new_val_mask,
-        test_mask=new_test_mask
+        test_mask=new_test_mask,
+        original_nodes_mask=original_nodes_mask  # Adding this for potential future use
     )
     
     return prepared_subgraph
-
-

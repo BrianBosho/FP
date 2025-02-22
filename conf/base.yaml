@@ -1,6 +1,6 @@
 num_clients: 10
-num_rounds: 100
-epochs: 3
+num_rounds: 30
+epochs: 5
 beta: 10000
 lr: 0.5
 paths:

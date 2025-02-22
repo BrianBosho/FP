@@ -5,7 +5,8 @@ import torch
 
 gpu_nums = 1/10
 
-@ray.remote(num_gpus=gpu_nums)
+# @ray.remote(num_gpus=gpu_nums)
+@ray.remote(num_cpus=0.25)
 class FLClient:
     def __init__(self, data, dataset, client_id, cfg, device, model_type="GCN"):
         self.DEVICE = device
