@@ -77,7 +77,7 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
         mask[idx] = True
     return mask
 
-def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 10) -> Tensor:
+def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 50) -> Tensor:
     """
     Improved feature propagation with better stability
     """
@@ -92,8 +92,8 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
 
     # Compute propagation matrix once
     n_nodes = x.size(0)
-    # adj = get_propagation_matrix(out, edge_index, n_nodes, device)
-    adj = monte_carlo_random_walk(edge_index, n_nodes, device, walk_length=5, num_walks=10)
+    adj = get_propagation_matrix(out, edge_index, n_nodes, device)
+    # adj = monte_carlo_random_walk(edge_index, n_nodes, device, walk_length=5, num_walks=10)
     # Track previous iteration for convergence
     prev_out = None
     
@@ -102,7 +102,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
         new_out = torch.sparse.mm(adj, out)
         
         # Combine with original features (weighted combination)
-        alpha = 0.8  # Retention rate for original features
+        alpha = 1  # Retention rate for original features
         out = alpha * new_out + (1 - alpha) * out
         
         # Reset original known features
@@ -128,7 +128,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
 #     if mask is not None:
 #         out = torch.zeros_like(x)
 #         out[mask] = x[mask]
-#     else:
+#     else: 
 #         out = x.clone()
 
 #     n_nodes = x.size(0)

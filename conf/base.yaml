@@ -1,7 +1,7 @@
 num_clients: 10
-num_rounds: 30
-epochs: 5
-beta: 10000
+num_rounds: 100
+epochs: 3
+beta: 1
 lr: 0.5
 paths:
   datasets_dir: "datasets"

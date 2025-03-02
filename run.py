@@ -85,8 +85,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         tuple: A tuple containing the final global test results and the average client test results.
     """
     DEVICE = device
-    ray.init(num_cpus=4)
-    # ray.init(num_gpus=4)
+    # ray.init(num_cpus=4)
+    ray.init(num_gpus=1)
     print(f"data_loading_option: {data_loading_option}")
 
     data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop)
@@ -130,9 +130,23 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
-    output = f"DEVICE: {DEVICE}\n"
-    output += f"Data loading option is {data_loading_option}\n"
-    output += f"Model type is {model_type}\n"
+    
+    # Create a dictionary to store all results
+    results_data = {
+        "experiment_config": {
+            "device": str(DEVICE),
+            "data_loading_option": data_loading_option,
+            "model_type": model_type,
+            "dataset": dataset_name,
+            "num_clients": clients_num,
+            "beta": beta,
+            "hop": hop
+        },
+        "rounds": []
+    }
+    
+    print(f"Data loading option is {data_loading_option}")
+    print(f"Model type is {model_type}")
 
     for i in range(5):  # Change 1 to the desired number of repetitions
         global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1)
@@ -140,6 +154,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         client_test_results.append(client_results)
         print(f"Round {i+1} is complete")
         
+        # Store round results in the dictionary
+        results_data["rounds"].append({
+            "round": i+1,
+            "global_result": float(global_results),
+            "client_result": float(client_results)
+        })
       
     
     print(f"The global test results: {test_results}")
@@ -156,6 +176,20 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     print(f"The standad deviation global is: {std_global}")
     print(f"The standad deviation client is: {std_client}")
 
+    # Add summary statistics to the results dictionary
+    results_data["summary"] = {
+        "global_results": [float(x) for x in test_results],
+        "client_results": [float(x) for x in client_test_results],
+        "average_global_result": float(average_global_results),
+        "average_client_result": float(average_client_results),
+        "std_global": float(std_global),
+        "std_client": float(std_client)
+    }
+
+    # Also create a text output for backward compatibility
+    output = f"DEVICE: {DEVICE}\n"
+    output += f"Data loading option is {data_loading_option}\n"
+    output += f"Model type is {model_type}\n"
     output += f"\nFinal Results:\n"
     output += f"The global test results: {test_results}\n"
     output += f"The client test results: {client_test_results}\n"
@@ -163,7 +197,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     output += f"The average client test results: {average_client_results}\n"
     output += f"The standard deviation global is: {std_global}\n"
     output += f"The standard deviation client is: {std_client}\n"
-
-    return output
+    
+    # Return both structured data and text output
+    return results_data, output
     
     
