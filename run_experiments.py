@@ -114,7 +114,8 @@ def run_single_experiment(
     cfg,
     hop,
     output_dir,
-    logger
+    logger,
+    fulltraining_flag
 ):
     """Run a single experiment with the specified parameters"""
     logger.info(f"Running experiment with the following parameters:")
@@ -123,7 +124,7 @@ def run_single_experiment(
     logger.info(f"  - Data loading: {data_loading_option}")
     logger.info(f"  - Number of clients: {num_clients}")
     logger.info(f"  - Hop: {hop}")
-    
+    logger.info(f"  - Full training flag: {fulltraining_flag}")
     # Create a structured directory for the experiment
     result_name = f"{dataset_name}_{data_loading_option}_{model_type}"
     results_dir = os.path.join(output_dir, result_name)
@@ -137,7 +138,8 @@ def run_single_experiment(
         model_type=model_type,
         cfg=cfg,
         dataset_name=dataset_name,
-        hop=hop
+        hop=hop,
+        fulltraining_flag=fulltraining_flag
     )
     
     # Create a unique timestamp for the files
@@ -211,14 +213,17 @@ def run_all_experiments(args, logger):
     # Define lists of options
     datasets = ["Cora", "Citeseer", "Pubmed"]  # Add more datasets if available
     data_loading_options = [
-        "split_dataset", 
-        "split_dataset_with_khop", 
-        "split_dataset_with_feature_prop"
+        "zero_hop",
+        "khop_zero",
+        "khop_propagation",
+        "khop_full",
+        "khop_monte_carlo"
     ]
     model_types = ["GCN", "GAT"]
     
     # Load configuration
     clients_num, beta, cfg = load_configuration(args.config_path)
+    fulltraining = cfg["fulltraining_flag"]
     
     # Override number of clients if specified
     if args.num_clients:
@@ -246,7 +251,8 @@ def run_all_experiments(args, logger):
                         cfg=cfg,
                         hop=args.hop,
                         output_dir=main_output_dir,
-                        logger=logger
+                        logger=logger,
+                        fulltraining_flag=fulltraining
                     )
                     results_summary.append({
                         "dataset": dataset_name,

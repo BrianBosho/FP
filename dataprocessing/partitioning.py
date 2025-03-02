@@ -71,7 +71,7 @@ def create_subgraph(data: Data, node_indices: torch.Tensor, device = "cuda") -> 
         test_mask=data.test_mask.cpu()[node_mask].to(DEVICE)
     )
 
-def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int, device = "cuda") -> tuple[Data, torch.Tensor, torch.Tensor]:
+def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int, device = "cuda", full_data: bool = False, fulltraining_flag: bool = True) -> tuple[Data, torch.Tensor, torch.Tensor]:
     """
     Creates a k-hop subgraph with zeroed features for non-original nodes.
     """
@@ -87,19 +87,11 @@ def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int,
     node_map = torch.zeros(data.num_nodes, dtype=torch.long)
     node_map[subset] = torch.arange(len(subset))
     
-    # Initialize features of all nodes to zero on CPU
-    x = torch.zeros_like(data.x[subset].cpu())
+    # Skip feature initialization here since it will be done in reset_subgraph_features2
     
-    # Create mask for original nodes on CPU
-    subset_mask = torch.zeros(len(subset), dtype=torch.bool)
-    subset_mask[torch.isin(subset, node_indices_cpu)] = True
-    
-    # Set features for original nodes
-    x[subset_mask] = data.x.cpu()[subset][subset_mask]
-    
-    # Create subgraph with everything moved to the specified device
+    # Create a basic subgraph with all data
     subgraph = Data(
-        x=x.to(DEVICE),
+        x=data.x.cpu()[subset].to(DEVICE),  # We'll reset these features in reset_subgraph_features2
         edge_index=edge_index.to(DEVICE),
         y=data.y.cpu()[subset].to(DEVICE),
         train_mask=data.train_mask.cpu()[subset].to(DEVICE),
@@ -107,12 +99,10 @@ def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int,
         test_mask=data.test_mask.cpu()[subset].to(DEVICE)
     )
 
-    reset_masks = True
+    # Reset features and masks based on original nodes
+    subgraph = reset_subgraph_features2(subgraph, mapping, full_data, fulltraining_flag)
 
-    if reset_masks:
-        subgraph = reset_subgraph_features2(subgraph, mapping)
-
-    return subgraph, node_map.to(DEVICE), subset_mask.to(DEVICE), mapping.to(DEVICE)
+    return subgraph, node_map.to(DEVICE), mapping.to(DEVICE)
 
 def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list, 
                        num_clients: int, L_hop: int, idx_train: torch.Tensor, 
@@ -146,7 +136,7 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
-                  use_feature_prop: bool = False) -> tuple[list, list, list]:
+                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, mode: str = "propagation") -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
     """
@@ -167,7 +157,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         # get k-hop subgraph for each client
         clients_data = []
         for i in range(num_clients):
-            subgraph, node_map, original_nodes_mask, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device)
+            subgraph, node_map, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device, full_data, fulltraining_flag)
             clients_data.append(subgraph)
         
         # clients_data = k_hop_subgraphs
@@ -180,7 +170,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         for i in range(num_clients):
             zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
             non_zero_vector_mask = ~zero_vector_mask
-            clients_data[i].x = propagate_features(clients_data[i].x, clients_data[i].edge_index, non_zero_vector_mask, DEVICE)
+            clients_data[i].x = propagate_features(clients_data[i].x, clients_data[i].edge_index, non_zero_vector_mask, DEVICE, mode=mode)
             final_subgraphs.append(clients_data[i])
 
     else:
@@ -231,7 +221,7 @@ def reset_subgraph_features(subset_data: Data, mapping: torch.Tensor) -> Data:
     return reset_data
 
 
-def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor) -> Data:
+def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor, full_data: bool = True, fulltraining_flag: bool = True) -> Data:
     """
     Reset features of non-original nodes to zero while maintaining graph structure and masks.
     Only original nodes specified in the mapping will be used for train/val/test splits.
@@ -239,6 +229,8 @@ def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor) -> Data:
     Args:
         subset_data (Data): PyG Data object containing the subgraph
         mapping (torch.Tensor): Tensor containing indices of original nodes in the subgraph
+        full_data (bool, optional): If True, keep all node features. If False, zero out non-original nodes. Default is False.
+        fulltraining_flag (bool, optional): If True, use all masks from k-hop subgraph. If False, restrict to original nodes. Default is False.
     
     Returns:
         Data: New PyG Data object with reset features for non-original nodes
@@ -247,27 +239,37 @@ def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor) -> Data:
     subset_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
     subset_mask[mapping] = True
     
-    # Initialize tensors with zeros, maintaining the original size
-    reset_x = torch.zeros_like(subset_data.x)
-    reset_y = torch.zeros_like(subset_data.y)
+    if full_data:
+        # Keep all features as they are
+        reset_x = subset_data.x.clone()
+        reset_y = subset_data.y.clone()
+    else:
+        reset_y = subset_data.y.clone()
+        # Initialize with zeros and only copy original nodes' data
+        reset_x = torch.zeros_like(subset_data.x)
+       # reset_y = torch.zeros_like(subset_data.y)
+        reset_x[subset_mask] = subset_data.x[subset_mask]
+        #reset_y[subset_mask] = subset_data.y[subset_mask]
     
-    # Copy only the original nodes' data, leaving others as zeros
-    reset_x[subset_mask] = subset_data.x[subset_mask]
-    reset_y[subset_mask] = subset_data.y[subset_mask]
-    
-    # Create new masks based on the mapping
-    reset_train_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
-    reset_val_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
-    reset_test_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+    if fulltraining_flag:
+        # Use all masks from the expanded subgraph
+        reset_train_mask = subset_data.train_mask.clone()
+        reset_val_mask = subset_data.val_mask.clone()
+        reset_test_mask = subset_data.test_mask.clone()
+    else:
+        # Create new masks based on the mapping (original nodes only)
+        reset_train_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+        reset_val_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
+        reset_test_mask = torch.zeros(subset_data.num_nodes, dtype=torch.bool)
 
-    # Set the masks for original nodes only
-    for orig_idx in mapping:
-        if subset_data.train_mask[orig_idx]:
-            reset_train_mask[orig_idx] = True
-        if subset_data.val_mask[orig_idx]:
-            reset_val_mask[orig_idx] = True
-        if subset_data.test_mask[orig_idx]:
-            reset_test_mask[orig_idx] = True
+        # Set the masks for original nodes only
+        for orig_idx in mapping:
+            if subset_data.train_mask[orig_idx]:
+                reset_train_mask[orig_idx] = True
+            if subset_data.val_mask[orig_idx]:
+                reset_val_mask[orig_idx] = True
+            if subset_data.test_mask[orig_idx]:
+                reset_test_mask[orig_idx] = True
     
     # Create new Data object
     reset_data = Data(

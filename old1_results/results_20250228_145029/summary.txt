@@ -1,0 +1,150 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: The actor died because of an error raised in its creation task, [36mray::FLClient.__init__()[39m (pid=2673291, ip=172.29.98.248, actor_id=635bd7620c296e685fd5deaf01000000, repr=<client.FLClient object at 0x7fae37adbce0>)
+  At least one of the input arguments for this task could not be computed:
+ray.exceptions.RaySystemError: System error: CUDA error: out of memory
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+traceback: Traceback (most recent call last):
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/storage.py", line 520, in _load_from_bytes
+    return torch.load(io.BytesIO(b), weights_only=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/serialization.py", line 1384, in load
+    return _legacy_load(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/serialization.py", line 1638, in _legacy_load
+    result = unpickler.load()
+             ^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/serialization.py", line 1566, in persistent_load
+    obj = restore_location(obj, location)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/serialization.py", line 601, in default_restore_location
+    result = fn(storage, location)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/serialization.py", line 540, in _deserialize
+    return obj.to(device=device)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/storage.py", line 279, in to
+    return _to(self, device, non_blocking)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/_utils.py", line 88, in _to
+    untyped_storage = torch.UntypedStorage(self.size(), device=device)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: out of memory
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+

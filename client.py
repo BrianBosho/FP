@@ -73,6 +73,19 @@ class FLClient:
         results_dict = {
             "client_id": self.client_id,
             "training_losses": self.training_losses,
-            "training_accuracies": self.training_accuracies
+            "training_accuracies": self.training_accuracies,
+            "validation_losses": self.validation_losses
         }
+        
+        # Also include epoch-by-epoch data for finer-grained analysis
+        results_dict["epochs_data"] = []
+        for i in range(len(self.training_losses)):
+            epoch_dict = {
+                "epoch": i % self.epochs,  # Local epoch number
+                "round": i // self.epochs,  # Global round number
+                "loss": self.training_losses[i],
+                "accuracy": self.training_accuracies[i]
+            }
+            results_dict["epochs_data"].append(epoch_dict)
+        
         return results_dict

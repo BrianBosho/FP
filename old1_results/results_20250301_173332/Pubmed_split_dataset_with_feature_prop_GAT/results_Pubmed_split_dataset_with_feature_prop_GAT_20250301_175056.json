@@ -1,0 +1,58 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "split_dataset_with_feature_prop",
+        "model_type": "GAT",
+        "dataset": "Pubmed",
+        "num_clients": 10,
+        "beta": 10000,
+        "hop": 2
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.531,
+            "client_result": 0.528981351790058
+        },
+        {
+            "round": 2,
+            "global_result": 0.523,
+            "client_result": 0.526830367835733
+        },
+        {
+            "round": 3,
+            "global_result": 0.557,
+            "client_result": 0.5583943537083604
+        },
+        {
+            "round": 4,
+            "global_result": 0.515,
+            "client_result": 0.5181420464361579
+        },
+        {
+            "round": 5,
+            "global_result": 0.487,
+            "client_result": 0.48482951385994955
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.531,
+            0.523,
+            0.557,
+            0.515,
+            0.487
+        ],
+        "client_results": [
+            0.528981351790058,
+            0.526830367835733,
+            0.5583943537083604,
+            0.5181420464361579,
+            0.48482951385994955
+        ],
+        "average_global_result": 0.5226000000000001,
+        "average_client_result": 0.5234355267260519,
+        "std_global": 0.022712111306525444,
+        "std_client": 0.02359171832985753
+    }
+}

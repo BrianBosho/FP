@@ -50,7 +50,7 @@ def save_results_to_csv(results, filename="results.csv"):
     results_df = pd.DataFrame(results)
     results_df.to_csv(filename)
 
-def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1):
+def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False):
     """
     Args:
         dat_loading_option: full_dataset, split_dataset, split_dataset_with_khop, split_dataset_with_feature_prop
@@ -58,21 +58,26 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         beta: beta for dirichlet distribution
         dataset_name: name of the dataset
         hop: number of hops for k-hop subgraph
+        imputation_method: zero, propagation, full
+        fulltraining_flag: if True, use full training
     """
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name)
-    elif data_loading_option == "split_dataset":
+    elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta)
-    elif data_loading_option == "split_dataset_with_khop":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop)
-    elif data_loading_option == "split_dataset_with_feature_prop":
-        return load_and_split_with_feature_prop(dataset_name, device, num_clients, beta, hop=hop)
-    else:
-        raise ValueError(f"Unsupported data loading option: {data_loading_option}")
+    elif data_loading_option == "khop_zero":
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="zero", fulltraining_flag=fulltraining_flag)
+    elif data_loading_option == "khop_propagation":
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="propagation", fulltraining_flag=fulltraining_flag)
+    elif data_loading_option == "khop_full":
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="full", fulltraining_flag=fulltraining_flag)
+    elif data_loading_option == "khop_monte_carlo":
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="monte_carlo", fulltraining_flag=fulltraining_flag)
+
         
 
 
-def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1):
+def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
     """
     Run federated learning with a server coordinating multiple clients.
     Args:
@@ -85,11 +90,10 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         tuple: A tuple containing the final global test results and the average client test results.
     """
     DEVICE = device
-    # ray.init(num_cpus=4)
-    ray.init(num_gpus=1)
+    
     print(f"data_loading_option: {data_loading_option}")
 
-    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop)
+    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop, fulltraining_flag=fulltraining_flag)
     test_data = clients_data
     print("Data loaded")
     data = data.to(DEVICE)
@@ -119,12 +123,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     print(f"The average client test results: {average_results}")
     print(f"The final global test results: {test_results}")
 
-    
-    
-    ray.shutdown()
     return test_results, average_results
 
-def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1):
+def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # DEVICE = "cpu"
     test_results = []
@@ -140,7 +141,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             "dataset": dataset_name,
             "num_clients": clients_num,
             "beta": beta,
-            "hop": hop
+            "hop": hop,
+            "fulltraining_flag": fulltraining_flag
         },
         "rounds": []
     }
@@ -148,55 +150,68 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     print(f"Data loading option is {data_loading_option}")
     print(f"Model type is {model_type}")
 
-    for i in range(5):  # Change 1 to the desired number of repetitions
-        global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1)
-        test_results.append(global_results)
-        client_test_results.append(client_results)
-        print(f"Round {i+1} is complete")
+    # Initialize Ray once at the beginning
+    try:
+        ray.init(num_gpus=1, ignore_reinit_error=True)
         
-        # Store round results in the dictionary
-        results_data["rounds"].append({
-            "round": i+1,
-            "global_result": float(global_results),
-            "client_result": float(client_results)
-        })
-      
-    
-    print(f"The global test results: {test_results}")
-    print(f"The client test results: {client_test_results}")
+        for i in range(5):  # Change 1 to the desired number of repetitions
+            try:
+                global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
+                test_results.append(global_results)
+                client_test_results.append(client_results)
+                print(f"Round {i+1} is complete")
+                
+                # Store round results in the dictionary
+                results_data["rounds"].append({
+                    "round": i+1,
+                    "global_result": float(global_results),
+                    "client_result": float(client_results)
+                })
+            except Exception as e:
+                print(f"Error in round {i+1}: {e}")
+                # Continue with the next iteration
+        
+        # Rest of the code remains the same
+        print(f"The global test results: {test_results}")
+        print(f"The client test results: {client_test_results}")
 
-    average_global_results = np.mean(test_results)
-    average_client_results = np.mean(client_test_results)
+        average_global_results = np.mean(test_results)
+        average_client_results = np.mean(client_test_results)
 
-    std_global = np.std(test_results)
-    std_client = np.std(client_test_results)
+        std_global = np.std(test_results)
+        std_client = np.std(client_test_results)
 
-    print(f"The average global test results: {average_global_results}")
-    print(f"The average client test results: {average_client_results}")
-    print(f"The standad deviation global is: {std_global}")
-    print(f"The standad deviation client is: {std_client}")
+        print(f"The average global test results: {average_global_results}")
+        print(f"The average client test results: {average_client_results}")
+        print(f"The standad deviation global is: {std_global}")
+        print(f"The standad deviation client is: {std_client}")
 
-    # Add summary statistics to the results dictionary
-    results_data["summary"] = {
-        "global_results": [float(x) for x in test_results],
-        "client_results": [float(x) for x in client_test_results],
-        "average_global_result": float(average_global_results),
-        "average_client_result": float(average_client_results),
-        "std_global": float(std_global),
-        "std_client": float(std_client)
-    }
+        # Add summary statistics to the results dictionary
+        results_data["summary"] = {
+            "global_results": [float(x) for x in test_results],
+            "client_results": [float(x) for x in client_test_results],
+            "average_global_result": float(average_global_results),
+            "average_client_result": float(average_client_results),
+            "std_global": float(std_global),
+            "std_client": float(std_client)
+        }
 
-    # Also create a text output for backward compatibility
-    output = f"DEVICE: {DEVICE}\n"
-    output += f"Data loading option is {data_loading_option}\n"
-    output += f"Model type is {model_type}\n"
-    output += f"\nFinal Results:\n"
-    output += f"The global test results: {test_results}\n"
-    output += f"The client test results: {client_test_results}\n"
-    output += f"The average global test results: {average_global_results}\n"
-    output += f"The average client test results: {average_client_results}\n"
-    output += f"The standard deviation global is: {std_global}\n"
-    output += f"The standard deviation client is: {std_client}\n"
+        # Output remains the same
+        output = f"DEVICE: {DEVICE}\n"
+        output += f"Data loading option is {data_loading_option}\n"
+        output += f"Model type is {model_type}\n"
+        output += f"Full training flag is {fulltraining_flag}\n"
+        output += f"\nFinal Results:\n"
+        output += f"The global test results: {test_results}\n"
+        output += f"The client test results: {client_test_results}\n"
+        output += f"The average global test results: {average_global_results}\n"
+        output += f"The average client test results: {average_client_results}\n"
+        output += f"The standard deviation global is: {std_global}\n"
+        output += f"The standard deviation client is: {std_client}\n"
+        
+    finally:
+        # Make sure Ray is always shut down, even if there's an exception
+        ray.shutdown()
     
     # Return both structured data and text output
     return results_data, output

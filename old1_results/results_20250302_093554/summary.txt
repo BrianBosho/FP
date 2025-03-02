@@ -1,0 +1,111 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: failed
+Error: Maybe you called ray.init twice by accident? This error can be suppressed by passing in 'ignore_reinit_error=True' or by calling 'ray.shutdown()' prior to 'ray.init()'.
+
