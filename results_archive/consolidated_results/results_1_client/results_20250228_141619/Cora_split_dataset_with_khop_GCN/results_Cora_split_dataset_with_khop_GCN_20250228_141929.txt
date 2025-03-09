@@ -1,0 +1,11 @@
+DEVICE: cuda
+Data loading option is split_dataset_with_khop
+Model type is GCN
+
+Final Results:
+The global test results: [0.803, 0.809, 0.806, 0.806, 0.807]
+The client test results: [0.803, 0.809, 0.806, 0.806, 0.807]
+The average global test results: 0.8062000000000001
+The average client test results: 0.8062000000000001
+The standard deviation global is: 0.0019390719429665335
+The standard deviation client is: 0.0019390719429665335

@@ -1,0 +1,111 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_GCN/results_Cora_split_dataset_GCN_20250301_183708.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_GCN/results_Cora_split_dataset_GCN_20250301_183708.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_GCN/rounds_Cora_split_dataset_GCN_20250301_183708.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_GCN/summary_Cora_split_dataset_GCN_20250301_183708.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_GCN/results_arrays_Cora_split_dataset_GCN_20250301_183708.csv'}
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_GAT/results_Cora_split_dataset_GAT_20250301_183843.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_GAT/results_Cora_split_dataset_GAT_20250301_183843.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_GAT/rounds_Cora_split_dataset_GAT_20250301_183843.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_GAT/summary_Cora_split_dataset_GAT_20250301_183843.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_GAT/results_arrays_Cora_split_dataset_GAT_20250301_183843.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GCN/results_Cora_split_dataset_with_khop_GCN_20250301_183952.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GCN/results_Cora_split_dataset_with_khop_GCN_20250301_183952.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GCN/rounds_Cora_split_dataset_with_khop_GCN_20250301_183952.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GCN/summary_Cora_split_dataset_with_khop_GCN_20250301_183952.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GCN/results_arrays_Cora_split_dataset_with_khop_GCN_20250301_183952.csv'}
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GAT/results_Cora_split_dataset_with_khop_GAT_20250301_184131.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GAT/results_Cora_split_dataset_with_khop_GAT_20250301_184131.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GAT/rounds_Cora_split_dataset_with_khop_GAT_20250301_184131.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GAT/summary_Cora_split_dataset_with_khop_GAT_20250301_184131.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_with_khop_GAT/results_arrays_Cora_split_dataset_with_khop_GAT_20250301_184131.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GCN/results_Cora_split_dataset_with_feature_prop_GCN_20250301_184241.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GCN/results_Cora_split_dataset_with_feature_prop_GCN_20250301_184241.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GCN/rounds_Cora_split_dataset_with_feature_prop_GCN_20250301_184241.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GCN/summary_Cora_split_dataset_with_feature_prop_GCN_20250301_184241.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GCN/results_arrays_Cora_split_dataset_with_feature_prop_GCN_20250301_184241.csv'}
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GAT/results_Cora_split_dataset_with_feature_prop_GAT_20250301_184422.txt', 'json_file': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GAT/results_Cora_split_dataset_with_feature_prop_GAT_20250301_184422.json', 'rounds_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GAT/rounds_Cora_split_dataset_with_feature_prop_GAT_20250301_184422.csv', 'summary_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GAT/summary_Cora_split_dataset_with_feature_prop_GAT_20250301_184422.csv', 'arrays_csv': 'results/results_20250301_183601/Cora_split_dataset_with_feature_prop_GAT/results_arrays_Cora_split_dataset_with_feature_prop_GAT_20250301_184422.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_GCN/results_Citeseer_split_dataset_GCN_20250301_184537.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_GCN/results_Citeseer_split_dataset_GCN_20250301_184537.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GCN/rounds_Citeseer_split_dataset_GCN_20250301_184537.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GCN/summary_Citeseer_split_dataset_GCN_20250301_184537.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GCN/results_arrays_Citeseer_split_dataset_GCN_20250301_184537.csv'}
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_GAT/results_Citeseer_split_dataset_GAT_20250301_184730.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_GAT/results_Citeseer_split_dataset_GAT_20250301_184730.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GAT/rounds_Citeseer_split_dataset_GAT_20250301_184730.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GAT/summary_Citeseer_split_dataset_GAT_20250301_184730.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_GAT/results_arrays_Citeseer_split_dataset_GAT_20250301_184730.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GCN/results_Citeseer_split_dataset_with_khop_GCN_20250301_184849.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GCN/results_Citeseer_split_dataset_with_khop_GCN_20250301_184849.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GCN/rounds_Citeseer_split_dataset_with_khop_GCN_20250301_184849.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GCN/summary_Citeseer_split_dataset_with_khop_GCN_20250301_184849.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GCN/results_arrays_Citeseer_split_dataset_with_khop_GCN_20250301_184849.csv'}
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GAT/results_Citeseer_split_dataset_with_khop_GAT_20250301_185049.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GAT/results_Citeseer_split_dataset_with_khop_GAT_20250301_185049.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GAT/rounds_Citeseer_split_dataset_with_khop_GAT_20250301_185049.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GAT/summary_Citeseer_split_dataset_with_khop_GAT_20250301_185049.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_khop_GAT/results_arrays_Citeseer_split_dataset_with_khop_GAT_20250301_185049.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GCN/results_Citeseer_split_dataset_with_feature_prop_GCN_20250301_185211.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GCN/results_Citeseer_split_dataset_with_feature_prop_GCN_20250301_185211.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GCN/rounds_Citeseer_split_dataset_with_feature_prop_GCN_20250301_185211.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GCN/summary_Citeseer_split_dataset_with_feature_prop_GCN_20250301_185211.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GCN/results_arrays_Citeseer_split_dataset_with_feature_prop_GCN_20250301_185211.csv'}
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GAT/results_Citeseer_split_dataset_with_feature_prop_GAT_20250301_185411.txt', 'json_file': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GAT/results_Citeseer_split_dataset_with_feature_prop_GAT_20250301_185411.json', 'rounds_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GAT/rounds_Citeseer_split_dataset_with_feature_prop_GAT_20250301_185411.csv', 'summary_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GAT/summary_Citeseer_split_dataset_with_feature_prop_GAT_20250301_185411.csv', 'arrays_csv': 'results/results_20250301_183601/Citeseer_split_dataset_with_feature_prop_GAT/results_arrays_Citeseer_split_dataset_with_feature_prop_GAT_20250301_185411.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_GCN/results_Pubmed_split_dataset_GCN_20250301_185522.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_GCN/results_Pubmed_split_dataset_GCN_20250301_185522.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GCN/rounds_Pubmed_split_dataset_GCN_20250301_185522.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GCN/summary_Pubmed_split_dataset_GCN_20250301_185522.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GCN/results_arrays_Pubmed_split_dataset_GCN_20250301_185522.csv'}
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_GAT/results_Pubmed_split_dataset_GAT_20250301_185659.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_GAT/results_Pubmed_split_dataset_GAT_20250301_185659.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GAT/rounds_Pubmed_split_dataset_GAT_20250301_185659.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GAT/summary_Pubmed_split_dataset_GAT_20250301_185659.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_GAT/results_arrays_Pubmed_split_dataset_GAT_20250301_185659.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GCN/results_Pubmed_split_dataset_with_khop_GCN_20250301_185822.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GCN/results_Pubmed_split_dataset_with_khop_GCN_20250301_185822.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GCN/rounds_Pubmed_split_dataset_with_khop_GCN_20250301_185822.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GCN/summary_Pubmed_split_dataset_with_khop_GCN_20250301_185822.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GCN/results_arrays_Pubmed_split_dataset_with_khop_GCN_20250301_185822.csv'}
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GAT/results_Pubmed_split_dataset_with_khop_GAT_20250301_190021.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GAT/results_Pubmed_split_dataset_with_khop_GAT_20250301_190021.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GAT/rounds_Pubmed_split_dataset_with_khop_GAT_20250301_190021.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GAT/summary_Pubmed_split_dataset_with_khop_GAT_20250301_190021.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_khop_GAT/results_arrays_Pubmed_split_dataset_with_khop_GAT_20250301_190021.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GCN/results_Pubmed_split_dataset_with_feature_prop_GCN_20250301_190146.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GCN/results_Pubmed_split_dataset_with_feature_prop_GCN_20250301_190146.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GCN/rounds_Pubmed_split_dataset_with_feature_prop_GCN_20250301_190146.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GCN/summary_Pubmed_split_dataset_with_feature_prop_GCN_20250301_190146.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GCN/results_arrays_Pubmed_split_dataset_with_feature_prop_GCN_20250301_190146.csv'}
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: {'text_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GAT/results_Pubmed_split_dataset_with_feature_prop_GAT_20250301_190346.txt', 'json_file': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GAT/results_Pubmed_split_dataset_with_feature_prop_GAT_20250301_190346.json', 'rounds_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GAT/rounds_Pubmed_split_dataset_with_feature_prop_GAT_20250301_190346.csv', 'summary_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GAT/summary_Pubmed_split_dataset_with_feature_prop_GAT_20250301_190346.csv', 'arrays_csv': 'results/results_20250301_183601/Pubmed_split_dataset_with_feature_prop_GAT/results_arrays_Pubmed_split_dataset_with_feature_prop_GAT_20250301_190346.csv'}
+

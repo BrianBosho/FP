@@ -1,0 +1,58 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "split_dataset_with_khop",
+        "model_type": "GAT",
+        "dataset": "Cora",
+        "num_clients": 10,
+        "beta": 1,
+        "hop": 2
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.593,
+            "client_result": 0.44807629107468516
+        },
+        {
+            "round": 2,
+            "global_result": 0.569,
+            "client_result": 0.3574144585725723
+        },
+        {
+            "round": 3,
+            "global_result": 0.549,
+            "client_result": 0.3925557424967966
+        },
+        {
+            "round": 4,
+            "global_result": 0.559,
+            "client_result": 0.3858693303008581
+        },
+        {
+            "round": 5,
+            "global_result": 0.546,
+            "client_result": 0.4033831981370123
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.593,
+            0.569,
+            0.549,
+            0.559,
+            0.546
+        ],
+        "client_results": [
+            0.44807629107468516,
+            0.3574144585725723,
+            0.3925557424967966,
+            0.3858693303008581,
+            0.4033831981370123
+        ],
+        "average_global_result": 0.5631999999999999,
+        "average_client_result": 0.39745980411638493,
+        "std_global": 0.01695169608033364,
+        "std_client": 0.029526713166500147
+    }
+}

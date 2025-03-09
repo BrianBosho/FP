@@ -1,6 +1,8 @@
 import ray
 from train import train, evaluate, test
-from models import GCN, GAT, VanillaGNN, MLP
+from models import VanillaGNN, MLP
+# from models import GCN, GAT, VanillaGNN, MLP
+from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
 import torch
 
 gpu_nums = 1/10

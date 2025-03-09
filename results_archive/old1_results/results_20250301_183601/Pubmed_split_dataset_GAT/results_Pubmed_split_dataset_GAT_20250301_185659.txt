@@ -1,0 +1,11 @@
+DEVICE: cuda
+Data loading option is split_dataset
+Model type is GAT
+
+Final Results:
+The global test results: [0.672, 0.688, 0.68, 0.716, 0.661]
+The client test results: [0.6759954464697598, 0.6939357700209974, 0.691306684298798, 0.6981283096703388, 0.6627950396785781]
+The average global test results: 0.6834
+The average client test results: 0.6844322500276945
+The standard deviation global is: 0.01858601624878228
+The standard deviation client is: 0.013149184875974542

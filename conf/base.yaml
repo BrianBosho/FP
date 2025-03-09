@@ -1,5 +1,5 @@
 num_clients: 10
-num_rounds: 100
+num_rounds: 10
 epochs: 2
 beta: 1000
 lr: 0.5

@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
-from models import VanillaGNN, MLP, GCN, GAT
+from models import VanillaGNN, MLP
+from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
 from torch_geometric.utils import to_dense_adj
 
 # loga data instead of printing it

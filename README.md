@@ -13,7 +13,7 @@ This repository contains code for running federated learning experiments with gr
 - `docs/`: Documentation
 - `notebooks/`: Jupyter notebooks for analysis
 - `results/`: Experiment results
-- `consolidated_results/`: Archived results from previous experiments
+- `results_archive/`: Archive of all previous results
 - `logs/`: Log files
 
 ## Running Experiments
@@ -33,6 +33,27 @@ For more details on the available options, see the documentation in `docs/run_ex
 ## Configuration
 
 Configuration files are stored in the `config/` directory. The default configuration file is `base.yaml`.
+
+## Repository Management
+
+The repository includes scripts for organizing and cleaning up files:
+
+```bash
+# Move all result folders to results_archive
+./scripts/organize_results.sh
+
+# Clean up duplicated files and directories
+./scripts/cleanup_duplicates.sh
+
+# Remove unnecessary log files (nohup.out)
+./scripts/cleanup.sh
+```
+
+You can also run the setup script which provides interactive options for all of these tasks:
+
+```bash
+./setup.sh
+```
 
 ## Requirements
 

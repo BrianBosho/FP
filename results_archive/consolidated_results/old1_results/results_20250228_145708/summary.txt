@@ -1,0 +1,111 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_GCN/results_Cora_split_dataset_GCN_20250228_145913.txt
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_GAT/results_Cora_split_dataset_GAT_20250228_150244.txt
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_with_khop_GCN/results_Cora_split_dataset_with_khop_GCN_20250228_150452.txt
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_with_khop_GAT/results_Cora_split_dataset_with_khop_GAT_20250228_150836.txt
+
+Dataset: Cora
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_with_feature_prop_GCN/results_Cora_split_dataset_with_feature_prop_GCN_20250228_151045.txt
+
+Dataset: Cora
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Cora_split_dataset_with_feature_prop_GAT/results_Cora_split_dataset_with_feature_prop_GAT_20250228_151426.txt
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_GCN/results_Citeseer_split_dataset_GCN_20250228_151648.txt
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_GAT/results_Citeseer_split_dataset_GAT_20250228_152108.txt
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_with_khop_GCN/results_Citeseer_split_dataset_with_khop_GCN_20250228_152339.txt
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_with_khop_GAT/results_Citeseer_split_dataset_with_khop_GAT_20250228_152809.txt
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_with_feature_prop_GCN/results_Citeseer_split_dataset_with_feature_prop_GCN_20250228_153040.txt
+
+Dataset: Citeseer
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Citeseer_split_dataset_with_feature_prop_GAT/results_Citeseer_split_dataset_with_feature_prop_GAT_20250228_153511.txt
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_GCN/results_Pubmed_split_dataset_GCN_20250228_153722.txt
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_GAT/results_Pubmed_split_dataset_GAT_20250228_154045.txt
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_with_khop_GCN/results_Pubmed_split_dataset_with_khop_GCN_20250228_154329.txt
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_khop
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_with_khop_GAT/results_Pubmed_split_dataset_with_khop_GAT_20250228_154758.txt
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_with_feature_prop_GCN/results_Pubmed_split_dataset_with_feature_prop_GCN_20250228_155043.txt
+
+Dataset: Pubmed
+Model: GAT
+Data Loading: split_dataset_with_feature_prop
+Status: success
+Results File: results/results_20250228_145708/Pubmed_split_dataset_with_feature_prop_GAT/results_Pubmed_split_dataset_with_feature_prop_GAT_20250228_155513.txt
+

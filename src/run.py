@@ -1,7 +1,8 @@
 import torch
 import ray
 from client import FLClient
-from models import GCN, GAT
+# from models import GCN, GAT
+from gnn_models import GCN, GAT
 from server import Server
 import pandas as pd
 from utils import load_config
@@ -19,6 +20,11 @@ import numpy as np
 # print(f"DEVICE: {DEVICE}")
 
 def load_configuration(config_path="conf/base.yaml"):
+    """Load configuration from YAML file
+    
+    The default path is relative to the project root.
+    If called from scripts directory, use "../conf/base.yaml"
+    """
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 

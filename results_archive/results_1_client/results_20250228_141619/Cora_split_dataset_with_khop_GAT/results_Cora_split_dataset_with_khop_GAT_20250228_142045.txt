@@ -1,0 +1,11 @@
+DEVICE: cuda
+Data loading option is split_dataset_with_khop
+Model type is GAT
+
+Final Results:
+The global test results: [0.782, 0.802, 0.8, 0.801, 0.8]
+The client test results: [0.782, 0.802, 0.8, 0.801, 0.8]
+The average global test results: 0.797
+The average client test results: 0.797
+The standard deviation global is: 0.007536577472566715
+The standard deviation client is: 0.007536577472566715

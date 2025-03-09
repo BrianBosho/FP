@@ -1,0 +1,11 @@
+DEVICE: cpu
+Data loading option is split_dataset
+Model type is GAT
+
+Final Results:
+The global test results: [0.756, 0.767]
+The client test results: [0.6010548310442317, 0.5933962506493804]
+The average global test results: 0.7615000000000001
+The average client test results: 0.5972255408468061
+The standard deviation global is: 0.005500000000000005
+The standard deviation client is: 0.003829290197425672

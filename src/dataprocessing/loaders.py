@@ -2,6 +2,10 @@ from dataprocessing.datasets import GraphDataset
 from dataprocessing.partitioning import partition_data
 from typing import Tuple, List, Optional
 
+# Note: Datasets are now loaded from the root-level 'datasets' folder
+# instead of being stored in the src directory. This change is implemented
+# in the GraphDataset class which manages dataset paths.
+
 def load_dataset(name: str, device):
     """
     Regime 1: Load any supported dataset without partitioning.
