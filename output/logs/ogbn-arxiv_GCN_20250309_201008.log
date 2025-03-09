@@ -1,0 +1,10 @@
+2025-03-09 20:10:08,634 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_GCN_20250309_201008.log
+2025-03-09 20:10:08,634 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='page_rank', num_clients=10, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:10:08,682 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:10:08,682 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:10:08,683 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:10:08,683 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:10:08,683 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:10:08,683 - __main__ - INFO - Loading data with method: page_rank
+2025-03-09 20:10:08,683 - __main__ - INFO - Loading dataset: ogbn-arxiv
+2025-03-09 20:10:08,809 - __main__ - INFO - Cleared memory before loading large dataset

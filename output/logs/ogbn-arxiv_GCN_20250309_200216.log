@@ -1,0 +1,11 @@
+2025-03-09 20:02:16,641 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_GCN_20250309_200216.log
+2025-03-09 20:02:16,641 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='adjacency', num_clients=10, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False)
+2025-03-09 20:02:16,686 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:02:16,686 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:02:16,686 - __main__ - INFO - Loading data with method: adjacency
+2025-03-09 20:02:29,073 - __main__ - INFO - Creating GCN model
+2025-03-09 20:02:29,110 - __main__ - INFO - Initializing 10 clients
+2025-03-09 20:02:32,409 - __main__ - INFO - Initializing server
+2025-03-09 20:02:32,443 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:02:32,443 - __main__ - INFO - Round 1/10
+2025-03-09 20:02:32,444 - root - INFO - Starting client training for global round 0

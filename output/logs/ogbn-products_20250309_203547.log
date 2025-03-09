@@ -1,0 +1,12 @@
+2025-03-09 20:35:47,453 - __main__ - INFO - Logging to output/logs/ogbn-products_20250309_203547.log
+2025-03-09 20:35:47,453 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-products', model='GCN', data_loading='zero_hop', num_clients=5, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:35:47,453 - __main__ - INFO - NOTE: For OGBN-Products dataset, SAGE_Products model will be used regardless of model type specified
+2025-03-09 20:35:47,499 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:35:47,499 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:35:47,499 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:35:47,500 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:35:47,500 - __main__ - INFO - Dataset: ogbn-products, Type: products
+2025-03-09 20:35:47,500 - __main__ - INFO - Using SAGE_Products model for OGBN-Products dataset
+2025-03-09 20:35:47,500 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:35:47,500 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 20:35:47,623 - __main__ - INFO - Cleared memory before loading large dataset

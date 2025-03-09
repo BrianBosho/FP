@@ -1,5 +1,6 @@
 num_clients: 5
 num_rounds: 2
+rounds: 2
 epochs: 2
 beta: 1000
 lr: 0.5
@@ -12,3 +13,4 @@ paths:
     pubmed: "../datasets/pubmed"
   ogbn:
     arxiv: "datasets/ogbn_arxiv"
+    products: "datasets/ogbn_products"

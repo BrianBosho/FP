@@ -1,0 +1,126 @@
+2025-03-09 20:53:42,265 - __main__ - INFO - Logging to output/logs/ogbn-products_20250309_205342.log
+2025-03-09 20:53:42,265 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-products', model='GCN', data_loading='zero_hop', num_clients=3, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:53:42,265 - __main__ - INFO - NOTE: For OGBN-Products dataset, SAGE_Products model will be used regardless of model type specified
+2025-03-09 20:53:42,313 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:53:42,313 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:53:42,314 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:53:42,314 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:53:42,314 - __main__ - INFO - Dataset: ogbn-products, Type: products
+2025-03-09 20:53:42,314 - __main__ - INFO - Using SAGE_Products model for OGBN-Products dataset
+2025-03-09 20:53:42,314 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:53:42,314 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 20:53:42,437 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:53:42,437 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 20:53:42,437 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 20:53:42,438 - __main__ - INFO - Available system memory: 52.91 GB
+2025-03-09 20:53:58,036 - __main__ - INFO - Test data type: <class 'list'>
+2025-03-09 20:53:58,036 - __main__ - INFO - Test data is a list with 3 items
+2025-03-09 20:53:58,037 - __main__ - INFO - CPU Memory Usage: 3.69 GB
+2025-03-09 20:53:58,037 - __main__ - INFO - GPU 0 Memory: 4.34 GB allocated, 4.37 GB reserved
+2025-03-09 20:54:00,246 - __main__ - INFO - Creating model for ogbn-products
+2025-03-09 20:54:00,246 - __main__ - INFO - OGBN-Products dataset: Using SAGE_Products with 2 layers, hidden dimension 256
+2025-03-09 20:54:00,247 - __main__ - INFO - Input features: 100, Output classes: 47
+2025-03-09 20:54:00,279 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:54:00,279 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:54:00,280 - __main__ - INFO - Setting epochs to 1 for OGBN-Products dataset
+2025-03-09 20:54:00,280 - __main__ - INFO - Reducing learning rate from 0.5 to 0.01 for OGBN-Products
+2025-03-09 20:54:00,280 - __main__ - INFO - Client configuration: {'num_clients': 10, 'num_rounds': 10, 'epochs': 1, 'beta': 1000, 'lr': 0.01, 'fulltraining_flag': True, 'paths': {'datasets_dir': 'datasets', 'planetoid': {'cora': 'datasets/cora', 'citeseer': 'datasets/citeseer', 'pubmed': 'datasets/pubmed'}, 'ogbn': {'arxiv': 'datasets/ogbn_arxiv'}}}
+2025-03-09 20:54:17,336 - __main__ - INFO - Initializing server
+2025-03-09 20:54:17,343 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:54:17,343 - __main__ - INFO - Round 1/10
+2025-03-09 20:54:17,504 - root - INFO - Starting client training for global round 0
+2025-03-09 20:54:25,622 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:54:25,658 - root - INFO - Completed global round 0
+2025-03-09 20:54:26,158 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1847409, ip=172.29.98.248, actor_id=403c89395b02b463ca608b9101000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f68c3d8e7e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 140, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_vtld4jsd.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_vtld4jsd.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 13.53 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.36 GiB is free. Process 1846477 has 4.85 GiB memory in use. Process 1847417 has 20.29 GiB memory in use. Including non-PyTorch memory, this process has 6.40 GiB memory in use. Process 1847420 has 6.76 GiB memory in use. Of the allocated memory 1.32 GiB is allocated by PyTorch, and 4.58 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:54:26,226 - root - ERROR - Error evaluating global model: CUDA out of memory. Tried to allocate 5.22 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.36 GiB is free. Including non-PyTorch memory, this process has 4.85 GiB memory in use. Process 1847417 has 20.29 GiB memory in use. Process 1847409 has 6.40 GiB memory in use. Process 1847420 has 6.45 GiB memory in use. Of the allocated memory 4.34 GiB is allocated by PyTorch, and 22.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:54:30,569 - root - INFO - Global model - Test Accuracy: 0.3019
+2025-03-09 20:54:30,569 - root - INFO - Average client - Test Accuracy: 0.3332
+2025-03-09 20:54:30,569 - __main__ - INFO - Round 1 - Avg Train Loss: 3.2527, Avg Train Acc: 0.4400, Avg Test Acc: 0.3332
+2025-03-09 20:54:30,570 - __main__ - INFO - CPU Memory Usage: 11.09 GB
+2025-03-09 20:54:30,570 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:54:30,570 - __main__ - INFO - Round 2/10
+2025-03-09 20:54:30,690 - root - INFO - Starting client training for global round 1
+2025-03-09 20:54:31,302 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1847409, ip=172.29.98.248, actor_id=403c89395b02b463ca608b9101000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f68c3d8e7e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 102, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_vtld4jsd.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_vtld4jsd.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 13.53 GiB. GPU 0 has a total capacity of 47.71 GiB of which 3.17 GiB is free. Process 1846477 has 4.86 GiB memory in use. Process 1847417 has 7.24 GiB memory in use. Including non-PyTorch memory, this process has 7.31 GiB memory in use. Process 1847420 has 20.04 GiB memory in use. Of the allocated memory 3.68 GiB is allocated by PyTorch, and 3.13 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:54:31,302 - root - INFO - Collecting client parameters for aggregation

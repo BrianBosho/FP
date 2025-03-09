@@ -1,0 +1,122 @@
+2025-03-09 20:31:20,759 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_20250309_203120.log
+2025-03-09 20:31:20,759 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='zero_hop', num_clients=5, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:31:20,759 - __main__ - INFO - NOTE: For OGBN-Arxiv dataset, GCN_Arxiv model will be used regardless of model type specified
+2025-03-09 20:31:20,805 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:31:20,805 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:31:20,805 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:31:20,806 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:31:20,806 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:31:20,806 - __main__ - INFO - Using GCN_Arxiv model for OGBN-Arxiv dataset
+2025-03-09 20:31:20,806 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:31:20,806 - __main__ - INFO - Loading dataset: ogbn-arxiv
+2025-03-09 20:31:20,930 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:31:21,748 - __main__ - INFO - Test data type: <class 'list'>
+2025-03-09 20:31:21,748 - __main__ - INFO - Test data is a list with 5 items
+2025-03-09 20:31:21,748 - __main__ - INFO - CPU Memory Usage: 0.90 GB
+2025-03-09 20:31:21,749 - __main__ - INFO - GPU 0 Memory: 0.21 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:23,476 - __main__ - INFO - Creating model for ogbn-arxiv
+2025-03-09 20:31:23,476 - __main__ - INFO - Using GCN_Arxiv for OGBN-Arxiv dataset
+2025-03-09 20:31:23,512 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:31:23,512 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:31:24,617 - __main__ - INFO - Initializing server
+2025-03-09 20:31:24,635 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:31:24,635 - __main__ - INFO - Round 1/10
+2025-03-09 20:31:24,790 - root - INFO - Starting client training for global round 0
+2025-03-09 20:31:28,853 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:28,906 - root - INFO - Completed global round 0
+2025-03-09 20:31:29,164 - root - INFO - Global model - Validation Loss: 13.6832, Accuracy: 0.2446
+2025-03-09 20:31:29,353 - root - INFO - Global model - Test Accuracy: 0.2251
+2025-03-09 20:31:29,353 - root - INFO - Average client - Test Accuracy: 0.2408
+2025-03-09 20:31:29,353 - __main__ - INFO - Round 1 - Avg Train Loss: 25.8889, Avg Train Acc: 0.2330, Avg Test Acc: 0.2408
+2025-03-09 20:31:29,354 - __main__ - INFO - CPU Memory Usage: 1.95 GB
+2025-03-09 20:31:29,354 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:29,354 - __main__ - INFO - Round 2/10
+2025-03-09 20:31:29,477 - root - INFO - Starting client training for global round 1
+2025-03-09 20:31:29,711 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:29,765 - root - INFO - Completed global round 1
+2025-03-09 20:31:29,829 - root - INFO - Global model - Validation Loss: 92.6346, Accuracy: 0.0301
+2025-03-09 20:31:30,002 - root - INFO - Global model - Test Accuracy: 0.0306
+2025-03-09 20:31:30,002 - root - INFO - Average client - Test Accuracy: 0.0567
+2025-03-09 20:31:30,002 - __main__ - INFO - Round 2 - Avg Train Loss: 96.2019, Avg Train Acc: 0.0782, Avg Test Acc: 0.0567
+2025-03-09 20:31:30,002 - __main__ - INFO - CPU Memory Usage: 1.93 GB
+2025-03-09 20:31:30,003 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:30,003 - __main__ - INFO - Round 3/10
+2025-03-09 20:31:30,135 - root - INFO - Starting client training for global round 2
+2025-03-09 20:31:30,369 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:30,424 - root - INFO - Completed global round 2
+2025-03-09 20:31:30,487 - root - INFO - Global model - Validation Loss: 104.0286, Accuracy: 0.0362
+2025-03-09 20:31:30,656 - root - INFO - Global model - Test Accuracy: 0.0374
+2025-03-09 20:31:30,656 - root - INFO - Average client - Test Accuracy: 0.0404
+2025-03-09 20:31:30,656 - __main__ - INFO - Round 3 - Avg Train Loss: 91.5488, Avg Train Acc: 0.0421, Avg Test Acc: 0.0404
+2025-03-09 20:31:30,657 - __main__ - INFO - CPU Memory Usage: 1.93 GB
+2025-03-09 20:31:30,657 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:30,657 - __main__ - INFO - Round 4/10
+2025-03-09 20:31:30,778 - root - INFO - Starting client training for global round 3
+2025-03-09 20:31:31,012 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:31,069 - root - INFO - Completed global round 3
+2025-03-09 20:31:31,131 - root - INFO - Global model - Validation Loss: 121.7046, Accuracy: 0.0975
+2025-03-09 20:31:31,299 - root - INFO - Global model - Test Accuracy: 0.0851
+2025-03-09 20:31:31,299 - root - INFO - Average client - Test Accuracy: 0.1056
+2025-03-09 20:31:31,300 - __main__ - INFO - Round 4 - Avg Train Loss: 107.6158, Avg Train Acc: 0.1189, Avg Test Acc: 0.1056
+2025-03-09 20:31:31,300 - __main__ - INFO - CPU Memory Usage: 1.94 GB
+2025-03-09 20:31:31,300 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:31,300 - __main__ - INFO - Round 5/10
+2025-03-09 20:31:31,422 - root - INFO - Starting client training for global round 4
+2025-03-09 20:31:31,655 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:31,711 - root - INFO - Completed global round 4
+2025-03-09 20:31:31,772 - root - INFO - Global model - Validation Loss: 60.6075, Accuracy: 0.0979
+2025-03-09 20:31:31,929 - root - INFO - Global model - Test Accuracy: 0.0858
+2025-03-09 20:31:31,929 - root - INFO - Average client - Test Accuracy: 0.3081
+2025-03-09 20:31:31,929 - __main__ - INFO - Round 5 - Avg Train Loss: 35.0351, Avg Train Acc: 0.2377, Avg Test Acc: 0.3081
+2025-03-09 20:31:31,929 - __main__ - INFO - CPU Memory Usage: 1.92 GB
+2025-03-09 20:31:31,930 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:31,930 - __main__ - INFO - Round 6/10
+2025-03-09 20:31:32,052 - root - INFO - Starting client training for global round 5
+2025-03-09 20:31:32,286 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:32,341 - root - INFO - Completed global round 5
+2025-03-09 20:31:32,403 - root - INFO - Global model - Validation Loss: 46.7282, Accuracy: 0.0558
+2025-03-09 20:31:32,567 - root - INFO - Global model - Test Accuracy: 0.0451
+2025-03-09 20:31:32,567 - root - INFO - Average client - Test Accuracy: 0.1289
+2025-03-09 20:31:32,567 - __main__ - INFO - Round 6 - Avg Train Loss: 60.0257, Avg Train Acc: 0.1394, Avg Test Acc: 0.1289
+2025-03-09 20:31:32,567 - __main__ - INFO - CPU Memory Usage: 1.92 GB
+2025-03-09 20:31:32,568 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:32,568 - __main__ - INFO - Round 7/10
+2025-03-09 20:31:32,689 - root - INFO - Starting client training for global round 6
+2025-03-09 20:31:32,922 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:32,978 - root - INFO - Completed global round 6
+2025-03-09 20:31:33,040 - root - INFO - Global model - Validation Loss: 26.5073, Accuracy: 0.1801
+2025-03-09 20:31:33,191 - root - INFO - Global model - Test Accuracy: 0.1727
+2025-03-09 20:31:33,191 - root - INFO - Average client - Test Accuracy: 0.1910
+2025-03-09 20:31:33,192 - __main__ - INFO - Round 7 - Avg Train Loss: 35.2892, Avg Train Acc: 0.2194, Avg Test Acc: 0.1910
+2025-03-09 20:31:33,192 - __main__ - INFO - CPU Memory Usage: 1.92 GB
+2025-03-09 20:31:33,192 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:33,192 - __main__ - INFO - Round 8/10
+2025-03-09 20:31:33,321 - root - INFO - Starting client training for global round 7
+2025-03-09 20:31:33,555 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:33,612 - root - INFO - Completed global round 7
+2025-03-09 20:31:33,675 - root - INFO - Global model - Validation Loss: 22.3529, Accuracy: 0.2917
+2025-03-09 20:31:33,833 - root - INFO - Global model - Test Accuracy: 0.2620
+2025-03-09 20:31:33,833 - root - INFO - Average client - Test Accuracy: 0.2512
+2025-03-09 20:31:33,833 - __main__ - INFO - Round 8 - Avg Train Loss: 24.8510, Avg Train Acc: 0.2290, Avg Test Acc: 0.2512
+2025-03-09 20:31:33,833 - __main__ - INFO - CPU Memory Usage: 1.93 GB
+2025-03-09 20:31:33,833 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:33,834 - __main__ - INFO - Round 9/10
+2025-03-09 20:31:33,955 - root - INFO - Starting client training for global round 8
+2025-03-09 20:31:34,189 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:34,244 - root - INFO - Completed global round 8
+2025-03-09 20:31:34,309 - root - INFO - Global model - Validation Loss: 67.2382, Accuracy: 0.0763
+2025-03-09 20:31:34,471 - root - INFO - Global model - Test Accuracy: 0.0626
+2025-03-09 20:31:34,471 - root - INFO - Average client - Test Accuracy: 0.0715
+2025-03-09 20:31:34,471 - __main__ - INFO - Round 9 - Avg Train Loss: 40.0287, Avg Train Acc: 0.0956, Avg Test Acc: 0.0715
+2025-03-09 20:31:34,471 - __main__ - INFO - CPU Memory Usage: 1.92 GB
+2025-03-09 20:31:34,472 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved
+2025-03-09 20:31:34,472 - __main__ - INFO - Round 10/10
+2025-03-09 20:31:34,594 - root - INFO - Starting client training for global round 9
+2025-03-09 20:31:34,827 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:31:34,882 - root - INFO - Completed global round 9
+2025-03-09 20:31:34,944 - root - INFO - Global model - Validation Loss: 53.2960, Accuracy: 0.2494
+2025-03-09 20:31:35,108 - root - INFO - Global model - Test Accuracy: 0.2242
+2025-03-09 20:31:35,108 - root - INFO - Average client - Test Accuracy: 0.3367
+2025-03-09 20:31:35,108 - __main__ - INFO - Round 10 - Avg Train Loss: 25.4264, Avg Train Acc: 0.3408, Avg Test Acc: 0.3367
+2025-03-09 20:31:35,108 - __main__ - INFO - CPU Memory Usage: 1.94 GB
+2025-03-09 20:31:35,109 - __main__ - INFO - GPU 0 Memory: 0.22 GB allocated, 0.24 GB reserved

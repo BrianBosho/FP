@@ -1,0 +1,30 @@
+2025-03-09 20:25:24,211 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_20250309_202524.log
+2025-03-09 20:25:24,211 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='zero_hop', num_clients=5, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:25:24,211 - __main__ - INFO - NOTE: For OGBN-Arxiv dataset, GCN_Arxiv model will be used regardless of model type specified
+2025-03-09 20:25:24,259 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:25:24,260 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:25:24,260 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:25:24,260 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:25:24,260 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:25:24,260 - __main__ - INFO - Using GCN_Arxiv model for OGBN-Arxiv dataset
+2025-03-09 20:25:24,261 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:25:24,261 - __main__ - INFO - Loading dataset: ogbn-arxiv
+2025-03-09 20:25:24,386 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:25:25,208 - __main__ - INFO - Test data type: <class 'list'>
+2025-03-09 20:25:25,209 - __main__ - INFO - Test data is a list with 5 items
+2025-03-09 20:25:25,209 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 20:25:25,209 - __main__ - INFO - GPU 0 Memory: 0.21 GB allocated, 0.24 GB reserved
+2025-03-09 20:25:26,952 - __main__ - INFO - Creating model for ogbn-arxiv
+2025-03-09 20:25:26,953 - __main__ - INFO - Using GCN_Arxiv for OGBN-Arxiv dataset
+2025-03-09 20:25:26,990 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:25:26,990 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:25:28,091 - __main__ - INFO - Initializing server
+2025-03-09 20:25:28,109 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:25:28,109 - __main__ - INFO - Round 1/10
+2025-03-09 20:25:28,269 - root - INFO - Starting client training for global round 0
+2025-03-09 20:25:32,291 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:25:32,342 - root - INFO - Completed global round 0
+2025-03-09 20:25:32,600 - root - INFO - Global model - Validation Loss: 33.2125, Accuracy: 0.0375
+2025-03-09 20:25:32,792 - root - INFO - Global model - Test Accuracy: 0.0294
+2025-03-09 20:25:32,792 - root - INFO - Average client - Test Accuracy: 0.0313
+2025-03-09 20:25:32,799 - __main__ - ERROR - Error during evaluation: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.

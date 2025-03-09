@@ -1,0 +1,20 @@
+2025-03-09 20:08:13,871 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_GCN_20250309_200813.log
+2025-03-09 20:08:13,872 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='adjacency', num_clients=10, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=False, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:08:13,917 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:08:13,917 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:08:13,918 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:08:13,918 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:08:13,918 - __main__ - INFO - Loading data with method: adjacency
+2025-03-09 20:08:13,918 - __main__ - INFO - Loading dataset: ogbn-arxiv
+2025-03-09 20:08:14,042 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:08:24,549 - __main__ - INFO - CPU Memory Usage: 1.26 GB
+2025-03-09 20:08:24,549 - __main__ - INFO - GPU 0 Memory: 0.95 GB allocated, 1.53 GB reserved
+2025-03-09 20:08:26,320 - __main__ - INFO - Creating GCN model
+2025-03-09 20:08:26,356 - __main__ - INFO - Initializing 10 clients
+2025-03-09 20:08:26,356 - __main__ - INFO - Initializing 10 clients with model type GCN
+2025-03-09 20:08:29,618 - __main__ - INFO - Initializing server
+2025-03-09 20:08:29,656 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:08:29,656 - __main__ - INFO - Round 1/10
+2025-03-09 20:08:29,823 - root - INFO - Starting client training for global round 0
+2025-03-09 20:08:35,792 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:08:35,909 - root - INFO - Completed global round 0

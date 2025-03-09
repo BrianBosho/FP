@@ -1,0 +1,24 @@
+2025-03-09 20:18:25,404 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_20250309_201825.log
+2025-03-09 20:18:25,404 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='zero_hop', num_clients=5, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:18:25,404 - __main__ - INFO - NOTE: For OGBN-Arxiv dataset, GCN_Arxiv model will be used regardless of model type specified
+2025-03-09 20:18:25,451 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:18:25,452 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:18:25,452 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:18:25,452 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:18:25,453 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 20:18:25,453 - __main__ - INFO - Using GCN_Arxiv model for OGBN-Arxiv dataset
+2025-03-09 20:18:25,453 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:18:25,453 - __main__ - INFO - Loading dataset: ogbn-arxiv
+2025-03-09 20:18:25,577 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:18:26,403 - __main__ - INFO - CPU Memory Usage: 0.91 GB
+2025-03-09 20:18:26,403 - __main__ - INFO - GPU 0 Memory: 0.21 GB allocated, 0.24 GB reserved
+2025-03-09 20:18:28,200 - __main__ - INFO - Creating model for ogbn-arxiv
+2025-03-09 20:18:28,200 - __main__ - INFO - Using GCN_Arxiv for OGBN-Arxiv dataset
+2025-03-09 20:18:28,236 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:18:28,237 - __main__ - INFO - Initializing 5 clients
+2025-03-09 20:18:29,307 - __main__ - INFO - Initializing server
+2025-03-09 20:18:29,325 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:18:29,325 - __main__ - INFO - Round 1/10
+2025-03-09 20:18:29,484 - root - INFO - Starting client training for global round 0
+2025-03-09 20:18:33,505 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:18:33,552 - root - INFO - Completed global round 0

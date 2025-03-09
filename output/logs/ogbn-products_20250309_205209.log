@@ -1,0 +1,542 @@
+2025-03-09 20:52:09,232 - __main__ - INFO - Logging to output/logs/ogbn-products_20250309_205209.log
+2025-03-09 20:52:09,232 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-products', model='GCN', data_loading='zero_hop', num_clients=3, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=2, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:52:09,232 - __main__ - INFO - NOTE: For OGBN-Products dataset, SAGE_Products model will be used regardless of model type specified
+2025-03-09 20:52:09,280 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:52:09,281 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:52:09,281 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:52:09,281 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:52:09,281 - __main__ - INFO - Dataset: ogbn-products, Type: products
+2025-03-09 20:52:09,281 - __main__ - INFO - Using SAGE_Products model for OGBN-Products dataset
+2025-03-09 20:52:09,281 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:52:09,282 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 20:52:09,403 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:52:09,403 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 20:52:09,403 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 20:52:09,404 - __main__ - INFO - Available system memory: 52.93 GB
+2025-03-09 20:52:25,450 - __main__ - INFO - Test data type: <class 'list'>
+2025-03-09 20:52:25,451 - __main__ - INFO - Test data is a list with 3 items
+2025-03-09 20:52:25,451 - __main__ - INFO - CPU Memory Usage: 3.64 GB
+2025-03-09 20:52:25,451 - __main__ - INFO - GPU 0 Memory: 4.34 GB allocated, 4.37 GB reserved
+2025-03-09 20:52:27,624 - __main__ - INFO - Creating model for ogbn-products
+2025-03-09 20:52:27,625 - __main__ - INFO - OGBN-Products dataset: Using SAGE_Products with hidden dimension 128
+2025-03-09 20:52:27,625 - __main__ - INFO - Input features: 100, Output classes: 47
+2025-03-09 20:52:27,655 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:52:27,655 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:52:27,656 - __main__ - INFO - Setting epochs to 1 for OGBN-Products dataset
+2025-03-09 20:52:27,656 - __main__ - INFO - Reducing learning rate from 0.5 to 0.01 for OGBN-Products
+2025-03-09 20:52:27,657 - __main__ - INFO - Client configuration: {'num_clients': 10, 'num_rounds': 10, 'epochs': 1, 'beta': 1000, 'lr': 0.01, 'fulltraining_flag': True, 'paths': {'datasets_dir': 'datasets', 'planetoid': {'cora': 'datasets/cora', 'citeseer': 'datasets/citeseer', 'pubmed': 'datasets/pubmed'}, 'ogbn': {'arxiv': 'datasets/ogbn_arxiv'}}}
+2025-03-09 20:52:44,463 - __main__ - INFO - Initializing server
+2025-03-09 20:52:44,468 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:52:44,469 - __main__ - INFO - Round 1/10
+2025-03-09 20:52:44,629 - root - INFO - Starting client training for global round 0
+2025-03-09 20:52:52,567 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:52:52,591 - root - INFO - Completed global round 0
+2025-03-09 20:52:52,592 - __main__ - INFO - Round 2/10
+2025-03-09 20:52:52,712 - root - INFO - Starting client training for global round 1
+2025-03-09 20:52:52,932 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842856, ip=172.29.98.248, actor_id=d163c4c4253d0144327c28ee01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fb3df73cc50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.68 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.81 GiB is free. Process 1841933 has 4.85 GiB memory in use. Including non-PyTorch memory, this process has 7.24 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Process 1842859 has 13.59 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.33 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:52:52,932 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:52:53,318 - root - INFO - Completed global round 1
+2025-03-09 20:52:54,044 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1842861, ip=172.29.98.248, actor_id=03c4d2fb2bc2658413e58c9c01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f8f9f2a90d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 139, in evaluate
+    # Use client's own data for evaluation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.76 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.59 GiB is free. Process 1841933 has 4.85 GiB memory in use. Process 1842856 has 13.61 GiB memory in use. Including non-PyTorch memory, this process has 6.40 GiB memory in use. Process 1842859 has 13.21 GiB memory in use. Of the allocated memory 952.11 MiB is allocated by PyTorch, and 4.97 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:52:54,088 - root - ERROR - Error evaluating global model: CUDA out of memory. Tried to allocate 5.22 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.59 GiB is free. Including non-PyTorch memory, this process has 4.85 GiB memory in use. Process 1842856 has 13.61 GiB memory in use. Process 1842861 has 6.40 GiB memory in use. Process 1842859 has 13.21 GiB memory in use. Of the allocated memory 4.34 GiB is allocated by PyTorch, and 22.88 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:52:58,111 - root - INFO - Global model - Test Accuracy: 0.3673
+2025-03-09 20:52:58,111 - root - INFO - Average client - Test Accuracy: 0.4012
+2025-03-09 20:52:58,111 - __main__ - INFO - Round 2 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.4012
+2025-03-09 20:52:58,111 - __main__ - INFO - CPU Memory Usage: 11.05 GB
+2025-03-09 20:52:58,112 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:52:58,112 - __main__ - INFO - Round 3/10
+2025-03-09 20:52:58,238 - root - INFO - Starting client training for global round 2
+2025-03-09 20:52:58,582 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842859, ip=172.29.98.248, actor_id=ac088f000edc78906b58c02d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7feb4852ab70>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.45 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.57 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 14.00 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Including non-PyTorch memory, this process has 7.06 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.16 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:52:58,582 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:52:58,972 - root - INFO - Completed global round 2
+2025-03-09 20:52:58,972 - __main__ - INFO - Round 4/10
+2025-03-09 20:52:59,092 - root - INFO - Starting client training for global round 3
+2025-03-09 20:52:59,648 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842856, ip=172.29.98.248, actor_id=d163c4c4253d0144327c28ee01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fb3df73cc50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.68 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.80 GiB is free. Process 1841933 has 4.86 GiB memory in use. Including non-PyTorch memory, this process has 7.24 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Process 1842859 has 13.59 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.33 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:52:59,649 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:53:00,066 - root - INFO - Completed global round 3
+2025-03-09 20:53:00,739 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1842859, ip=172.29.98.248, actor_id=ac088f000edc78906b58c02d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7feb4852ab70>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 139, in evaluate
+    # Use client's own data for evaluation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.45 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.26 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 13.61 GiB memory in use. Process 1842861 has 13.77 GiB memory in use. Including non-PyTorch memory, this process has 6.15 GiB memory in use. Of the allocated memory 942.38 MiB is allocated by PyTorch, and 4.73 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:00,746 - root - ERROR - Error evaluating global model: CUDA out of memory. Tried to allocate 5.22 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.26 GiB is free. Including non-PyTorch memory, this process has 4.86 GiB memory in use. Process 1842856 has 13.61 GiB memory in use. Process 1842861 has 13.77 GiB memory in use. Process 1842859 has 6.15 GiB memory in use. Of the allocated memory 4.35 GiB is allocated by PyTorch, and 14.76 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:04,528 - root - INFO - Global model - Test Accuracy: 0.4431
+2025-03-09 20:53:04,529 - root - INFO - Average client - Test Accuracy: 0.5031
+2025-03-09 20:53:04,529 - __main__ - INFO - Round 4 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.5031
+2025-03-09 20:53:04,529 - __main__ - INFO - CPU Memory Usage: 11.07 GB
+2025-03-09 20:53:04,529 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:53:04,529 - __main__ - INFO - Round 5/10
+2025-03-09 20:53:04,653 - root - INFO - Starting client training for global round 4
+2025-03-09 20:53:05,117 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842856, ip=172.29.98.248, actor_id=d163c4c4253d0144327c28ee01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fb3df73cc50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.68 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.80 GiB is free. Process 1841933 has 4.86 GiB memory in use. Including non-PyTorch memory, this process has 7.24 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Process 1842859 has 13.59 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.33 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:05,117 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:53:05,533 - root - INFO - Completed global round 4
+2025-03-09 20:53:05,533 - __main__ - INFO - Round 6/10
+2025-03-09 20:53:05,655 - root - INFO - Starting client training for global round 5
+2025-03-09 20:53:06,201 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842859, ip=172.29.98.248, actor_id=ac088f000edc78906b58c02d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7feb4852ab70>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.45 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.57 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 14.00 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Including non-PyTorch memory, this process has 7.06 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.16 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:06,201 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:53:06,622 - root - INFO - Completed global round 5
+2025-03-09 20:53:07,457 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1842859, ip=172.29.98.248, actor_id=ac088f000edc78906b58c02d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7feb4852ab70>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 139, in evaluate
+    # Use client's own data for evaluation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_praun177.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.45 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.57 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 1.42 GiB memory in use. Process 1842861 has 1.42 GiB memory in use. Including non-PyTorch memory, this process has 6.15 GiB memory in use. Of the allocated memory 942.38 MiB is allocated by PyTorch, and 4.73 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:08,006 - root - INFO - Global model - Validation Loss: 2.3026, Accuracy: 0.6328
+2025-03-09 20:53:11,986 - root - INFO - Global model - Test Accuracy: 0.4782
+2025-03-09 20:53:11,986 - root - INFO - Average client - Test Accuracy: 0.5334
+2025-03-09 20:53:11,986 - __main__ - INFO - Round 6 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.5334
+2025-03-09 20:53:11,986 - __main__ - INFO - CPU Memory Usage: 11.08 GB
+2025-03-09 20:53:11,987 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:53:11,987 - __main__ - INFO - Round 7/10
+2025-03-09 20:53:12,106 - root - INFO - Starting client training for global round 6
+2025-03-09 20:53:12,433 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842856, ip=172.29.98.248, actor_id=d163c4c4253d0144327c28ee01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fb3df73cc50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_5le32dgq.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.68 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.80 GiB is free. Process 1841933 has 4.86 GiB memory in use. Including non-PyTorch memory, this process has 7.24 GiB memory in use. Process 1842861 has 14.15 GiB memory in use. Process 1842859 has 13.59 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.33 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:12,433 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:53:12,845 - root - INFO - Completed global round 6
+2025-03-09 20:53:12,845 - __main__ - INFO - Round 8/10
+2025-03-09 20:53:12,964 - root - INFO - Starting client training for global round 7
+2025-03-09 20:53:13,539 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1842861, ip=172.29.98.248, actor_id=03c4d2fb2bc2658413e58c9c01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f8f9f2a90d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 101, in train_client
+    # Train the model
+                      
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.76 GiB. GPU 0 has a total capacity of 47.71 GiB of which 2.89 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 14.00 GiB memory in use. Including non-PyTorch memory, this process has 7.31 GiB memory in use. Process 1842859 has 13.59 GiB memory in use. Of the allocated memory 2.41 GiB is allocated by PyTorch, and 4.40 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:13,539 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:53:13,951 - root - INFO - Completed global round 7
+2025-03-09 20:53:14,775 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1842861, ip=172.29.98.248, actor_id=03c4d2fb2bc2658413e58c9c01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f8f9f2a90d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 139, in evaluate
+    # Use client's own data for evaluation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 191, in forward
+    x = self.conv_out(x, edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 173, in propagate
+    kwargs = self.collect(
+             ^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_x4lsrt5k.py", line 83, in collect
+    x_j = self._index_select(_x_0, edge_index_j)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 267, in _index_select
+    return self._index_select_safe(src, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 290, in _index_select_safe
+    raise e
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 271, in _index_select_safe
+    return src.index_select(self.node_dim, index)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.76 GiB. GPU 0 has a total capacity of 47.71 GiB of which 4.58 GiB is free. Process 1841933 has 4.86 GiB memory in use. Process 1842856 has 1.42 GiB memory in use. Including non-PyTorch memory, this process has 6.40 GiB memory in use. Process 1842859 has 1.41 GiB memory in use. Of the allocated memory 952.11 MiB is allocated by PyTorch, and 4.97 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+2025-03-09 20:53:15,314 - root - INFO - Global model - Validation Loss: 2.0031, Accuracy: 0.6554

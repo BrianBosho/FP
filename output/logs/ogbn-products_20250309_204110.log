@@ -1,0 +1,724 @@
+2025-03-09 20:41:10,058 - __main__ - INFO - Logging to output/logs/ogbn-products_20250309_204110.log
+2025-03-09 20:41:10,058 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-products', model='GCN', data_loading='zero_hop', num_clients=3, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=2, full_training=False, cpu=False, memory_efficient=True, mixed_precision=False, ray_memory=None, redis_memory=None)
+2025-03-09 20:41:10,058 - __main__ - INFO - NOTE: For OGBN-Products dataset, SAGE_Products model will be used regardless of model type specified
+2025-03-09 20:41:10,104 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 20:41:10,104 - __main__ - INFO - Enabling memory-efficient PyTorch settings
+2025-03-09 20:41:10,105 - __main__ - INFO - CPU Memory Usage: 0.65 GB
+2025-03-09 20:41:10,105 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 20:41:10,105 - __main__ - INFO - Dataset: ogbn-products, Type: products
+2025-03-09 20:41:10,105 - __main__ - INFO - Using SAGE_Products model for OGBN-Products dataset
+2025-03-09 20:41:10,105 - __main__ - INFO - Loading data with method: zero_hop
+2025-03-09 20:41:10,105 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 20:41:10,229 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 20:41:10,229 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 20:41:10,229 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 20:41:10,229 - __main__ - INFO - Available system memory: 52.84 GB
+2025-03-09 20:46:45,374 - __main__ - INFO - Test data type: <class 'list'>
+2025-03-09 20:46:45,374 - __main__ - INFO - Test data is a list with 3 items
+2025-03-09 20:46:45,375 - __main__ - INFO - CPU Memory Usage: 5.35 GB
+2025-03-09 20:46:45,375 - __main__ - INFO - GPU 0 Memory: 4.34 GB allocated, 4.37 GB reserved
+2025-03-09 20:46:47,600 - __main__ - INFO - Creating model for ogbn-products
+2025-03-09 20:46:47,600 - __main__ - INFO - OGBN-Products dataset: Using SAGE_Products with hidden dimension 64
+2025-03-09 20:46:47,600 - __main__ - INFO - Input features: 100, Output classes: 47
+2025-03-09 20:46:47,633 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:46:47,633 - __main__ - INFO - Initializing 3 clients
+2025-03-09 20:46:47,634 - __main__ - INFO - Setting epochs to 1 for OGBN-Products dataset
+2025-03-09 20:46:47,634 - __main__ - INFO - Reducing learning rate from 0.5 to 0.01 for OGBN-Products
+2025-03-09 20:46:47,634 - __main__ - INFO - Client configuration: {'num_clients': 10, 'num_rounds': 10, 'epochs': 1, 'beta': 1000, 'lr': 0.01, 'fulltraining_flag': True, 'paths': {'datasets_dir': 'datasets', 'planetoid': {'cora': 'datasets/cora', 'citeseer': 'datasets/citeseer', 'pubmed': 'datasets/pubmed'}, 'ogbn': {'arxiv': 'datasets/ogbn_arxiv'}}}
+2025-03-09 20:47:05,776 - __main__ - INFO - Initializing server
+2025-03-09 20:47:05,782 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 20:47:05,782 - __main__ - INFO - Round 1/10
+2025-03-09 20:47:05,951 - root - INFO - Starting client training for global round 0
+2025-03-09 20:47:06,151 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:06,152 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:13,611 - root - INFO - Completed global round 0
+2025-03-09 20:47:13,612 - __main__ - INFO - Round 2/10
+2025-03-09 20:47:13,738 - root - INFO - Starting client training for global round 1
+2025-03-09 20:47:13,745 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830304, ip=172.29.98.248, actor_id=bdf00619a0652e2cab511bc601000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f21bc4befc0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:13,745 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:13,916 - root - INFO - Completed global round 1
+2025-03-09 20:47:14,165 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 138, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:14,504 - root - INFO - Global model - Validation Loss: 3.7652, Accuracy: 0.0536
+2025-03-09 20:47:18,357 - root - ERROR - Error processing test results: [36mray::EnhancedFLClient.test()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 178, in test
+    return enhanced_test(self.model, test_data, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 257, in enhanced_test
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:18,526 - root - INFO - Global model - Test Accuracy: 0.0405
+2025-03-09 20:47:18,526 - __main__ - INFO - Round 2 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.0000
+2025-03-09 20:47:18,527 - __main__ - INFO - CPU Memory Usage: 12.51 GB
+2025-03-09 20:47:18,527 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:47:18,527 - __main__ - INFO - Round 3/10
+2025-03-09 20:47:18,653 - root - INFO - Starting client training for global round 2
+2025-03-09 20:47:18,955 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:18,955 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:19,121 - root - INFO - Completed global round 2
+2025-03-09 20:47:19,121 - __main__ - INFO - Round 4/10
+2025-03-09 20:47:19,248 - root - INFO - Starting client training for global round 3
+2025-03-09 20:47:19,450 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830304, ip=172.29.98.248, actor_id=bdf00619a0652e2cab511bc601000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f21bc4befc0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:19,450 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:19,615 - root - INFO - Completed global round 3
+2025-03-09 20:47:19,756 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 138, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:20,069 - root - INFO - Global model - Validation Loss: 3.7652, Accuracy: 0.0536
+2025-03-09 20:47:23,802 - root - ERROR - Error processing test results: [36mray::EnhancedFLClient.test()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 178, in test
+    return enhanced_test(self.model, test_data, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 257, in enhanced_test
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:23,999 - root - INFO - Global model - Test Accuracy: 0.0405
+2025-03-09 20:47:24,000 - __main__ - INFO - Round 4 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.0000
+2025-03-09 20:47:24,000 - __main__ - INFO - CPU Memory Usage: 12.51 GB
+2025-03-09 20:47:24,000 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:47:24,000 - __main__ - INFO - Round 5/10
+2025-03-09 20:47:24,117 - root - INFO - Starting client training for global round 4
+2025-03-09 20:47:24,548 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:24,549 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:24,715 - root - INFO - Completed global round 4
+2025-03-09 20:47:24,716 - __main__ - INFO - Round 6/10
+2025-03-09 20:47:24,890 - root - INFO - Starting client training for global round 5
+2025-03-09 20:47:24,898 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830316, ip=172.29.98.248, actor_id=9df148540c7249730d2abe7a01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fec13616420>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:24,898 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:25,074 - root - INFO - Completed global round 5
+2025-03-09 20:47:25,262 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 138, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:25,562 - root - INFO - Global model - Validation Loss: 3.7652, Accuracy: 0.0536
+2025-03-09 20:47:29,554 - root - ERROR - Error processing test results: [36mray::EnhancedFLClient.test()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 178, in test
+    return enhanced_test(self.model, test_data, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 257, in enhanced_test
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:29,699 - root - INFO - Global model - Test Accuracy: 0.0405
+2025-03-09 20:47:29,699 - __main__ - INFO - Round 6 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.0000
+2025-03-09 20:47:29,699 - __main__ - INFO - CPU Memory Usage: 12.51 GB
+2025-03-09 20:47:29,700 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:47:29,700 - __main__ - INFO - Round 7/10
+2025-03-09 20:47:29,820 - root - INFO - Starting client training for global round 6
+2025-03-09 20:47:30,149 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830316, ip=172.29.98.248, actor_id=9df148540c7249730d2abe7a01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fec13616420>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:30,149 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:30,318 - root - INFO - Completed global round 6
+2025-03-09 20:47:30,319 - __main__ - INFO - Round 8/10
+2025-03-09 20:47:30,441 - root - INFO - Starting client training for global round 7
+2025-03-09 20:47:30,492 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830304, ip=172.29.98.248, actor_id=bdf00619a0652e2cab511bc601000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f21bc4befc0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:30,492 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:30,660 - root - INFO - Completed global round 7
+2025-03-09 20:47:30,900 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 138, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:31,236 - root - INFO - Global model - Validation Loss: 3.7652, Accuracy: 0.0536
+2025-03-09 20:47:34,817 - root - ERROR - Error processing test results: [36mray::EnhancedFLClient.test()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 178, in test
+    return enhanced_test(self.model, test_data, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 257, in enhanced_test
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:34,985 - root - INFO - Global model - Test Accuracy: 0.0405
+2025-03-09 20:47:34,985 - __main__ - INFO - Round 8 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.0000
+2025-03-09 20:47:34,985 - __main__ - INFO - CPU Memory Usage: 12.51 GB
+2025-03-09 20:47:34,986 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:47:34,986 - __main__ - INFO - Round 9/10
+2025-03-09 20:47:35,103 - root - INFO - Starting client training for global round 8
+2025-03-09 20:47:35,431 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:35,431 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:35,598 - root - INFO - Completed global round 8
+2025-03-09 20:47:35,598 - __main__ - INFO - Round 10/10
+2025-03-09 20:47:35,715 - root - INFO - Starting client training for global round 9
+2025-03-09 20:47:35,917 - root - ERROR - Error processing train results: [36mray::EnhancedFLClient.train_client()[39m (pid=1830304, ip=172.29.98.248, actor_id=bdf00619a0652e2cab511bc601000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f21bc4befc0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 100, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 82, in enhanced_train
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:35,917 - root - INFO - Collecting client parameters for aggregation
+2025-03-09 20:47:36,066 - root - INFO - Completed global round 9
+2025-03-09 20:47:36,201 - root - ERROR - Error processing evaluation results: [36mray::EnhancedFLClient.evaluate()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 138, in evaluate
+    return enhanced_evaluate(self.model, self.data, criterion, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 181, in enhanced_evaluate
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:36,612 - root - INFO - Global model - Validation Loss: 3.7652, Accuracy: 0.0536
+2025-03-09 20:47:40,221 - root - ERROR - Error processing test results: [36mray::EnhancedFLClient.test()[39m (pid=1830306, ip=172.29.98.248, actor_id=23fc3e5092404cc2eb1d24e901000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f7c956590a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 178, in test
+    return enhanced_test(self.model, test_data, dataset_type=self.dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 257, in enhanced_test
+    output = model(data.x, data.edge_index)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 173, in forward
+    x = self.bns[0](x)
+        ^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/functional.py", line 2812, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: running_mean should contain 128 elements not 256
+2025-03-09 20:47:40,429 - root - INFO - Global model - Test Accuracy: 0.0405
+2025-03-09 20:47:40,429 - __main__ - INFO - Round 10 - Avg Train Loss: 0.0000, Avg Train Acc: 0.0000, Avg Test Acc: 0.0000
+2025-03-09 20:47:40,429 - __main__ - INFO - CPU Memory Usage: 12.51 GB
+2025-03-09 20:47:40,430 - __main__ - INFO - GPU 0 Memory: 4.35 GB allocated, 4.67 GB reserved
+2025-03-09 20:47:40,435 - __main__ - INFO - Experiment summary saved to output/results/ogbn-products_zero_hop_summary_20250309_204740.csv
+2025-03-09 20:47:40,435 - __main__ - INFO - Configuration saved to output/results/ogbn-products_zero_hop_config_20250309_204740.json
+2025-03-09 20:47:40,436 - __main__ - INFO - Client metrics saved to output/results/client_metrics_20250309_204740
+2025-03-09 20:47:40,436 - __main__ - INFO - Server metrics saved to output/results/ogbn-products_zero_hop_server_metrics_20250309_204740.json
+2025-03-09 20:47:40,518 - __main__ - INFO - Final results - ogbn-products:
+2025-03-09 20:47:40,518 - __main__ - INFO -   Average Test Accuracy: 0.0000
+2025-03-09 20:47:40,518 - __main__ - INFO -   Average Train Accuracy: 0.0000
+2025-03-09 20:47:40,518 - __main__ - INFO -   Average Train Loss: 0.0000
+2025-03-09 20:47:40,518 - __main__ - INFO - Experiment completed. Results saved to output/results/ogbn-products_zero_hop_summary_20250309_204740.csv (summary)
+2025-03-09 20:47:40,518 - __main__ - INFO - Client metrics, server metrics, and configuration saved to separate files in output/results

@@ -1,0 +1,50 @@
+# Experiment Configuration for Enhanced Federated Learning
+
+# Datasets to run experiments on
+datasets:
+  - "Cora"
+  - "Citeseer"
+  - "Pubmed"
+  - "ogbn-arxiv"
+  # Uncomment to include larger datasets (ensure you have enough memory)
+  # - "ogbn-products"
+
+# Data loading strategies
+data_loading_options:
+  - "zero_hop"
+  - "one_hop"
+
+# Number of clients to use
+num_clients_options:
+  - 3
+  - 5
+
+# Beta parameter for Dirichlet distribution (controls non-IID degree)
+beta_options:
+  - 0.5  # More non-IID
+  - 1.0  # Less non-IID
+
+# Number of communication rounds
+rounds_options:
+  - 20
+  - 50
+
+# Number of local epochs for each client per round (dataset-specific)
+epochs_options:
+  default: 1        # For small datasets
+  ogbn-arxiv: 2     # For medium datasets
+  ogbn-products: 1  # For large datasets (limit to save memory)
+
+# Batch sizes for different datasets
+batch_size_options:
+  default: 1024
+  ogbn-products: 512
+
+# Use GPU if available
+use_cuda: false
+
+# Use memory efficient operations
+memory_efficient: true
+
+# Number of times to repeat each experiment
+repeats: 1 

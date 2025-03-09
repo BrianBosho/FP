@@ -1,0 +1,5 @@
+2025-03-09 19:57:00,075 - __main__ - INFO - Logging to output/logs/ogbn-arxiv_GCN_20250309_195700.log
+2025-03-09 19:57:00,075 - __main__ - INFO - Arguments: Namespace(dataset='ogbn-arxiv', model='GCN', data_loading='page_rank', num_clients=10, beta=None, hop=1, config_path='conf/base.yaml', output_dir='output', rounds=None, eval_every=1, full_training=False, cpu=False)
+2025-03-09 19:57:00,122 - __main__ - INFO - Using GPU: NVIDIA L40-48Q
+2025-03-09 19:57:00,122 - __main__ - INFO - Dataset: ogbn-arxiv, Type: arxiv
+2025-03-09 19:57:00,123 - __main__ - INFO - Loading data with method: page_rank
