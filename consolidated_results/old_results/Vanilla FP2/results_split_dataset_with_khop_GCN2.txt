@@ -1,0 +1,25 @@
+DEVICE: cuda
+Data loading option is split_dataset_with_khop
+Model type is GCN
+
+Client Metrics for Round 1:
+----------------------------------------
+Initial number of nodes: 269
+K-hop value: 2
+Number of nodes after subgraph expansion: 2540
+Zero feature vectors before FP: 443
+Non-zero feature vectors before FP: 2097
+Percentage of zero vectors before FP: 17.44%
+Number of nodes after feature propagation: 2540
+Zero feature vectors: 443
+Non-zero feature vectors: 2097
+Percentage of zero vectors: 17.44%
+----------------------------------------
+
+Final Results:
+The global test results: [0.574]
+The client test results: [0.5696241397293024]
+The average global test results: 0.574
+The average client test results: 0.5696241397293024
+The standard deviation global is: 0.0
+The standard deviation client is: 0.0

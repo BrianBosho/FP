@@ -1,0 +1,11 @@
+DEVICE: cuda
+Data loading option is split_dataset_with_feature_prop
+Model type is GCN
+
+Final Results:
+The global test results: [0.606, 0.628, 0.652, 0.546, 0.603]
+The client test results: [0.6173058947858203, 0.6271530437031568, 0.6515864175063751, 0.5658892921209514, 0.599247648970439]
+The average global test results: 0.607
+The average client test results: 0.6122364594173485
+The standard deviation global is: 0.035224991128458776
+The standard deviation client is: 0.02868237081046424

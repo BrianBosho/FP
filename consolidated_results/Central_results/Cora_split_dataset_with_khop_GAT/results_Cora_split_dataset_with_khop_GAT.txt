@@ -1,0 +1,11 @@
+DEVICE: cpu
+Data loading option is split_dataset_with_khop
+Model type is GAT
+
+Final Results:
+The global test results: [0.745, 0.72]
+The client test results: [0.4528570126287524, 0.47705900446202315]
+The average global test results: 0.7324999999999999
+The average client test results: 0.46495800854538777
+The standard deviation global is: 0.012500000000000011
+The standard deviation client is: 0.012100995916635382
