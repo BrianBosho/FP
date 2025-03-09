@@ -61,19 +61,17 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         imputation_method: zero, propagation, full
         fulltraining_flag: if True, use full training
     """
+
+    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full"]
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta)
-    elif data_loading_option == "khop_zero":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="zero", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_propagation":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="propagation", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_full":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="full", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_monte_carlo":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="monte_carlo", fulltraining_flag=fulltraining_flag)
 
+    elif data_loading_option in kh_options:
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
+ 
+      
         
 
 
@@ -154,7 +152,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     try:
         ray.init(num_gpus=1, ignore_reinit_error=True)
         
-        for i in range(5):  # Change 1 to the desired number of repetitions
+        for i in range(3):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)

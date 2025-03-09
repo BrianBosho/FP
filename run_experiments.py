@@ -211,15 +211,12 @@ def run_single_experiment(
 def run_all_experiments(args, logger):
     """Run experiments for all combinations of parameters"""
     # Define lists of options
-    datasets = ["Cora", "Citeseer", "Pubmed"]  # Add more datasets if available
+    datasets = ["Cora", "Citeseer"]  # Add more datasets if available
     data_loading_options = [
-        "zero_hop",
-        "khop_zero",
-        "khop_propagation",
-        "khop_full",
-        "khop_monte_carlo"
+        "zero_hop", "zero", "full", "random_walk", "diffusion", "efficient", "adjacency", "propagation"
+       
     ]
-    model_types = ["GCN", "GAT"]
+    model_types = ["GCN"]
     
     # Load configuration
     clients_num, beta, cfg = load_configuration(args.config_path)

@@ -1,9 +1,9 @@
 num_clients: 10
 num_rounds: 100
 epochs: 2
-beta: 10000
+beta: 1000
 lr: 0.5
-fulltraining_flag: False
+fulltraining_flag: True
 paths:
   datasets_dir: "datasets"
   planetoid:
