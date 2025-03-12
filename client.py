@@ -1,6 +1,6 @@
 import ray
 from train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
-from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv
+from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
 import torch
 import sys
 
@@ -28,13 +28,15 @@ class FLClient:
             print(f"Client {client_id}: Using mini-batch training for large dataset with {data.x.shape[0]} nodes")
         
         # For ogbn-arxiv, always use mini-batching
-        if self.dataset_name == "ogbn-arxiv":
+        if self.dataset_name == "ogbn-arxiv" or self.dataset_name == "ogbn-products":
             self.use_minibatch = True
             print(f"Client {client_id}: Using mini-batch training for ogbn-arxiv dataset")
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
                 self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
+            elif self.dataset_name == "ogbn-products":
+                self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
             else:
                 self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":

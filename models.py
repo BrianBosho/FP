@@ -60,6 +60,49 @@ class GCN_arxiv(torch.nn.Module):
         x = self.conv3(x, edge_index)
         return F.log_softmax(x, dim=1)
 
+import torch
+import torch.nn.functional as F
+from torch_geometric.nn import SAGEConv, BatchNorm
+
+class GraphSAGEProducts(torch.nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5, num_layers=3):
+        """
+        GraphSAGE model for OGBN-Products.
+
+        Args:
+            input_dim (int): Dimension of input features.
+            hidden_dim (int): Dimension of hidden representations.
+            output_dim (int): Number of classes (e.g., 47 for OGBN-Products).
+            dropout (float): Dropout probability.
+            num_layers (int): Number of layers (default is 3).
+        """
+        super(GraphSAGEProducts, self).__init__()
+        self.convs = torch.nn.ModuleList()
+        self.bns = torch.nn.ModuleList()
+        
+        # First layer: input to hidden
+        self.convs.append(SAGEConv(input_dim, hidden_dim))
+        self.bns.append(BatchNorm(hidden_dim))
+        
+        # Intermediate layers
+        for _ in range(num_layers - 2):
+            self.convs.append(SAGEConv(hidden_dim, hidden_dim))
+            self.bns.append(BatchNorm(hidden_dim))
+        
+        # Final layer: hidden to output
+        self.convs.append(SAGEConv(hidden_dim, output_dim))
+        self.dropout = dropout
+
+    def forward(self, x, edge_index):
+        # Apply all layers except the last with activation, batch norm, and dropout.
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(x, edge_index)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        # Final layer without activation/dropout
+        x = self.convs[-1](x, edge_index)
+        return F.log_softmax(x, dim=1)
 
 
 class GAT(torch.nn.Module):

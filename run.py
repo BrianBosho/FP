@@ -1,7 +1,7 @@
 import torch
 import ray
 from client import FLClient
-from models import GCN, GAT, GCN_arxiv
+from models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
 from server import Server
 import pandas as pd
 from utils import load_config
@@ -37,6 +37,10 @@ def instantiate_model(model_type,  num_features, num_classes, device, dataset_na
     if model_type == "GCN":
         if dataset_name == "ogbn-arxiv": # 
             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
+            print(f"Model is {model}")
+            return model.to(DEVICE)
+        elif dataset_name == "ogbn-products":
+            model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
             print(f"Model is {model}")
             return model.to(DEVICE)
         else:
@@ -147,7 +151,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     are_params_identical = compare_model_parameters(server.model, server.clients)
     print(f"\nAll model parameters are identical: {are_params_identical}")
 
-    if dataset_name == "ogbn-arxiv":
+    if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
         test_results = server.test_global_model(clients_data[0])
         client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
     else:
