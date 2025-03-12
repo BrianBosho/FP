@@ -1,0 +1,94 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "full",
+        "model_type": "GCN",
+        "dataset": "Pubmed",
+        "num_clients": 1,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.48,
+            "client_result": 0.48
+        },
+        {
+            "round": 2,
+            "global_result": 0.479,
+            "client_result": 0.479
+        },
+        {
+            "round": 3,
+            "global_result": 0.236,
+            "client_result": 0.236
+        },
+        {
+            "round": 4,
+            "global_result": 0.309,
+            "client_result": 0.309
+        },
+        {
+            "round": 5,
+            "global_result": 0.48,
+            "client_result": 0.48
+        },
+        {
+            "round": 6,
+            "global_result": 0.334,
+            "client_result": 0.334
+        },
+        {
+            "round": 7,
+            "global_result": 0.344,
+            "client_result": 0.344
+        },
+        {
+            "round": 8,
+            "global_result": 0.202,
+            "client_result": 0.202
+        },
+        {
+            "round": 9,
+            "global_result": 0.507,
+            "client_result": 0.507
+        },
+        {
+            "round": 10,
+            "global_result": 0.391,
+            "client_result": 0.391
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.48,
+            0.479,
+            0.236,
+            0.309,
+            0.48,
+            0.334,
+            0.344,
+            0.202,
+            0.507,
+            0.391
+        ],
+        "client_results": [
+            0.48,
+            0.479,
+            0.236,
+            0.309,
+            0.48,
+            0.334,
+            0.344,
+            0.202,
+            0.507,
+            0.391
+        ],
+        "average_global_result": 0.3762,
+        "average_client_result": 0.3762,
+        "std_global": 0.10333421505000172,
+        "std_client": 0.10333421505000172
+    }
+}

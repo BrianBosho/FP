@@ -1,0 +1,478 @@
+2025-03-09 23:56:51,436 - __main__ - INFO - Starting enhanced federated learning with Citeseer dataset
+2025-03-09 23:56:51,437 - __main__ - INFO - Random seed set to 42
+2025-03-09 23:56:51,437 - __main__ - INFO - Using memory-efficient models
+2025-03-09 23:56:53,313 - __main__ - INFO - Ray initialized successfully
+2025-03-09 23:56:53,314 - __main__ - INFO - Using CPU
+2025-03-09 23:56:53,476 - __main__ - INFO - CPU Memory Usage: 0.66 GB
+2025-03-09 23:56:53,522 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:53,522 - __main__ - INFO - Loading dataset: Citeseer
+2025-03-09 23:56:53,564 - __main__ - INFO - Dataset: Citeseer
+2025-03-09 23:56:53,565 - __main__ - INFO - Number of nodes: 3327
+2025-03-09 23:56:53,565 - __main__ - INFO - Number of features: 3703
+2025-03-09 23:56:53,573 - __main__ - INFO - Number of classes: 6
+2025-03-09 23:56:53,573 - __main__ - INFO - Number of edges: 9104
+2025-03-09 23:56:53,573 - __main__ - INFO - CPU Memory Usage: 0.81 GB
+2025-03-09 23:56:53,574 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:53,581 - __main__ - INFO - Using standard GCN model for citeseer
+2025-03-09 23:56:53,612 - __main__ - INFO - Global model type: EnhancedGCN
+2025-03-09 23:56:53,613 - __main__ - INFO - Total model parameters: 59398
+2025-03-09 23:56:53,613 - __main__ - INFO - Training for 50 rounds with 3 local epochs per round
+2025-03-09 23:56:53,620 - __main__ - INFO - Initializing 10 clients with 2 epochs per round
+2025-03-09 23:56:53,748 - __main__ - INFO - Initialized 10 clients
+2025-03-09 23:56:53,752 - __main__ - INFO - Starting federated training for 50 rounds
+2025-03-09 23:56:53,753 - __main__ - INFO - Round 1/50
+2025-03-09 23:56:53,753 - __main__ - INFO - CPU Memory Usage: 0.88 GB
+2025-03-09 23:56:53,753 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:53,927 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 23:56:57,033 - __main__ - INFO - Average metrics - Train Loss: 1.7565, Train Acc: 0.7810, Val Acc: 0.7810, Test Acc: 0.7504
+2025-03-09 23:56:57,033 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:57,085 - __main__ - INFO - Completed global round 0
+2025-03-09 23:56:57,092 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:57,092 - __main__ - INFO - Round 1 - Avg Train Loss: 1.7565, Avg Train Acc: 0.7810, Avg Val Acc: 0.7810, Avg Test Acc: 0.7504, Global Test Acc: 0.0000
+2025-03-09 23:56:57,216 - __main__ - INFO - Round 2/50
+2025-03-09 23:56:57,216 - __main__ - INFO - CPU Memory Usage: 0.88 GB
+2025-03-09 23:56:57,217 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:57,321 - __main__ - INFO - Starting client training for global round 1
+2025-03-09 23:56:57,460 - __main__ - INFO - Average metrics - Train Loss: 1.7671, Train Acc: 0.7260, Val Acc: 0.7260, Test Acc: 0.6925
+2025-03-09 23:56:57,460 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:57,503 - __main__ - INFO - Completed global round 1
+2025-03-09 23:56:57,515 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:57,515 - __main__ - INFO - Round 2 - Avg Train Loss: 1.7671, Avg Train Acc: 0.7260, Avg Val Acc: 0.7260, Avg Test Acc: 0.6925, Global Test Acc: 0.0000
+2025-03-09 23:56:57,637 - __main__ - INFO - Round 3/50
+2025-03-09 23:56:57,638 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:57,638 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:57,746 - __main__ - INFO - Starting client training for global round 2
+2025-03-09 23:56:57,884 - __main__ - INFO - Average metrics - Train Loss: 1.7647, Train Acc: 0.7211, Val Acc: 0.7211, Test Acc: 0.6809
+2025-03-09 23:56:57,884 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:57,925 - __main__ - INFO - Completed global round 2
+2025-03-09 23:56:57,927 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:57,927 - __main__ - INFO - Round 3 - Avg Train Loss: 1.7647, Avg Train Acc: 0.7211, Avg Val Acc: 0.7211, Avg Test Acc: 0.6809, Global Test Acc: 0.0000
+2025-03-09 23:56:58,055 - __main__ - INFO - Round 4/50
+2025-03-09 23:56:58,055 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:58,055 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:58,165 - __main__ - INFO - Starting client training for global round 3
+2025-03-09 23:56:58,304 - __main__ - INFO - Average metrics - Train Loss: 1.7640, Train Acc: 0.6555, Val Acc: 0.6555, Test Acc: 0.6090
+2025-03-09 23:56:58,304 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:58,346 - __main__ - INFO - Completed global round 3
+2025-03-09 23:56:58,348 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:58,348 - __main__ - INFO - Round 4 - Avg Train Loss: 1.7640, Avg Train Acc: 0.6555, Avg Val Acc: 0.6555, Avg Test Acc: 0.6090, Global Test Acc: 0.0000
+2025-03-09 23:56:58,478 - __main__ - INFO - Round 5/50
+2025-03-09 23:56:58,479 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:58,479 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:58,592 - __main__ - INFO - Starting client training for global round 4
+2025-03-09 23:56:58,732 - __main__ - INFO - Average metrics - Train Loss: 1.7634, Train Acc: 0.6641, Val Acc: 0.6641, Test Acc: 0.6233
+2025-03-09 23:56:58,732 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:58,777 - __main__ - INFO - Completed global round 4
+2025-03-09 23:56:58,794 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:58,794 - __main__ - INFO - Round 5 - Avg Train Loss: 1.7634, Avg Train Acc: 0.6641, Avg Val Acc: 0.6641, Avg Test Acc: 0.6233, Global Test Acc: 0.0000
+2025-03-09 23:56:58,922 - __main__ - INFO - Round 6/50
+2025-03-09 23:56:58,922 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:58,922 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:59,028 - __main__ - INFO - Starting client training for global round 5
+2025-03-09 23:56:59,167 - __main__ - INFO - Average metrics - Train Loss: 1.7627, Train Acc: 0.7044, Val Acc: 0.7044, Test Acc: 0.6432
+2025-03-09 23:56:59,167 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:59,214 - __main__ - INFO - Completed global round 5
+2025-03-09 23:56:59,216 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:59,216 - __main__ - INFO - Round 6 - Avg Train Loss: 1.7627, Avg Train Acc: 0.7044, Avg Val Acc: 0.7044, Avg Test Acc: 0.6432, Global Test Acc: 0.0000
+2025-03-09 23:56:59,341 - __main__ - INFO - Round 7/50
+2025-03-09 23:56:59,342 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:59,342 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:59,447 - __main__ - INFO - Starting client training for global round 6
+2025-03-09 23:56:59,585 - __main__ - INFO - Average metrics - Train Loss: 1.7624, Train Acc: 0.6867, Val Acc: 0.6867, Test Acc: 0.6365
+2025-03-09 23:56:59,585 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:56:59,637 - __main__ - INFO - Completed global round 6
+2025-03-09 23:56:59,644 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:56:59,645 - __main__ - INFO - Round 7 - Avg Train Loss: 1.7624, Avg Train Acc: 0.6867, Avg Val Acc: 0.6867, Avg Test Acc: 0.6365, Global Test Acc: 0.0000
+2025-03-09 23:56:59,769 - __main__ - INFO - Round 8/50
+2025-03-09 23:56:59,769 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:56:59,770 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:56:59,879 - __main__ - INFO - Starting client training for global round 7
+2025-03-09 23:57:00,026 - __main__ - INFO - Average metrics - Train Loss: 1.7621, Train Acc: 0.6780, Val Acc: 0.6780, Test Acc: 0.6232
+2025-03-09 23:57:00,026 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:00,066 - __main__ - INFO - Completed global round 7
+2025-03-09 23:57:00,135 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:00,135 - __main__ - INFO - Round 8 - Avg Train Loss: 1.7621, Avg Train Acc: 0.6780, Avg Val Acc: 0.6780, Avg Test Acc: 0.6232, Global Test Acc: 0.0000
+2025-03-09 23:57:00,266 - __main__ - INFO - Round 9/50
+2025-03-09 23:57:00,266 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:00,267 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:00,381 - __main__ - INFO - Starting client training for global round 8
+2025-03-09 23:57:00,520 - __main__ - INFO - Average metrics - Train Loss: 1.7607, Train Acc: 0.6832, Val Acc: 0.6832, Test Acc: 0.6317
+2025-03-09 23:57:00,521 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:00,561 - __main__ - INFO - Completed global round 8
+2025-03-09 23:57:00,563 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:00,563 - __main__ - INFO - Round 9 - Avg Train Loss: 1.7607, Avg Train Acc: 0.6832, Avg Val Acc: 0.6832, Avg Test Acc: 0.6317, Global Test Acc: 0.0000
+2025-03-09 23:57:00,688 - __main__ - INFO - Round 10/50
+2025-03-09 23:57:00,688 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:00,688 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:00,796 - __main__ - INFO - Starting client training for global round 9
+2025-03-09 23:57:00,935 - __main__ - INFO - Average metrics - Train Loss: 1.7601, Train Acc: 0.6614, Val Acc: 0.6614, Test Acc: 0.6068
+2025-03-09 23:57:00,935 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:00,974 - __main__ - INFO - Completed global round 9
+2025-03-09 23:57:00,976 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:00,976 - __main__ - INFO - Round 10 - Avg Train Loss: 1.7601, Avg Train Acc: 0.6614, Avg Val Acc: 0.6614, Avg Test Acc: 0.6068, Global Test Acc: 0.0000
+2025-03-09 23:57:01,105 - __main__ - INFO - Round 11/50
+2025-03-09 23:57:01,105 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:01,105 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:01,214 - __main__ - INFO - Starting client training for global round 10
+2025-03-09 23:57:01,354 - __main__ - INFO - Average metrics - Train Loss: 1.7599, Train Acc: 0.6624, Val Acc: 0.6624, Test Acc: 0.6020
+2025-03-09 23:57:01,354 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:01,406 - __main__ - INFO - Completed global round 10
+2025-03-09 23:57:01,407 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:01,408 - __main__ - INFO - Round 11 - Avg Train Loss: 1.7599, Avg Train Acc: 0.6624, Avg Val Acc: 0.6624, Avg Test Acc: 0.6020, Global Test Acc: 0.0000
+2025-03-09 23:57:01,531 - __main__ - INFO - Round 12/50
+2025-03-09 23:57:01,531 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:01,531 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:01,645 - __main__ - INFO - Starting client training for global round 11
+2025-03-09 23:57:01,783 - __main__ - INFO - Average metrics - Train Loss: 1.7592, Train Acc: 0.6617, Val Acc: 0.6617, Test Acc: 0.5624
+2025-03-09 23:57:01,783 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:01,831 - __main__ - INFO - Completed global round 11
+2025-03-09 23:57:01,867 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:01,868 - __main__ - INFO - Round 12 - Avg Train Loss: 1.7592, Avg Train Acc: 0.6617, Avg Val Acc: 0.6617, Avg Test Acc: 0.5624, Global Test Acc: 0.0000
+2025-03-09 23:57:01,993 - __main__ - INFO - Round 13/50
+2025-03-09 23:57:01,993 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:01,994 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:02,103 - __main__ - INFO - Starting client training for global round 12
+2025-03-09 23:57:02,242 - __main__ - INFO - Average metrics - Train Loss: 1.7583, Train Acc: 0.6011, Val Acc: 0.6011, Test Acc: 0.5155
+2025-03-09 23:57:02,242 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:02,279 - __main__ - INFO - Completed global round 12
+2025-03-09 23:57:02,286 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:02,286 - __main__ - INFO - Round 13 - Avg Train Loss: 1.7583, Avg Train Acc: 0.6011, Avg Val Acc: 0.6011, Avg Test Acc: 0.5155, Global Test Acc: 0.0000
+2025-03-09 23:57:02,409 - __main__ - INFO - Round 14/50
+2025-03-09 23:57:02,410 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:02,410 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:02,518 - __main__ - INFO - Starting client training for global round 13
+2025-03-09 23:57:02,656 - __main__ - INFO - Average metrics - Train Loss: 1.7585, Train Acc: 0.5263, Val Acc: 0.5263, Test Acc: 0.4569
+2025-03-09 23:57:02,657 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:02,699 - __main__ - INFO - Completed global round 13
+2025-03-09 23:57:02,707 - __main__ - INFO - Global model - Test Accuracy: 0.0000
+2025-03-09 23:57:02,707 - __main__ - INFO - Round 14 - Avg Train Loss: 1.7585, Avg Train Acc: 0.5263, Avg Val Acc: 0.5263, Avg Test Acc: 0.4569, Global Test Acc: 0.0000
+2025-03-09 23:57:02,835 - __main__ - INFO - Round 15/50
+2025-03-09 23:57:02,835 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:02,835 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:02,943 - __main__ - INFO - Starting client training for global round 14
+2025-03-09 23:57:03,084 - __main__ - INFO - Average metrics - Train Loss: 1.7592, Train Acc: 0.4990, Val Acc: 0.4990, Test Acc: 0.4127
+2025-03-09 23:57:03,084 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:03,140 - __main__ - INFO - Completed global round 14
+2025-03-09 23:57:03,153 - __main__ - INFO - Global model - Test Accuracy: 0.0364
+2025-03-09 23:57:03,153 - __main__ - INFO - Round 15 - Avg Train Loss: 1.7592, Avg Train Acc: 0.4990, Avg Val Acc: 0.4990, Avg Test Acc: 0.4127, Global Test Acc: 0.0364
+2025-03-09 23:57:03,285 - __main__ - INFO - Round 16/50
+2025-03-09 23:57:03,285 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:03,285 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:03,400 - __main__ - INFO - Starting client training for global round 15
+2025-03-09 23:57:03,538 - __main__ - INFO - Average metrics - Train Loss: 1.7594, Train Acc: 0.4768, Val Acc: 0.4768, Test Acc: 0.3992
+2025-03-09 23:57:03,538 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:03,578 - __main__ - INFO - Completed global round 15
+2025-03-09 23:57:03,579 - __main__ - INFO - Global model - Test Accuracy: 0.0545
+2025-03-09 23:57:03,579 - __main__ - INFO - Round 16 - Avg Train Loss: 1.7594, Avg Train Acc: 0.4768, Avg Val Acc: 0.4768, Avg Test Acc: 0.3992, Global Test Acc: 0.0545
+2025-03-09 23:57:03,702 - __main__ - INFO - Round 17/50
+2025-03-09 23:57:03,703 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:03,703 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:03,812 - __main__ - INFO - Starting client training for global round 16
+2025-03-09 23:57:03,949 - __main__ - INFO - Average metrics - Train Loss: 1.7631, Train Acc: 0.4500, Val Acc: 0.4500, Test Acc: 0.3915
+2025-03-09 23:57:03,949 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:03,990 - __main__ - INFO - Completed global round 16
+2025-03-09 23:57:03,992 - __main__ - INFO - Global model - Test Accuracy: 0.0909
+2025-03-09 23:57:03,992 - __main__ - INFO - Round 17 - Avg Train Loss: 1.7631, Avg Train Acc: 0.4500, Avg Val Acc: 0.4500, Avg Test Acc: 0.3915, Global Test Acc: 0.0909
+2025-03-09 23:57:04,124 - __main__ - INFO - Round 18/50
+2025-03-09 23:57:04,124 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:04,125 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:04,234 - __main__ - INFO - Starting client training for global round 17
+2025-03-09 23:57:04,386 - __main__ - INFO - Average metrics - Train Loss: 1.7653, Train Acc: 0.4025, Val Acc: 0.4025, Test Acc: 0.3315
+2025-03-09 23:57:04,386 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:04,430 - __main__ - INFO - Completed global round 17
+2025-03-09 23:57:04,432 - __main__ - INFO - Global model - Test Accuracy: 0.0909
+2025-03-09 23:57:04,433 - __main__ - INFO - Round 18 - Avg Train Loss: 1.7653, Avg Train Acc: 0.4025, Avg Val Acc: 0.4025, Avg Test Acc: 0.3315, Global Test Acc: 0.0909
+2025-03-09 23:57:04,557 - __main__ - INFO - Round 19/50
+2025-03-09 23:57:04,557 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:04,558 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:04,668 - __main__ - INFO - Starting client training for global round 18
+2025-03-09 23:57:04,806 - __main__ - INFO - Average metrics - Train Loss: 1.7654, Train Acc: 0.3641, Val Acc: 0.3641, Test Acc: 0.3028
+2025-03-09 23:57:04,806 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:04,850 - __main__ - INFO - Completed global round 18
+2025-03-09 23:57:04,853 - __main__ - INFO - Global model - Test Accuracy: 0.0909
+2025-03-09 23:57:04,853 - __main__ - INFO - Round 19 - Avg Train Loss: 1.7654, Avg Train Acc: 0.3641, Avg Val Acc: 0.3641, Avg Test Acc: 0.3028, Global Test Acc: 0.0909
+2025-03-09 23:57:04,978 - __main__ - INFO - Round 20/50
+2025-03-09 23:57:04,979 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:04,979 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:05,084 - __main__ - INFO - Starting client training for global round 19
+2025-03-09 23:57:05,225 - __main__ - INFO - Average metrics - Train Loss: 1.7655, Train Acc: 0.3619, Val Acc: 0.3619, Test Acc: 0.2755
+2025-03-09 23:57:05,225 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:05,264 - __main__ - INFO - Completed global round 19
+2025-03-09 23:57:05,267 - __main__ - INFO - Global model - Test Accuracy: 0.1273
+2025-03-09 23:57:05,267 - __main__ - INFO - Round 20 - Avg Train Loss: 1.7655, Avg Train Acc: 0.3619, Avg Val Acc: 0.3619, Avg Test Acc: 0.2755, Global Test Acc: 0.1273
+2025-03-09 23:57:05,398 - __main__ - INFO - Round 21/50
+2025-03-09 23:57:05,399 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:05,399 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:05,511 - __main__ - INFO - Starting client training for global round 20
+2025-03-09 23:57:05,650 - __main__ - INFO - Average metrics - Train Loss: 1.7684, Train Acc: 0.3868, Val Acc: 0.3868, Test Acc: 0.3081
+2025-03-09 23:57:05,650 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:05,694 - __main__ - INFO - Completed global round 20
+2025-03-09 23:57:05,696 - __main__ - INFO - Global model - Test Accuracy: 0.1818
+2025-03-09 23:57:05,696 - __main__ - INFO - Round 21 - Avg Train Loss: 1.7684, Avg Train Acc: 0.3868, Avg Val Acc: 0.3868, Avg Test Acc: 0.3081, Global Test Acc: 0.1818
+2025-03-09 23:57:05,818 - __main__ - INFO - Round 22/50
+2025-03-09 23:57:05,818 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:05,818 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:05,927 - __main__ - INFO - Starting client training for global round 21
+2025-03-09 23:57:06,065 - __main__ - INFO - Average metrics - Train Loss: 1.7717, Train Acc: 0.3566, Val Acc: 0.3566, Test Acc: 0.2939
+2025-03-09 23:57:06,065 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:06,124 - __main__ - INFO - Completed global round 21
+2025-03-09 23:57:06,126 - __main__ - INFO - Global model - Test Accuracy: 0.2545
+2025-03-09 23:57:06,126 - __main__ - INFO - Round 22 - Avg Train Loss: 1.7717, Avg Train Acc: 0.3566, Avg Val Acc: 0.3566, Avg Test Acc: 0.2939, Global Test Acc: 0.2545
+2025-03-09 23:57:06,250 - __main__ - INFO - Round 23/50
+2025-03-09 23:57:06,250 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:06,251 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:06,354 - __main__ - INFO - Starting client training for global round 22
+2025-03-09 23:57:06,494 - __main__ - INFO - Average metrics - Train Loss: 1.7774, Train Acc: 0.3113, Val Acc: 0.3113, Test Acc: 0.2522
+2025-03-09 23:57:06,495 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:06,540 - __main__ - INFO - Completed global round 22
+2025-03-09 23:57:06,542 - __main__ - INFO - Global model - Test Accuracy: 0.3091
+2025-03-09 23:57:06,542 - __main__ - INFO - Round 23 - Avg Train Loss: 1.7774, Avg Train Acc: 0.3113, Avg Val Acc: 0.3113, Avg Test Acc: 0.2522, Global Test Acc: 0.3091
+2025-03-09 23:57:06,664 - __main__ - INFO - Round 24/50
+2025-03-09 23:57:06,665 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:06,665 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:06,772 - __main__ - INFO - Starting client training for global round 23
+2025-03-09 23:57:06,911 - __main__ - INFO - Average metrics - Train Loss: 1.7828, Train Acc: 0.2770, Val Acc: 0.2770, Test Acc: 0.2288
+2025-03-09 23:57:06,911 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:06,949 - __main__ - INFO - Completed global round 23
+2025-03-09 23:57:06,951 - __main__ - INFO - Global model - Test Accuracy: 0.3091
+2025-03-09 23:57:06,951 - __main__ - INFO - Round 24 - Avg Train Loss: 1.7828, Avg Train Acc: 0.2770, Avg Val Acc: 0.2770, Avg Test Acc: 0.2288, Global Test Acc: 0.3091
+2025-03-09 23:57:07,078 - __main__ - INFO - Round 25/50
+2025-03-09 23:57:07,078 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:07,079 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:07,188 - __main__ - INFO - Starting client training for global round 24
+2025-03-09 23:57:07,327 - __main__ - INFO - Average metrics - Train Loss: 1.7845, Train Acc: 0.2759, Val Acc: 0.2759, Test Acc: 0.2374
+2025-03-09 23:57:07,327 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:07,372 - __main__ - INFO - Completed global round 24
+2025-03-09 23:57:07,374 - __main__ - INFO - Global model - Test Accuracy: 0.2364
+2025-03-09 23:57:07,374 - __main__ - INFO - Round 25 - Avg Train Loss: 1.7845, Avg Train Acc: 0.2759, Avg Val Acc: 0.2759, Avg Test Acc: 0.2374, Global Test Acc: 0.2364
+2025-03-09 23:57:07,496 - __main__ - INFO - Round 26/50
+2025-03-09 23:57:07,496 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:07,497 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:07,600 - __main__ - INFO - Starting client training for global round 25
+2025-03-09 23:57:07,739 - __main__ - INFO - Average metrics - Train Loss: 1.7813, Train Acc: 0.2752, Val Acc: 0.2752, Test Acc: 0.2493
+2025-03-09 23:57:07,740 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:07,786 - __main__ - INFO - Completed global round 25
+2025-03-09 23:57:07,797 - __main__ - INFO - Global model - Test Accuracy: 0.2909
+2025-03-09 23:57:07,797 - __main__ - INFO - Round 26 - Avg Train Loss: 1.7813, Avg Train Acc: 0.2752, Avg Val Acc: 0.2752, Avg Test Acc: 0.2493, Global Test Acc: 0.2909
+2025-03-09 23:57:07,921 - __main__ - INFO - Round 27/50
+2025-03-09 23:57:07,922 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:07,922 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:08,037 - __main__ - INFO - Starting client training for global round 26
+2025-03-09 23:57:08,177 - __main__ - INFO - Average metrics - Train Loss: 1.7825, Train Acc: 0.2648, Val Acc: 0.2648, Test Acc: 0.2309
+2025-03-09 23:57:08,178 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:08,228 - __main__ - INFO - Completed global round 26
+2025-03-09 23:57:08,230 - __main__ - INFO - Global model - Test Accuracy: 0.4364
+2025-03-09 23:57:08,230 - __main__ - INFO - Round 27 - Avg Train Loss: 1.7825, Avg Train Acc: 0.2648, Avg Val Acc: 0.2648, Avg Test Acc: 0.2309, Global Test Acc: 0.4364
+2025-03-09 23:57:08,359 - __main__ - INFO - Round 28/50
+2025-03-09 23:57:08,360 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:08,360 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:08,467 - __main__ - INFO - Starting client training for global round 27
+2025-03-09 23:57:08,606 - __main__ - INFO - Average metrics - Train Loss: 1.7855, Train Acc: 0.2661, Val Acc: 0.2661, Test Acc: 0.2326
+2025-03-09 23:57:08,606 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:08,647 - __main__ - INFO - Completed global round 27
+2025-03-09 23:57:08,653 - __main__ - INFO - Global model - Test Accuracy: 0.4727
+2025-03-09 23:57:08,653 - __main__ - INFO - Round 28 - Avg Train Loss: 1.7855, Avg Train Acc: 0.2661, Avg Val Acc: 0.2661, Avg Test Acc: 0.2326, Global Test Acc: 0.4727
+2025-03-09 23:57:08,776 - __main__ - INFO - Round 29/50
+2025-03-09 23:57:08,776 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:08,776 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:08,885 - __main__ - INFO - Starting client training for global round 28
+2025-03-09 23:57:09,024 - __main__ - INFO - Average metrics - Train Loss: 1.7977, Train Acc: 0.2362, Val Acc: 0.2362, Test Acc: 0.1953
+2025-03-09 23:57:09,024 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:09,071 - __main__ - INFO - Completed global round 28
+2025-03-09 23:57:09,080 - __main__ - INFO - Global model - Test Accuracy: 0.4364
+2025-03-09 23:57:09,081 - __main__ - INFO - Round 29 - Avg Train Loss: 1.7977, Avg Train Acc: 0.2362, Avg Val Acc: 0.2362, Avg Test Acc: 0.1953, Global Test Acc: 0.4364
+2025-03-09 23:57:09,210 - __main__ - INFO - Round 30/50
+2025-03-09 23:57:09,210 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:09,211 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:09,319 - __main__ - INFO - Starting client training for global round 29
+2025-03-09 23:57:09,457 - __main__ - INFO - Average metrics - Train Loss: 1.8129, Train Acc: 0.1891, Val Acc: 0.1891, Test Acc: 0.1660
+2025-03-09 23:57:09,457 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:09,499 - __main__ - INFO - Completed global round 29
+2025-03-09 23:57:09,501 - __main__ - INFO - Global model - Test Accuracy: 0.3636
+2025-03-09 23:57:09,501 - __main__ - INFO - Round 30 - Avg Train Loss: 1.8129, Avg Train Acc: 0.1891, Avg Val Acc: 0.1891, Avg Test Acc: 0.1660, Global Test Acc: 0.3636
+2025-03-09 23:57:09,625 - __main__ - INFO - Round 31/50
+2025-03-09 23:57:09,625 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:09,626 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:09,729 - __main__ - INFO - Starting client training for global round 30
+2025-03-09 23:57:09,869 - __main__ - INFO - Average metrics - Train Loss: 1.8149, Train Acc: 0.1992, Val Acc: 0.1992, Test Acc: 0.1786
+2025-03-09 23:57:09,869 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:09,970 - __main__ - INFO - Completed global round 30
+2025-03-09 23:57:10,029 - __main__ - INFO - Global model - Test Accuracy: 0.1818
+2025-03-09 23:57:10,029 - __main__ - INFO - Round 31 - Avg Train Loss: 1.8149, Avg Train Acc: 0.1992, Avg Val Acc: 0.1992, Avg Test Acc: 0.1786, Global Test Acc: 0.1818
+2025-03-09 23:57:10,162 - __main__ - INFO - Round 32/50
+2025-03-09 23:57:10,162 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:10,163 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:10,270 - __main__ - INFO - Starting client training for global round 31
+2025-03-09 23:57:10,413 - __main__ - INFO - Average metrics - Train Loss: 1.8182, Train Acc: 0.2061, Val Acc: 0.2061, Test Acc: 0.1894
+2025-03-09 23:57:10,413 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:10,492 - __main__ - INFO - Completed global round 31
+2025-03-09 23:57:10,495 - __main__ - INFO - Global model - Test Accuracy: 0.3455
+2025-03-09 23:57:10,495 - __main__ - INFO - Round 32 - Avg Train Loss: 1.8182, Avg Train Acc: 0.2061, Avg Val Acc: 0.2061, Avg Test Acc: 0.1894, Global Test Acc: 0.3455
+2025-03-09 23:57:10,627 - __main__ - INFO - Round 33/50
+2025-03-09 23:57:10,627 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:10,628 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:10,746 - __main__ - INFO - Starting client training for global round 32
+2025-03-09 23:57:10,884 - __main__ - INFO - Average metrics - Train Loss: 1.8228, Train Acc: 0.1970, Val Acc: 0.1970, Test Acc: 0.1834
+2025-03-09 23:57:10,884 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:10,926 - __main__ - INFO - Completed global round 32
+2025-03-09 23:57:10,928 - __main__ - INFO - Global model - Test Accuracy: 0.4727
+2025-03-09 23:57:10,928 - __main__ - INFO - Round 33 - Avg Train Loss: 1.8228, Avg Train Acc: 0.1970, Avg Val Acc: 0.1970, Avg Test Acc: 0.1834, Global Test Acc: 0.4727
+2025-03-09 23:57:11,056 - __main__ - INFO - Round 34/50
+2025-03-09 23:57:11,057 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:11,057 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:11,167 - __main__ - INFO - Starting client training for global round 33
+2025-03-09 23:57:11,306 - __main__ - INFO - Average metrics - Train Loss: 1.8421, Train Acc: 0.1861, Val Acc: 0.1861, Test Acc: 0.1830
+2025-03-09 23:57:11,307 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:11,349 - __main__ - INFO - Completed global round 33
+2025-03-09 23:57:11,361 - __main__ - INFO - Global model - Test Accuracy: 0.4909
+2025-03-09 23:57:11,361 - __main__ - INFO - Round 34 - Avg Train Loss: 1.8421, Avg Train Acc: 0.1861, Avg Val Acc: 0.1861, Avg Test Acc: 0.1830, Global Test Acc: 0.4909
+2025-03-09 23:57:11,485 - __main__ - INFO - Round 35/50
+2025-03-09 23:57:11,485 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:11,485 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:11,593 - __main__ - INFO - Starting client training for global round 34
+2025-03-09 23:57:11,732 - __main__ - INFO - Average metrics - Train Loss: 1.8399, Train Acc: 0.1931, Val Acc: 0.1931, Test Acc: 0.1703
+2025-03-09 23:57:11,732 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:11,779 - __main__ - INFO - Completed global round 34
+2025-03-09 23:57:11,781 - __main__ - INFO - Global model - Test Accuracy: 0.4364
+2025-03-09 23:57:11,781 - __main__ - INFO - Round 35 - Avg Train Loss: 1.8399, Avg Train Acc: 0.1931, Avg Val Acc: 0.1931, Avg Test Acc: 0.1703, Global Test Acc: 0.4364
+2025-03-09 23:57:11,906 - __main__ - INFO - Round 36/50
+2025-03-09 23:57:11,906 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:11,907 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:12,015 - __main__ - INFO - Starting client training for global round 35
+2025-03-09 23:57:12,155 - __main__ - INFO - Average metrics - Train Loss: 1.8533, Train Acc: 0.1620, Val Acc: 0.1620, Test Acc: 0.1439
+2025-03-09 23:57:12,155 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:12,201 - __main__ - INFO - Completed global round 35
+2025-03-09 23:57:12,211 - __main__ - INFO - Global model - Test Accuracy: 0.3455
+2025-03-09 23:57:12,211 - __main__ - INFO - Round 36 - Avg Train Loss: 1.8533, Avg Train Acc: 0.1620, Avg Val Acc: 0.1620, Avg Test Acc: 0.1439, Global Test Acc: 0.3455
+2025-03-09 23:57:12,332 - __main__ - INFO - Round 37/50
+2025-03-09 23:57:12,333 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:12,333 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:12,438 - __main__ - INFO - Starting client training for global round 36
+2025-03-09 23:57:12,577 - __main__ - INFO - Average metrics - Train Loss: 1.8762, Train Acc: 0.1679, Val Acc: 0.1679, Test Acc: 0.1476
+2025-03-09 23:57:12,577 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:12,617 - __main__ - INFO - Completed global round 36
+2025-03-09 23:57:12,619 - __main__ - INFO - Global model - Test Accuracy: 0.3091
+2025-03-09 23:57:12,619 - __main__ - INFO - Round 37 - Avg Train Loss: 1.8762, Avg Train Acc: 0.1679, Avg Val Acc: 0.1679, Avg Test Acc: 0.1476, Global Test Acc: 0.3091
+2025-03-09 23:57:12,740 - __main__ - INFO - Round 38/50
+2025-03-09 23:57:12,740 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:12,741 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:12,851 - __main__ - INFO - Starting client training for global round 37
+2025-03-09 23:57:12,989 - __main__ - INFO - Average metrics - Train Loss: 1.9046, Train Acc: 0.1668, Val Acc: 0.1668, Test Acc: 0.1572
+2025-03-09 23:57:12,989 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:13,028 - __main__ - INFO - Completed global round 37
+2025-03-09 23:57:13,030 - __main__ - INFO - Global model - Test Accuracy: 0.4909
+2025-03-09 23:57:13,030 - __main__ - INFO - Round 38 - Avg Train Loss: 1.9046, Avg Train Acc: 0.1668, Avg Val Acc: 0.1668, Avg Test Acc: 0.1572, Global Test Acc: 0.4909
+2025-03-09 23:57:13,161 - __main__ - INFO - Round 39/50
+2025-03-09 23:57:13,161 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:13,161 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:13,272 - __main__ - INFO - Starting client training for global round 38
+2025-03-09 23:57:13,413 - __main__ - INFO - Average metrics - Train Loss: 1.9222, Train Acc: 0.1645, Val Acc: 0.1645, Test Acc: 0.1589
+2025-03-09 23:57:13,413 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:13,457 - __main__ - INFO - Completed global round 38
+2025-03-09 23:57:13,481 - __main__ - INFO - Global model - Test Accuracy: 0.4545
+2025-03-09 23:57:13,481 - __main__ - INFO - Round 39 - Avg Train Loss: 1.9222, Avg Train Acc: 0.1645, Avg Val Acc: 0.1645, Avg Test Acc: 0.1589, Global Test Acc: 0.4545
+2025-03-09 23:57:13,601 - __main__ - INFO - Round 40/50
+2025-03-09 23:57:13,602 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:13,602 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:13,703 - __main__ - INFO - Starting client training for global round 39
+2025-03-09 23:57:13,841 - __main__ - INFO - Average metrics - Train Loss: 1.9536, Train Acc: 0.1650, Val Acc: 0.1650, Test Acc: 0.1591
+2025-03-09 23:57:13,841 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:13,887 - __main__ - INFO - Completed global round 39
+2025-03-09 23:57:13,901 - __main__ - INFO - Global model - Test Accuracy: 0.3455
+2025-03-09 23:57:13,901 - __main__ - INFO - Round 40 - Avg Train Loss: 1.9536, Avg Train Acc: 0.1650, Avg Val Acc: 0.1650, Avg Test Acc: 0.1591, Global Test Acc: 0.3455
+2025-03-09 23:57:14,034 - __main__ - INFO - Round 41/50
+2025-03-09 23:57:14,034 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:14,034 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:14,152 - __main__ - INFO - Starting client training for global round 40
+2025-03-09 23:57:14,291 - __main__ - INFO - Average metrics - Train Loss: 1.9460, Train Acc: 0.1677, Val Acc: 0.1677, Test Acc: 0.1581
+2025-03-09 23:57:14,291 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:14,340 - __main__ - INFO - Completed global round 40
+2025-03-09 23:57:14,357 - __main__ - INFO - Global model - Test Accuracy: 0.2727
+2025-03-09 23:57:14,357 - __main__ - INFO - Round 41 - Avg Train Loss: 1.9460, Avg Train Acc: 0.1677, Avg Val Acc: 0.1677, Avg Test Acc: 0.1581, Global Test Acc: 0.2727
+2025-03-09 23:57:14,480 - __main__ - INFO - Round 42/50
+2025-03-09 23:57:14,480 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:14,480 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:14,584 - __main__ - INFO - Starting client training for global round 41
+2025-03-09 23:57:14,723 - __main__ - INFO - Average metrics - Train Loss: 1.9788, Train Acc: 0.1554, Val Acc: 0.1554, Test Acc: 0.1539
+2025-03-09 23:57:14,724 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:14,774 - __main__ - INFO - Completed global round 41
+2025-03-09 23:57:14,784 - __main__ - INFO - Global model - Test Accuracy: 0.4182
+2025-03-09 23:57:14,785 - __main__ - INFO - Round 42 - Avg Train Loss: 1.9788, Avg Train Acc: 0.1554, Avg Val Acc: 0.1554, Avg Test Acc: 0.1539, Global Test Acc: 0.4182
+2025-03-09 23:57:14,906 - __main__ - INFO - Round 43/50
+2025-03-09 23:57:14,907 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:14,907 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:15,016 - __main__ - INFO - Starting client training for global round 42
+2025-03-09 23:57:15,157 - __main__ - INFO - Average metrics - Train Loss: 1.9932, Train Acc: 0.1630, Val Acc: 0.1630, Test Acc: 0.1556
+2025-03-09 23:57:15,157 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:15,196 - __main__ - INFO - Completed global round 42
+2025-03-09 23:57:15,198 - __main__ - INFO - Global model - Test Accuracy: 0.4909
+2025-03-09 23:57:15,199 - __main__ - INFO - Round 43 - Avg Train Loss: 1.9932, Avg Train Acc: 0.1630, Avg Val Acc: 0.1630, Avg Test Acc: 0.1556, Global Test Acc: 0.4909
+2025-03-09 23:57:15,326 - __main__ - INFO - Round 44/50
+2025-03-09 23:57:15,326 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:15,326 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:15,434 - __main__ - INFO - Starting client training for global round 43
+2025-03-09 23:57:15,571 - __main__ - INFO - Average metrics - Train Loss: 2.0182, Train Acc: 0.1665, Val Acc: 0.1665, Test Acc: 0.1583
+2025-03-09 23:57:15,571 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:15,616 - __main__ - INFO - Completed global round 43
+2025-03-09 23:57:15,619 - __main__ - INFO - Global model - Test Accuracy: 0.5455
+2025-03-09 23:57:15,619 - __main__ - INFO - Round 44 - Avg Train Loss: 2.0182, Avg Train Acc: 0.1665, Avg Val Acc: 0.1665, Avg Test Acc: 0.1583, Global Test Acc: 0.5455
+2025-03-09 23:57:15,751 - __main__ - INFO - Round 45/50
+2025-03-09 23:57:15,751 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:15,751 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:15,867 - __main__ - INFO - Starting client training for global round 44
+2025-03-09 23:57:16,006 - __main__ - INFO - Average metrics - Train Loss: 2.0614, Train Acc: 0.1579, Val Acc: 0.1579, Test Acc: 0.1431
+2025-03-09 23:57:16,006 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:16,051 - __main__ - INFO - Completed global round 44
+2025-03-09 23:57:16,053 - __main__ - INFO - Global model - Test Accuracy: 0.3818
+2025-03-09 23:57:16,053 - __main__ - INFO - Round 45 - Avg Train Loss: 2.0614, Avg Train Acc: 0.1579, Avg Val Acc: 0.1579, Avg Test Acc: 0.1431, Global Test Acc: 0.3818
+2025-03-09 23:57:16,183 - __main__ - INFO - Round 46/50
+2025-03-09 23:57:16,184 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:16,184 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:16,290 - __main__ - INFO - Starting client training for global round 45
+2025-03-09 23:57:16,427 - __main__ - INFO - Average metrics - Train Loss: 2.0985, Train Acc: 0.1553, Val Acc: 0.1553, Test Acc: 0.1510
+2025-03-09 23:57:16,427 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:16,469 - __main__ - INFO - Completed global round 45
+2025-03-09 23:57:16,471 - __main__ - INFO - Global model - Test Accuracy: 0.3636
+2025-03-09 23:57:16,471 - __main__ - INFO - Round 46 - Avg Train Loss: 2.0985, Avg Train Acc: 0.1553, Avg Val Acc: 0.1553, Avg Test Acc: 0.1510, Global Test Acc: 0.3636
+2025-03-09 23:57:16,594 - __main__ - INFO - Round 47/50
+2025-03-09 23:57:16,594 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:16,595 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:16,698 - __main__ - INFO - Starting client training for global round 46
+2025-03-09 23:57:16,836 - __main__ - INFO - Average metrics - Train Loss: 2.1367, Train Acc: 0.1499, Val Acc: 0.1499, Test Acc: 0.1505
+2025-03-09 23:57:16,836 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:16,878 - __main__ - INFO - Completed global round 46
+2025-03-09 23:57:16,880 - __main__ - INFO - Global model - Test Accuracy: 0.2727
+2025-03-09 23:57:16,880 - __main__ - INFO - Round 47 - Avg Train Loss: 2.1367, Avg Train Acc: 0.1499, Avg Val Acc: 0.1499, Avg Test Acc: 0.1505, Global Test Acc: 0.2727
+2025-03-09 23:57:17,005 - __main__ - INFO - Round 48/50
+2025-03-09 23:57:17,006 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:17,006 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:17,133 - __main__ - INFO - Starting client training for global round 47
+2025-03-09 23:57:17,272 - __main__ - INFO - Average metrics - Train Loss: 2.1987, Train Acc: 0.1554, Val Acc: 0.1554, Test Acc: 0.1502
+2025-03-09 23:57:17,272 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:17,323 - __main__ - INFO - Completed global round 47
+2025-03-09 23:57:17,326 - __main__ - INFO - Global model - Test Accuracy: 0.3273
+2025-03-09 23:57:17,326 - __main__ - INFO - Round 48 - Avg Train Loss: 2.1987, Avg Train Acc: 0.1554, Avg Val Acc: 0.1554, Avg Test Acc: 0.1502, Global Test Acc: 0.3273
+2025-03-09 23:57:17,454 - __main__ - INFO - Round 49/50
+2025-03-09 23:57:17,454 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:17,455 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:17,558 - __main__ - INFO - Starting client training for global round 48
+2025-03-09 23:57:17,699 - __main__ - INFO - Average metrics - Train Loss: 2.2786, Train Acc: 0.1520, Val Acc: 0.1520, Test Acc: 0.1461
+2025-03-09 23:57:17,699 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:17,737 - __main__ - INFO - Completed global round 48
+2025-03-09 23:57:17,739 - __main__ - INFO - Global model - Test Accuracy: 0.4545
+2025-03-09 23:57:17,739 - __main__ - INFO - Round 49 - Avg Train Loss: 2.2786, Avg Train Acc: 0.1520, Avg Val Acc: 0.1520, Avg Test Acc: 0.1461, Global Test Acc: 0.4545
+2025-03-09 23:57:17,861 - __main__ - INFO - Round 50/50
+2025-03-09 23:57:17,862 - __main__ - INFO - CPU Memory Usage: 0.89 GB
+2025-03-09 23:57:17,862 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:57:17,966 - __main__ - INFO - Starting client training for global round 49
+2025-03-09 23:57:18,108 - __main__ - INFO - Average metrics - Train Loss: 2.3267, Train Acc: 0.1567, Val Acc: 0.1567, Test Acc: 0.1503
+2025-03-09 23:57:18,108 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 23:57:18,150 - __main__ - INFO - Completed global round 49
+2025-03-09 23:57:18,164 - __main__ - INFO - Global model - Test Accuracy: 0.4545
+2025-03-09 23:57:18,164 - __main__ - INFO - Round 50 - Avg Train Loss: 2.3267, Avg Train Acc: 0.1567, Avg Val Acc: 0.1567, Avg Test Acc: 0.1503, Global Test Acc: 0.4545
+2025-03-09 23:57:18,315 - __main__ - INFO - Results saved to JSON: results/results_20250309_235324/Citeseer_zero_hop_auto/results_Citeseer_zero_hop_auto_20250309_235718.json
+2025-03-09 23:57:18,315 - __main__ - INFO - Text results saved to: results/results_20250309_235324/Citeseer_zero_hop_auto/results_Citeseer_zero_hop_auto_20250309_235718.txt
+2025-03-09 23:57:18,319 - __main__ - INFO - Rounds data saved to: results/results_20250309_235324/Citeseer_zero_hop_auto/rounds_Citeseer_zero_hop_auto_20250309_235718.csv
+2025-03-09 23:57:18,320 - __main__ - INFO - Summary data saved to: results/results_20250309_235324/Citeseer_zero_hop_auto/summary_Citeseer_zero_hop_auto_20250309_235718.csv
+2025-03-09 23:57:18,321 - __main__ - INFO - Results arrays saved to: results/results_20250309_235324/Citeseer_zero_hop_auto/results_arrays_Citeseer_zero_hop_auto_20250309_235718.csv
+2025-03-09 23:57:18,321 - __main__ - INFO - Training completed successfully

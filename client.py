@@ -1,6 +1,6 @@
 import ray
 from train import train, evaluate, test
-from models import GCN, GAT, VanillaGNN, MLP
+from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv
 import torch
 
 gpu_nums = 1/10
@@ -15,11 +15,18 @@ class FLClient:
         dataset = dataset
 
         if model_type == "GCN":
-            self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
+            if dataset.name == "ogbn-arxiv":
+                self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
+            else:
+                self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":
             self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
 
         self.epochs = cfg["epochs"]
+        # self.optimizer = torch.optim.Adam(
+        #     self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
+        #         )
+
         self.optimizer = torch.optim.SGD(
             self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
         )
@@ -47,6 +54,18 @@ class FLClient:
         self.model.to(self.device)
         self.data = self.data.to(self.device)
         return evaluate(self.model, self.data, criterion)
+
+    # In client.py
+    # def test(self, data=None):
+    #     self.model.to(self.device)
+    #     if data is None:
+    #         data = self.data
+    #     else:
+    #         data = data.to(self.device)
+    #     test_result = test(self.model, data)
+    #     # Convert parameters to a list of numpy arrays
+    #     params = [p.detach().cpu().numpy() for p in self.model.parameters()]
+    #     return test_result, params
 
     def test(self, data=None):
         self.model.to(self.device)

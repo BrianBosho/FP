@@ -1,0 +1,21 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "split_dataset",
+        "model_type": "GCN",
+        "dataset": "Pubmed",
+        "num_clients": 1,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [],
+    "summary": {
+        "global_results": [],
+        "client_results": [],
+        "average_global_result": NaN,
+        "average_client_result": NaN,
+        "std_global": NaN,
+        "std_client": NaN
+    }
+}

@@ -1,0 +1,6 @@
+Experiment results for Citeseer with adjacency
+Model: auto
+Clients: 10, Beta: 0.1
+==================================================
+Average global accuracy: 0.1604 ± 0.1484
+Average client accuracy: 0.3265 ± 0.2028

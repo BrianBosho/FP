@@ -1,0 +1,51 @@
+Experiments Summary
+==================
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: zero_hop
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_zero_hop_GCN/results_Pubmed_zero_hop_GCN_20250312_062209.txt', 'json_file': 'results/results_20250312_062010/Pubmed_zero_hop_GCN/results_Pubmed_zero_hop_GCN_20250312_062209.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_zero_hop_GCN/rounds_Pubmed_zero_hop_GCN_20250312_062209.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_zero_hop_GCN/summary_Pubmed_zero_hop_GCN_20250312_062209.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_zero_hop_GCN/results_arrays_Pubmed_zero_hop_GCN_20250312_062209.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: zero
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_zero_GCN/results_Pubmed_zero_GCN_20250312_062439.txt', 'json_file': 'results/results_20250312_062010/Pubmed_zero_GCN/results_Pubmed_zero_GCN_20250312_062439.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_zero_GCN/rounds_Pubmed_zero_GCN_20250312_062439.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_zero_GCN/summary_Pubmed_zero_GCN_20250312_062439.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_zero_GCN/results_arrays_Pubmed_zero_GCN_20250312_062439.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: propagation
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_propagation_GCN/results_Pubmed_propagation_GCN_20250312_062710.txt', 'json_file': 'results/results_20250312_062010/Pubmed_propagation_GCN/results_Pubmed_propagation_GCN_20250312_062710.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_propagation_GCN/rounds_Pubmed_propagation_GCN_20250312_062710.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_propagation_GCN/summary_Pubmed_propagation_GCN_20250312_062710.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_propagation_GCN/results_arrays_Pubmed_propagation_GCN_20250312_062710.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: full
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_full_GCN/results_Pubmed_full_GCN_20250312_062939.txt', 'json_file': 'results/results_20250312_062010/Pubmed_full_GCN/results_Pubmed_full_GCN_20250312_062939.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_full_GCN/rounds_Pubmed_full_GCN_20250312_062939.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_full_GCN/summary_Pubmed_full_GCN_20250312_062939.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_full_GCN/results_arrays_Pubmed_full_GCN_20250312_062939.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: adjacency
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_adjacency_GCN/results_Pubmed_adjacency_GCN_20250312_063210.txt', 'json_file': 'results/results_20250312_062010/Pubmed_adjacency_GCN/results_Pubmed_adjacency_GCN_20250312_063210.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_adjacency_GCN/rounds_Pubmed_adjacency_GCN_20250312_063210.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_adjacency_GCN/summary_Pubmed_adjacency_GCN_20250312_063210.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_adjacency_GCN/results_arrays_Pubmed_adjacency_GCN_20250312_063210.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: diffusion
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_diffusion_GCN/results_Pubmed_diffusion_GCN_20250312_063603.txt', 'json_file': 'results/results_20250312_062010/Pubmed_diffusion_GCN/results_Pubmed_diffusion_GCN_20250312_063603.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_diffusion_GCN/rounds_Pubmed_diffusion_GCN_20250312_063603.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_diffusion_GCN/summary_Pubmed_diffusion_GCN_20250312_063603.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_diffusion_GCN/results_arrays_Pubmed_diffusion_GCN_20250312_063603.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: random_walk
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_random_walk_GCN/results_Pubmed_random_walk_GCN_20250312_063835.txt', 'json_file': 'results/results_20250312_062010/Pubmed_random_walk_GCN/results_Pubmed_random_walk_GCN_20250312_063835.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_random_walk_GCN/rounds_Pubmed_random_walk_GCN_20250312_063835.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_random_walk_GCN/summary_Pubmed_random_walk_GCN_20250312_063835.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_random_walk_GCN/results_arrays_Pubmed_random_walk_GCN_20250312_063835.csv'}
+
+Dataset: Pubmed
+Model: GCN
+Data Loading: efficient
+Status: success
+Results File: {'text_file': 'results/results_20250312_062010/Pubmed_efficient_GCN/results_Pubmed_efficient_GCN_20250312_064105.txt', 'json_file': 'results/results_20250312_062010/Pubmed_efficient_GCN/results_Pubmed_efficient_GCN_20250312_064105.json', 'rounds_csv': 'results/results_20250312_062010/Pubmed_efficient_GCN/rounds_Pubmed_efficient_GCN_20250312_064105.csv', 'summary_csv': 'results/results_20250312_062010/Pubmed_efficient_GCN/summary_Pubmed_efficient_GCN_20250312_064105.csv', 'arrays_csv': 'results/results_20250312_062010/Pubmed_efficient_GCN/results_arrays_Pubmed_efficient_GCN_20250312_064105.csv'}
+

@@ -1,0 +1,6 @@
+2025-03-09 22:05:32,737 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 22:05:32,738 - __main__ - INFO - Random seed set to 42
+2025-03-09 22:05:32,738 - __main__ - INFO - Using memory-efficient models
+2025-03-09 22:05:32,738 - __main__ - INFO - Using mini-batch training with batch size 256
+2025-03-09 22:05:32,738 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 22:05:34,929 - __main__ - INFO - Ray initialized successfully

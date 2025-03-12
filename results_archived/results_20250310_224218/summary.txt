@@ -1,0 +1,27 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: zero_hop
+Status: success
+Results File: {'text_file': 'results/results_20250310_224218/Cora_zero_hop_GCN/results_Cora_zero_hop_GCN_20250310_224238.txt', 'json_file': 'results/results_20250310_224218/Cora_zero_hop_GCN/results_Cora_zero_hop_GCN_20250310_224238.json', 'rounds_csv': 'results/results_20250310_224218/Cora_zero_hop_GCN/rounds_Cora_zero_hop_GCN_20250310_224238.csv', 'summary_csv': 'results/results_20250310_224218/Cora_zero_hop_GCN/summary_Cora_zero_hop_GCN_20250310_224238.csv', 'arrays_csv': 'results/results_20250310_224218/Cora_zero_hop_GCN/results_arrays_Cora_zero_hop_GCN_20250310_224238.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: diffusion
+Status: success
+Results File: {'text_file': 'results/results_20250310_224218/Cora_diffusion_GCN/results_Cora_diffusion_GCN_20250310_224259.txt', 'json_file': 'results/results_20250310_224218/Cora_diffusion_GCN/results_Cora_diffusion_GCN_20250310_224259.json', 'rounds_csv': 'results/results_20250310_224218/Cora_diffusion_GCN/rounds_Cora_diffusion_GCN_20250310_224259.csv', 'summary_csv': 'results/results_20250310_224218/Cora_diffusion_GCN/summary_Cora_diffusion_GCN_20250310_224259.csv', 'arrays_csv': 'results/results_20250310_224218/Cora_diffusion_GCN/results_arrays_Cora_diffusion_GCN_20250310_224259.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: zero_hop
+Status: success
+Results File: {'text_file': 'results/results_20250310_224218/Citeseer_zero_hop_GCN/results_Citeseer_zero_hop_GCN_20250310_224320.txt', 'json_file': 'results/results_20250310_224218/Citeseer_zero_hop_GCN/results_Citeseer_zero_hop_GCN_20250310_224320.json', 'rounds_csv': 'results/results_20250310_224218/Citeseer_zero_hop_GCN/rounds_Citeseer_zero_hop_GCN_20250310_224320.csv', 'summary_csv': 'results/results_20250310_224218/Citeseer_zero_hop_GCN/summary_Citeseer_zero_hop_GCN_20250310_224320.csv', 'arrays_csv': 'results/results_20250310_224218/Citeseer_zero_hop_GCN/results_arrays_Citeseer_zero_hop_GCN_20250310_224320.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: diffusion
+Status: success
+Results File: {'text_file': 'results/results_20250310_224218/Citeseer_diffusion_GCN/results_Citeseer_diffusion_GCN_20250310_224344.txt', 'json_file': 'results/results_20250310_224218/Citeseer_diffusion_GCN/results_Citeseer_diffusion_GCN_20250310_224344.json', 'rounds_csv': 'results/results_20250310_224218/Citeseer_diffusion_GCN/rounds_Citeseer_diffusion_GCN_20250310_224344.csv', 'summary_csv': 'results/results_20250310_224218/Citeseer_diffusion_GCN/summary_Citeseer_diffusion_GCN_20250310_224344.csv', 'arrays_csv': 'results/results_20250310_224218/Citeseer_diffusion_GCN/results_arrays_Citeseer_diffusion_GCN_20250310_224344.csv'}
+

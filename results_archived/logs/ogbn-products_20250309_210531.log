@@ -1,0 +1,12 @@
+2025-03-09 21:05:31,959 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:05:31,959 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:05:31,960 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:05:31,960 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:05:31,960 - __main__ - INFO - Using CPU
+2025-03-09 21:05:31,963 - __main__ - INFO - CPU Memory Usage: 0.63 GB
+2025-03-09 21:05:32,007 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:05:32,007 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:05:32,128 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:05:32,128 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:05:32,128 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:05:32,128 - __main__ - INFO - Available system memory: 54.69 GB

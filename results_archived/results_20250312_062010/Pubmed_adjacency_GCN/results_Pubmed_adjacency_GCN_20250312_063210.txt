@@ -1,0 +1,12 @@
+DEVICE: cuda
+Data loading option is adjacency
+Model type is GCN
+Full training flag is False
+
+Final Results:
+The global test results: [0.761, 0.763, 0.748, 0.753, 0.75]
+The client test results: [0.7870991241519676, 0.7934263951762326, 0.7733444012199093, 0.7780838125588052, 0.7852852217761968]
+The average global test results: 0.7550000000000001
+The average client test results: 0.7834477909766223
+The standard deviation global is: 0.005966573556070525
+The standard deviation client is: 0.00703038657139054

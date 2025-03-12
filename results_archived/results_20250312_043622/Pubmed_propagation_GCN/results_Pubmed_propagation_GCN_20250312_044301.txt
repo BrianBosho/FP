@@ -1,0 +1,12 @@
+DEVICE: cuda
+Data loading option is propagation
+Model type is GCN
+Full training flag is False
+
+Final Results:
+The global test results: [0.667, 0.67]
+The client test results: [0.6361303248618788, 0.6433220303249745]
+The average global test results: 0.6685000000000001
+The average client test results: 0.6397261775934266
+The standard deviation global is: 0.0015000000000000013
+The standard deviation client is: 0.003595852731547833

@@ -1,0 +1,26 @@
+2025-03-09 22:38:22,430 - __main__ - INFO - Starting enhanced federated learning with Cora dataset
+2025-03-09 22:38:22,432 - __main__ - INFO - Random seed set to 42
+2025-03-09 22:38:22,432 - __main__ - INFO - Using memory-efficient models
+2025-03-09 22:38:24,464 - __main__ - INFO - Ray initialized successfully
+2025-03-09 22:38:24,464 - __main__ - INFO - Using CPU
+2025-03-09 22:38:24,611 - __main__ - INFO - CPU Memory Usage: 0.66 GB
+2025-03-09 22:38:24,657 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:38:24,657 - __main__ - INFO - Loading dataset: Cora
+2025-03-09 22:38:24,700 - __main__ - INFO - Dataset: Cora
+2025-03-09 22:38:24,700 - __main__ - INFO - Number of nodes: 2708
+2025-03-09 22:38:24,700 - __main__ - INFO - Number of features: 1433
+2025-03-09 22:38:24,702 - __main__ - INFO - Number of classes: 7
+2025-03-09 22:38:24,703 - __main__ - INFO - Number of edges: 10556
+2025-03-09 22:38:24,703 - __main__ - INFO - CPU Memory Usage: 0.71 GB
+2025-03-09 22:38:24,703 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:38:24,704 - __main__ - INFO - Using standard GCN model for cora
+2025-03-09 22:38:24,736 - __main__ - INFO - Global model type: EnhancedGCN
+2025-03-09 22:38:24,736 - __main__ - INFO - Total model parameters: 23095
+2025-03-09 22:38:24,736 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 22:38:24,737 - __main__ - INFO - Initializing 10 clients with 2 epochs per round
+2025-03-09 22:38:24,809 - __main__ - INFO - Initialized 10 clients
+2025-03-09 22:38:24,813 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 22:38:24,813 - __main__ - INFO - Round 1/20
+2025-03-09 22:38:24,813 - __main__ - INFO - CPU Memory Usage: 0.75 GB
+2025-03-09 22:38:24,813 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:38:24,992 - __main__ - INFO - Starting client training for global round 0

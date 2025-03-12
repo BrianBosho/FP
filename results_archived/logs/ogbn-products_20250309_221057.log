@@ -1,0 +1,181 @@
+2025-03-09 22:10:57,061 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 22:10:57,062 - __main__ - INFO - Random seed set to 42
+2025-03-09 22:10:57,062 - __main__ - INFO - Using memory-efficient models
+2025-03-09 22:10:57,062 - __main__ - INFO - Using mini-batch training with batch size 256
+2025-03-09 22:10:57,062 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 22:10:59,059 - __main__ - INFO - Ray initialized successfully
+2025-03-09 22:10:59,060 - __main__ - INFO - Using CPU
+2025-03-09 22:10:59,212 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 22:10:59,259 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:10:59,259 - __main__ - INFO - Memory optimization for OGBN-Products dataset
+2025-03-09 22:10:59,259 - __main__ - WARNING - Reducing number of clients from 3 to 2 for OGBN-Products dataset to save memory
+2025-03-09 22:10:59,260 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 22:10:59,390 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 22:10:59,391 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 22:10:59,391 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 22:10:59,391 - __main__ - INFO - Available system memory: 53.31 GB
+2025-03-09 22:11:15,144 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 22:11:15,144 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 22:11:15,144 - __main__ - INFO - Number of features: 100
+2025-03-09 22:11:15,144 - __main__ - INFO - Number of classes: 47
+2025-03-09 22:11:15,144 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 22:11:15,144 - __main__ - INFO - CPU Memory Usage: 7.58 GB
+2025-03-09 22:11:15,144 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:11:15,145 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 22:11:15,145 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 22:11:15,181 - __main__ - INFO - Global model type: GCN
+2025-03-09 22:11:15,181 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 22:11:15,181 - __main__ - INFO - Training for 10 rounds with 2 local epochs per round
+2025-03-09 22:11:15,181 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 256
+2025-03-09 22:11:29,204 - __main__ - INFO - Initialized 2 clients
+2025-03-09 22:11:29,208 - __main__ - INFO - Starting federated training for 10 rounds
+2025-03-09 22:11:29,208 - __main__ - INFO - Round 1/10
+2025-03-09 22:11:29,209 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:11:29,209 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:11:29,351 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 22:11:48,900 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:12:04,909 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:12:04,909 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:12:04,921 - __main__ - INFO - Completed global round 0
+2025-03-09 22:12:05,038 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:12:05,148 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:12:05,148 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:12:05,148 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:12:06,871 - __main__ - INFO - Global model - Test Accuracy: 0.3254
+2025-03-09 22:12:33,614 - __main__ - INFO - Average client - Test Accuracy: 0.3251
+2025-03-09 22:12:33,614 - __main__ - INFO - Round 1 - Avg Train Loss: 0.9607, Avg Train Acc: 0.7673, Avg Test Acc: 0.3251
+2025-03-09 22:12:33,714 - __main__ - INFO - Round 2/10
+2025-03-09 22:12:33,714 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:12:33,715 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:12:33,819 - __main__ - INFO - Starting client training for global round 1
+2025-03-09 22:12:52,219 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:13:08,133 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:13:08,133 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:13:08,144 - __main__ - INFO - Completed global round 1
+2025-03-09 22:13:08,254 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:13:08,380 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:13:08,381 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:13:08,381 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:13:10,153 - __main__ - INFO - Global model - Test Accuracy: 0.4558
+2025-03-09 22:13:36,938 - __main__ - INFO - Average client - Test Accuracy: 0.4590
+2025-03-09 22:13:36,938 - __main__ - INFO - Round 2 - Avg Train Loss: 0.7816, Avg Train Acc: 0.7991, Avg Test Acc: 0.4590
+2025-03-09 22:13:37,043 - __main__ - INFO - Round 3/10
+2025-03-09 22:13:37,043 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:13:37,043 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:13:37,153 - __main__ - INFO - Starting client training for global round 2
+2025-03-09 22:13:55,428 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:14:11,294 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:14:11,294 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:14:11,304 - __main__ - INFO - Completed global round 2
+2025-03-09 22:14:11,412 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:14:11,526 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:14:11,527 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:14:11,527 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:14:13,302 - __main__ - INFO - Global model - Test Accuracy: 0.5078
+2025-03-09 22:14:40,009 - __main__ - INFO - Average client - Test Accuracy: 0.5223
+2025-03-09 22:14:40,009 - __main__ - INFO - Round 3 - Avg Train Loss: 0.7016, Avg Train Acc: 0.8185, Avg Test Acc: 0.5223
+2025-03-09 22:14:40,120 - __main__ - INFO - Round 4/10
+2025-03-09 22:14:40,120 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:14:40,121 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:14:40,229 - __main__ - INFO - Starting client training for global round 3
+2025-03-09 22:14:58,747 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:15:14,771 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:15:14,771 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:15:14,781 - __main__ - INFO - Completed global round 3
+2025-03-09 22:15:14,894 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:15:14,997 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:15:14,998 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:15:14,998 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:15:16,715 - __main__ - INFO - Global model - Test Accuracy: 0.5014
+2025-03-09 22:15:43,355 - __main__ - INFO - Average client - Test Accuracy: 0.5128
+2025-03-09 22:15:43,355 - __main__ - INFO - Round 4 - Avg Train Loss: 0.6482, Avg Train Acc: 0.8283, Avg Test Acc: 0.5128
+2025-03-09 22:15:43,454 - __main__ - INFO - Round 5/10
+2025-03-09 22:15:43,455 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:15:43,455 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:15:43,561 - __main__ - INFO - Starting client training for global round 4
+2025-03-09 22:16:01,808 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:16:17,955 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:16:17,956 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:16:17,966 - __main__ - INFO - Completed global round 4
+2025-03-09 22:16:18,076 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:16:18,179 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:16:18,179 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:16:18,179 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:16:19,907 - __main__ - INFO - Global model - Test Accuracy: 0.5200
+2025-03-09 22:16:46,647 - __main__ - INFO - Average client - Test Accuracy: 0.5371
+2025-03-09 22:16:46,647 - __main__ - INFO - Round 5 - Avg Train Loss: 0.6219, Avg Train Acc: 0.8325, Avg Test Acc: 0.5371
+2025-03-09 22:16:46,763 - __main__ - INFO - Round 6/10
+2025-03-09 22:16:46,763 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:16:46,763 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:16:46,885 - __main__ - INFO - Starting client training for global round 5
+2025-03-09 22:17:05,095 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:17:21,118 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:17:21,118 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:17:21,129 - __main__ - INFO - Completed global round 5
+2025-03-09 22:17:21,243 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:17:21,344 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:17:21,344 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:17:21,344 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:17:23,093 - __main__ - INFO - Global model - Test Accuracy: 0.5310
+2025-03-09 22:17:49,829 - __main__ - INFO - Average client - Test Accuracy: 0.5404
+2025-03-09 22:17:49,829 - __main__ - INFO - Round 6 - Avg Train Loss: 0.6090, Avg Train Acc: 0.8346, Avg Test Acc: 0.5404
+2025-03-09 22:17:49,952 - __main__ - INFO - Round 7/10
+2025-03-09 22:17:49,953 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:17:49,953 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:17:50,072 - __main__ - INFO - Starting client training for global round 6
+2025-03-09 22:18:08,249 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:18:24,228 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:18:24,228 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:18:24,238 - __main__ - INFO - Completed global round 6
+2025-03-09 22:18:24,348 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:18:24,452 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:18:24,452 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:18:24,452 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:18:26,195 - __main__ - INFO - Global model - Test Accuracy: 0.5172
+2025-03-09 22:18:53,207 - __main__ - INFO - Average client - Test Accuracy: 0.5307
+2025-03-09 22:18:53,208 - __main__ - INFO - Round 7 - Avg Train Loss: 0.6042, Avg Train Acc: 0.8438, Avg Test Acc: 0.5307
+2025-03-09 22:18:53,308 - __main__ - INFO - Round 8/10
+2025-03-09 22:18:53,309 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:18:53,309 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:18:53,407 - __main__ - INFO - Starting client training for global round 7
+2025-03-09 22:19:11,770 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:19:27,854 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:19:27,854 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:19:27,864 - __main__ - INFO - Completed global round 7
+2025-03-09 22:19:27,979 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:19:28,084 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:19:28,084 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:19:28,084 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:19:29,799 - __main__ - INFO - Global model - Test Accuracy: 0.5318
+2025-03-09 22:19:56,692 - __main__ - INFO - Average client - Test Accuracy: 0.5378
+2025-03-09 22:19:56,692 - __main__ - INFO - Round 8 - Avg Train Loss: 0.5922, Avg Train Acc: 0.8440, Avg Test Acc: 0.5378
+2025-03-09 22:19:56,801 - __main__ - INFO - Round 9/10
+2025-03-09 22:19:56,802 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:19:56,802 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:19:56,907 - __main__ - INFO - Starting client training for global round 8
+2025-03-09 22:20:15,315 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:20:31,420 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:20:31,420 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:20:31,430 - __main__ - INFO - Completed global round 8
+2025-03-09 22:20:31,546 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:20:31,651 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:20:31,651 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:20:31,651 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:20:33,400 - __main__ - INFO - Global model - Test Accuracy: 0.5396
+2025-03-09 22:21:00,039 - __main__ - INFO - Average client - Test Accuracy: 0.5544
+2025-03-09 22:21:00,039 - __main__ - INFO - Round 9 - Avg Train Loss: 0.5927, Avg Train Acc: 0.8452, Avg Test Acc: 0.5544
+2025-03-09 22:21:00,161 - __main__ - INFO - Round 10/10
+2025-03-09 22:21:00,162 - __main__ - INFO - CPU Memory Usage: 15.33 GB
+2025-03-09 22:21:00,162 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:21:00,273 - __main__ - INFO - Starting client training for global round 9
+2025-03-09 22:21:18,872 - __main__ - INFO - Completed training for client 1/2
+2025-03-09 22:21:34,972 - __main__ - INFO - Completed training for client 2/2
+2025-03-09 22:21:34,972 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:21:34,984 - __main__ - INFO - Completed global round 9
+2025-03-09 22:21:35,099 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:21:35,218 - root - INFO - Using a subset of test nodes: 5000 out of 1068232
+2025-03-09 22:21:35,218 - root - INFO - Using 1 neighbor sampling step with 5 neighbors for 2-layer model during testing
+2025-03-09 22:21:35,218 - root - INFO - Testing with batch size: 512, Neighbor sampling: [5]
+2025-03-09 22:21:37,031 - __main__ - INFO - Global model - Test Accuracy: 0.5404
+2025-03-09 22:22:04,003 - __main__ - INFO - Average client - Test Accuracy: 0.5482
+2025-03-09 22:22:04,003 - __main__ - INFO - Round 10 - Avg Train Loss: 0.5889, Avg Train Acc: 0.8432, Avg Test Acc: 0.5482

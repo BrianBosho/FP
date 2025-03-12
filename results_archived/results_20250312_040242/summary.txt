@@ -1,0 +1,99 @@
+Experiments Summary
+==================
+
+Dataset: Cora
+Model: GCN
+Data Loading: zero_hop
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_zero_hop_GCN/results_Cora_zero_hop_GCN_20250312_040256.txt', 'json_file': 'results/results_20250312_040242/Cora_zero_hop_GCN/results_Cora_zero_hop_GCN_20250312_040256.json', 'rounds_csv': 'results/results_20250312_040242/Cora_zero_hop_GCN/rounds_Cora_zero_hop_GCN_20250312_040256.csv', 'summary_csv': 'results/results_20250312_040242/Cora_zero_hop_GCN/summary_Cora_zero_hop_GCN_20250312_040256.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_zero_hop_GCN/results_arrays_Cora_zero_hop_GCN_20250312_040256.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: zero
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_zero_GCN/results_Cora_zero_GCN_20250312_040310.txt', 'json_file': 'results/results_20250312_040242/Cora_zero_GCN/results_Cora_zero_GCN_20250312_040310.json', 'rounds_csv': 'results/results_20250312_040242/Cora_zero_GCN/rounds_Cora_zero_GCN_20250312_040310.csv', 'summary_csv': 'results/results_20250312_040242/Cora_zero_GCN/summary_Cora_zero_GCN_20250312_040310.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_zero_GCN/results_arrays_Cora_zero_GCN_20250312_040310.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: propagation
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_propagation_GCN/results_Cora_propagation_GCN_20250312_040324.txt', 'json_file': 'results/results_20250312_040242/Cora_propagation_GCN/results_Cora_propagation_GCN_20250312_040324.json', 'rounds_csv': 'results/results_20250312_040242/Cora_propagation_GCN/rounds_Cora_propagation_GCN_20250312_040324.csv', 'summary_csv': 'results/results_20250312_040242/Cora_propagation_GCN/summary_Cora_propagation_GCN_20250312_040324.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_propagation_GCN/results_arrays_Cora_propagation_GCN_20250312_040324.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: full
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_full_GCN/results_Cora_full_GCN_20250312_040338.txt', 'json_file': 'results/results_20250312_040242/Cora_full_GCN/results_Cora_full_GCN_20250312_040338.json', 'rounds_csv': 'results/results_20250312_040242/Cora_full_GCN/rounds_Cora_full_GCN_20250312_040338.csv', 'summary_csv': 'results/results_20250312_040242/Cora_full_GCN/summary_Cora_full_GCN_20250312_040338.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_full_GCN/results_arrays_Cora_full_GCN_20250312_040338.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: adjacency
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_adjacency_GCN/results_Cora_adjacency_GCN_20250312_040353.txt', 'json_file': 'results/results_20250312_040242/Cora_adjacency_GCN/results_Cora_adjacency_GCN_20250312_040353.json', 'rounds_csv': 'results/results_20250312_040242/Cora_adjacency_GCN/rounds_Cora_adjacency_GCN_20250312_040353.csv', 'summary_csv': 'results/results_20250312_040242/Cora_adjacency_GCN/summary_Cora_adjacency_GCN_20250312_040353.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_adjacency_GCN/results_arrays_Cora_adjacency_GCN_20250312_040353.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: diffusion
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_diffusion_GCN/results_Cora_diffusion_GCN_20250312_040409.txt', 'json_file': 'results/results_20250312_040242/Cora_diffusion_GCN/results_Cora_diffusion_GCN_20250312_040409.json', 'rounds_csv': 'results/results_20250312_040242/Cora_diffusion_GCN/rounds_Cora_diffusion_GCN_20250312_040409.csv', 'summary_csv': 'results/results_20250312_040242/Cora_diffusion_GCN/summary_Cora_diffusion_GCN_20250312_040409.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_diffusion_GCN/results_arrays_Cora_diffusion_GCN_20250312_040409.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: random_walk
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_random_walk_GCN/results_Cora_random_walk_GCN_20250312_040423.txt', 'json_file': 'results/results_20250312_040242/Cora_random_walk_GCN/results_Cora_random_walk_GCN_20250312_040423.json', 'rounds_csv': 'results/results_20250312_040242/Cora_random_walk_GCN/rounds_Cora_random_walk_GCN_20250312_040423.csv', 'summary_csv': 'results/results_20250312_040242/Cora_random_walk_GCN/summary_Cora_random_walk_GCN_20250312_040423.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_random_walk_GCN/results_arrays_Cora_random_walk_GCN_20250312_040423.csv'}
+
+Dataset: Cora
+Model: GCN
+Data Loading: efficient
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Cora_efficient_GCN/results_Cora_efficient_GCN_20250312_040438.txt', 'json_file': 'results/results_20250312_040242/Cora_efficient_GCN/results_Cora_efficient_GCN_20250312_040438.json', 'rounds_csv': 'results/results_20250312_040242/Cora_efficient_GCN/rounds_Cora_efficient_GCN_20250312_040438.csv', 'summary_csv': 'results/results_20250312_040242/Cora_efficient_GCN/summary_Cora_efficient_GCN_20250312_040438.csv', 'arrays_csv': 'results/results_20250312_040242/Cora_efficient_GCN/results_arrays_Cora_efficient_GCN_20250312_040438.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: zero_hop
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_zero_hop_GCN/results_Citeseer_zero_hop_GCN_20250312_040452.txt', 'json_file': 'results/results_20250312_040242/Citeseer_zero_hop_GCN/results_Citeseer_zero_hop_GCN_20250312_040452.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_zero_hop_GCN/rounds_Citeseer_zero_hop_GCN_20250312_040452.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_zero_hop_GCN/summary_Citeseer_zero_hop_GCN_20250312_040452.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_zero_hop_GCN/results_arrays_Citeseer_zero_hop_GCN_20250312_040452.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: zero
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_zero_GCN/results_Citeseer_zero_GCN_20250312_040509.txt', 'json_file': 'results/results_20250312_040242/Citeseer_zero_GCN/results_Citeseer_zero_GCN_20250312_040509.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_zero_GCN/rounds_Citeseer_zero_GCN_20250312_040509.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_zero_GCN/summary_Citeseer_zero_GCN_20250312_040509.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_zero_GCN/results_arrays_Citeseer_zero_GCN_20250312_040509.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: propagation
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_propagation_GCN/results_Citeseer_propagation_GCN_20250312_040526.txt', 'json_file': 'results/results_20250312_040242/Citeseer_propagation_GCN/results_Citeseer_propagation_GCN_20250312_040526.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_propagation_GCN/rounds_Citeseer_propagation_GCN_20250312_040526.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_propagation_GCN/summary_Citeseer_propagation_GCN_20250312_040526.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_propagation_GCN/results_arrays_Citeseer_propagation_GCN_20250312_040526.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: full
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_full_GCN/results_Citeseer_full_GCN_20250312_040542.txt', 'json_file': 'results/results_20250312_040242/Citeseer_full_GCN/results_Citeseer_full_GCN_20250312_040542.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_full_GCN/rounds_Citeseer_full_GCN_20250312_040542.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_full_GCN/summary_Citeseer_full_GCN_20250312_040542.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_full_GCN/results_arrays_Citeseer_full_GCN_20250312_040542.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: adjacency
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_adjacency_GCN/results_Citeseer_adjacency_GCN_20250312_040559.txt', 'json_file': 'results/results_20250312_040242/Citeseer_adjacency_GCN/results_Citeseer_adjacency_GCN_20250312_040559.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_adjacency_GCN/rounds_Citeseer_adjacency_GCN_20250312_040559.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_adjacency_GCN/summary_Citeseer_adjacency_GCN_20250312_040559.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_adjacency_GCN/results_arrays_Citeseer_adjacency_GCN_20250312_040559.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: diffusion
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_diffusion_GCN/results_Citeseer_diffusion_GCN_20250312_040616.txt', 'json_file': 'results/results_20250312_040242/Citeseer_diffusion_GCN/results_Citeseer_diffusion_GCN_20250312_040616.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_diffusion_GCN/rounds_Citeseer_diffusion_GCN_20250312_040616.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_diffusion_GCN/summary_Citeseer_diffusion_GCN_20250312_040616.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_diffusion_GCN/results_arrays_Citeseer_diffusion_GCN_20250312_040616.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: random_walk
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_random_walk_GCN/results_Citeseer_random_walk_GCN_20250312_040633.txt', 'json_file': 'results/results_20250312_040242/Citeseer_random_walk_GCN/results_Citeseer_random_walk_GCN_20250312_040633.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_random_walk_GCN/rounds_Citeseer_random_walk_GCN_20250312_040633.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_random_walk_GCN/summary_Citeseer_random_walk_GCN_20250312_040633.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_random_walk_GCN/results_arrays_Citeseer_random_walk_GCN_20250312_040633.csv'}
+
+Dataset: Citeseer
+Model: GCN
+Data Loading: efficient
+Status: success
+Results File: {'text_file': 'results/results_20250312_040242/Citeseer_efficient_GCN/results_Citeseer_efficient_GCN_20250312_040650.txt', 'json_file': 'results/results_20250312_040242/Citeseer_efficient_GCN/results_Citeseer_efficient_GCN_20250312_040650.json', 'rounds_csv': 'results/results_20250312_040242/Citeseer_efficient_GCN/rounds_Citeseer_efficient_GCN_20250312_040650.csv', 'summary_csv': 'results/results_20250312_040242/Citeseer_efficient_GCN/summary_Citeseer_efficient_GCN_20250312_040650.csv', 'arrays_csv': 'results/results_20250312_040242/Citeseer_efficient_GCN/results_arrays_Citeseer_efficient_GCN_20250312_040650.csv'}
+

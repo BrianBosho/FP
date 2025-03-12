@@ -65,3 +65,11 @@ class Server():
         self.model.to(self.device)
         data = data.to(self.device)
         return test(self.model, data)
+
+    # def test_global_model(self, data):
+    #     self.model.to(self.device)
+    #     data = data.to(self.device)
+    #     test_result = test(self.model, data)
+    #     # Convert parameters to a list of numpy arrays
+    #     params = [p.detach().cpu().numpy() for p in self.model.parameters()]
+    #     return test_result, params

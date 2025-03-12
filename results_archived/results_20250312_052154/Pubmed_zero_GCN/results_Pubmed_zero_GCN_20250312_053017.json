@@ -1,0 +1,38 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "zero",
+        "model_type": "GCN",
+        "dataset": "Pubmed",
+        "num_clients": 10,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.447,
+            "client_result": 0.4074529820801809
+        },
+        {
+            "round": 2,
+            "global_result": 0.487,
+            "client_result": 0.45363722072702145
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.447,
+            0.487
+        ],
+        "client_results": [
+            0.4074529820801809,
+            0.45363722072702145
+        ],
+        "average_global_result": 0.46699999999999997,
+        "average_client_result": 0.43054510140360114,
+        "std_global": 0.01999999999999999,
+        "std_client": 0.023092119323420285
+    }
+}

@@ -1,0 +1,341 @@
+2025-03-09 21:22:15,077 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:22:15,080 - __main__ - INFO - Random seed set to 42
+2025-03-09 21:22:15,080 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:22:15,080 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:22:15,080 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:22:17,080 - __main__ - INFO - Ray initialized successfully
+2025-03-09 21:22:17,081 - __main__ - INFO - Using CPU
+2025-03-09 21:22:17,084 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 21:22:17,129 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:22:17,129 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:22:17,272 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:22:17,273 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:22:17,273 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:22:17,273 - __main__ - INFO - Available system memory: 53.10 GB
+2025-03-09 21:22:36,713 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 21:22:36,713 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 21:22:36,713 - __main__ - INFO - Number of features: 100
+2025-03-09 21:22:36,713 - __main__ - INFO - Number of classes: 47
+2025-03-09 21:22:36,713 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 21:22:36,713 - __main__ - INFO - CPU Memory Usage: 7.51 GB
+2025-03-09 21:22:36,714 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:22:36,714 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 21:22:36,714 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 21:22:36,743 - __main__ - INFO - Global model type: GCN
+2025-03-09 21:22:36,744 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 21:22:36,744 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 21:22:36,744 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 1024
+2025-03-09 21:22:53,830 - __main__ - INFO - Initialized 3 clients
+2025-03-09 21:22:53,833 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 21:22:53,833 - __main__ - INFO - Round 1/20
+2025-03-09 21:22:53,834 - __main__ - INFO - CPU Memory Usage: 15.17 GB
+2025-03-09 21:22:53,834 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:22:53,834 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 21:22:58,104 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900770, ip=172.29.98.248, actor_id=fc33efdc6fece95fa772947001000000, repr=<enhanced_client.EnhancedFLClient object at 0x7ef9b6e567b0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:22:58,106 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900770, ip=172.29.98.248, actor_id=fc33efdc6fece95fa772947001000000, repr=<enhanced_client.EnhancedFLClient object at 0x7ef9b6e567b0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:02,135 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900764, ip=172.29.98.248, actor_id=46a3895a387b5084ee62a59e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa4b04d24e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:02,135 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900764, ip=172.29.98.248, actor_id=46a3895a387b5084ee62a59e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa4b04d24e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:06,972 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900767, ip=172.29.98.248, actor_id=6a2f3f5fead215ac9046550f01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fecb874ea50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:06,972 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900767, ip=172.29.98.248, actor_id=6a2f3f5fead215ac9046550f01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fecb874ea50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:06,973 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:23:06,984 - __main__ - ERROR - Error in parameter aggregation: result type Float can't be cast to the desired output type Long
+2025-03-09 21:23:06,985 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 484, in run_federated_learning
+    avg_state_dict[name] /= len(client_params)
+RuntimeError: result type Float can't be cast to the desired output type Long
+
+2025-03-09 21:23:06,985 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:23:06,986 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:23:06,986 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:23:06,986 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:23:07,659 - __main__ - ERROR - Error during evaluation: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:07,659 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 512, in run_federated_learning
+    global_test_acc = enhanced_test(server_model, test_data_item, dataset_type=dataset_type)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 538, in enhanced_test
+    return enhanced_test_minibatch(model, data, batch_size=1024, num_neighbors=None, dataset_type=dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 264, in enhanced_test_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:07,660 - __main__ - INFO - Round 2/20
+2025-03-09 21:23:07,660 - __main__ - INFO - CPU Memory Usage: 15.92 GB
+2025-03-09 21:23:07,660 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:23:07,660 - __main__ - INFO - Starting client training for global round 1
+2025-03-09 21:23:11,770 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900770, ip=172.29.98.248, actor_id=fc33efdc6fece95fa772947001000000, repr=<enhanced_client.EnhancedFLClient object at 0x7ef9b6e567b0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:11,771 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900770, ip=172.29.98.248, actor_id=fc33efdc6fece95fa772947001000000, repr=<enhanced_client.EnhancedFLClient object at 0x7ef9b6e567b0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:15,656 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900764, ip=172.29.98.248, actor_id=46a3895a387b5084ee62a59e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa4b04d24e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:15,657 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900764, ip=172.29.98.248, actor_id=46a3895a387b5084ee62a59e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa4b04d24e0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:20,458 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1900767, ip=172.29.98.248, actor_id=6a2f3f5fead215ac9046550f01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fecb874ea50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:20,458 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(AttributeError): [36mray::EnhancedFLClient.train_client()[39m (pid=1900767, ip=172.29.98.248, actor_id=6a2f3f5fead215ac9046550f01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fecb874ea50>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 141, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 331, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 100, in enhanced_train_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:20,458 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:23:20,492 - __main__ - ERROR - Error in parameter aggregation: result type Float can't be cast to the desired output type Long
+2025-03-09 21:23:20,492 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 484, in run_federated_learning
+    avg_state_dict[name] /= len(client_params)
+RuntimeError: result type Float can't be cast to the desired output type Long
+
+2025-03-09 21:23:20,492 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:23:20,493 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:23:20,493 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:23:20,493 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:23:21,201 - __main__ - ERROR - Error during evaluation: 'tuple' object has no attribute 'to'
+2025-03-09 21:23:21,202 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 512, in run_federated_learning
+    global_test_acc = enhanced_test(server_model, test_data_item, dataset_type=dataset_type)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 538, in enhanced_test
+    return enhanced_test_minibatch(model, data, batch_size=1024, num_neighbors=None, dataset_type=dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 264, in enhanced_test_minibatch
+    adjs = [adj.to(device) for adj in adjs]
+            ^^^^^^
+AttributeError: 'tuple' object has no attribute 'to'
+
+2025-03-09 21:23:21,202 - __main__ - INFO - Round 3/20
+2025-03-09 21:23:21,202 - __main__ - INFO - CPU Memory Usage: 15.92 GB
+2025-03-09 21:23:21,202 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:23:21,202 - __main__ - INFO - Starting client training for global round 2

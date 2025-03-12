@@ -1,0 +1,37 @@
+Command: python src/run_enhanced.py --dataset Citeseer --data_loading zero --num_clients 10 --beta 0.1 --rounds 50 --batch_size 256 --results_dir results/experiments_20250309_234045 --config results/experiments_20250309_234045/configs/citeseer_config.yaml --hop 1 --memory_efficient
+
+Exit code: 1
+
+Stdout:
+
+
+Stderr:
+2025-03-09 23:41:51,412 - INFO - Starting enhanced federated learning with Citeseer dataset
+2025-03-09 23:41:51,413 - INFO - Random seed set to 42
+2025-03-09 23:41:51,414 - INFO - Using memory-efficient models
+2025-03-09 23:41:52,645	INFO worker.py:1816 -- Started a local Ray instance.
+2025-03-09 23:41:53,269 - INFO - Ray initialized successfully
+2025-03-09 23:41:53,270 - INFO - Using CPU
+2025-03-09 23:41:53,412 - INFO - CPU Memory Usage: 0.66 GB
+2025-03-09 23:41:53,458 - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:41:53,458 - INFO - Loading dataset: Citeseer
+2025-03-09 23:41:53,556 - INFO - Dataset: Citeseer
+2025-03-09 23:41:53,556 - INFO - Number of nodes: 3327
+2025-03-09 23:41:53,556 - INFO - Number of features: 3703
+2025-03-09 23:41:53,563 - INFO - Number of classes: 6
+2025-03-09 23:41:53,564 - INFO - Number of edges: 9104
+2025-03-09 23:41:53,564 - INFO - CPU Memory Usage: 0.94 GB
+2025-03-09 23:41:53,564 - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:41:53,571 - INFO - Using standard GCN model for citeseer
+2025-03-09 23:41:53,603 - INFO - Global model type: EnhancedGCN
+2025-03-09 23:41:53,603 - INFO - Total model parameters: 59398
+Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 862, in <module>
+    results, results_file = run_federated_learning(args)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    epochs_per_round = cfg[2].get("epochs", cfg[2].get("local_step", 1))
+                       ^^^^^^^
+AttributeError: 'tuple' object has no attribute 'get'
+
+

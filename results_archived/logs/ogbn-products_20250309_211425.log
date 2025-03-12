@@ -1,0 +1,716 @@
+2025-03-09 21:14:25,347 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:14:25,351 - __main__ - INFO - Random seed set to 42
+2025-03-09 21:14:25,351 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:14:25,351 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:14:25,351 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:14:27,224 - __main__ - INFO - Ray initialized successfully
+2025-03-09 21:14:27,224 - __main__ - INFO - Using CPU
+2025-03-09 21:14:27,227 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 21:14:27,273 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:14:27,273 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:14:27,417 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:14:27,417 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:14:27,417 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:14:27,417 - __main__ - INFO - Available system memory: 53.41 GB
+2025-03-09 21:14:37,788 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 21:14:37,788 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 21:14:37,788 - __main__ - INFO - Number of features: 100
+2025-03-09 21:14:37,788 - __main__ - INFO - Number of classes: 47
+2025-03-09 21:14:37,788 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 21:14:37,788 - __main__ - INFO - CPU Memory Usage: 7.52 GB
+2025-03-09 21:14:37,789 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:14:37,789 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 21:14:37,789 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 21:14:37,818 - __main__ - INFO - Global model type: GCN
+2025-03-09 21:14:37,818 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 21:14:37,818 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 21:14:37,818 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 1024
+2025-03-09 21:14:37,818 - __main__ - INFO - Using neighbor sampling with [10, 10] neighbors per layer
+2025-03-09 21:14:54,546 - __main__ - INFO - Initialized 3 clients
+2025-03-09 21:14:54,549 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 21:14:54,550 - __main__ - INFO - Round 1/20
+2025-03-09 21:14:54,550 - __main__ - INFO - CPU Memory Usage: 15.18 GB
+2025-03-09 21:14:54,550 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:14:54,550 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 21:14:59,248 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:14:59,249 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:03,735 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:03,736 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:08,835 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:08,836 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:08,836 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:15:08,871 - __main__ - ERROR - Error in parameter aggregation: result type Float can't be cast to the desired output type Long
+2025-03-09 21:15:08,872 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 478, in run_federated_learning
+    avg_state_dict[name] /= len(client_params)
+RuntimeError: result type Float can't be cast to the desired output type Long
+
+2025-03-09 21:15:08,872 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:15:08,872 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:15:09,755 - __main__ - ERROR - Error during evaluation: index 1 is out of range
+2025-03-09 21:15:09,756 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 506, in run_federated_learning
+    global_test_acc = enhanced_test(server_model, test_data_item, dataset_type=dataset_type)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 490, in enhanced_test
+    return enhanced_test_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10], dataset_type=dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 236, in enhanced_test_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:09,756 - __main__ - INFO - Round 2/20
+2025-03-09 21:15:09,756 - __main__ - INFO - CPU Memory Usage: 15.93 GB
+2025-03-09 21:15:09,757 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:15:09,757 - __main__ - INFO - Starting client training for global round 1
+2025-03-09 21:15:14,074 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:14,075 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:18,295 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:18,296 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:23,398 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:23,399 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:23,399 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:15:23,436 - __main__ - ERROR - Error in parameter aggregation: result type Float can't be cast to the desired output type Long
+2025-03-09 21:15:23,437 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 478, in run_federated_learning
+    avg_state_dict[name] /= len(client_params)
+RuntimeError: result type Float can't be cast to the desired output type Long
+
+2025-03-09 21:15:23,437 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:15:23,437 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:15:24,240 - __main__ - ERROR - Error during evaluation: index 1 is out of range
+2025-03-09 21:15:24,241 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 506, in run_federated_learning
+    global_test_acc = enhanced_test(server_model, test_data_item, dataset_type=dataset_type)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 490, in enhanced_test
+    return enhanced_test_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10], dataset_type=dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 236, in enhanced_test_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:24,241 - __main__ - INFO - Round 3/20
+2025-03-09 21:15:24,241 - __main__ - INFO - CPU Memory Usage: 15.94 GB
+2025-03-09 21:15:24,242 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:15:24,242 - __main__ - INFO - Starting client training for global round 2
+2025-03-09 21:15:28,534 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:28,535 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:32,712 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:32,713 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885283, ip=172.29.98.248, actor_id=d24925ce234562d663c05f7201000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fa2182ce660>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:37,938 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:37,939 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885286, ip=172.29.98.248, actor_id=b07e2e23dc532aab94b5da0e01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f96e196a5d0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:37,939 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:15:37,950 - __main__ - ERROR - Error in parameter aggregation: result type Float can't be cast to the desired output type Long
+2025-03-09 21:15:37,951 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 478, in run_federated_learning
+    avg_state_dict[name] /= len(client_params)
+RuntimeError: result type Float can't be cast to the desired output type Long
+
+2025-03-09 21:15:37,951 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:15:37,955 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:15:38,942 - __main__ - ERROR - Error during evaluation: index 1 is out of range
+2025-03-09 21:15:38,943 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 506, in run_federated_learning
+    global_test_acc = enhanced_test(server_model, test_data_item, dataset_type=dataset_type)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 490, in enhanced_test
+    return enhanced_test_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10], dataset_type=dataset_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 236, in enhanced_test_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+
+2025-03-09 21:15:38,943 - __main__ - INFO - Round 4/20
+2025-03-09 21:15:38,943 - __main__ - INFO - CPU Memory Usage: 16.69 GB
+2025-03-09 21:15:38,943 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:15:38,943 - __main__ - INFO - Starting client training for global round 3
+2025-03-09 21:15:43,266 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+2025-03-09 21:15:43,267 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 441, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(IndexError): [36mray::EnhancedFLClient.train_client()[39m (pid=1885282, ip=172.29.98.248, actor_id=a5b835358dda2fde1b33f6c801000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdf305ca2a0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 136, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 283, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 97, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 188, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ~~~~~~~~~~^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 334, in __getitem__
+    return self._modules[self._get_abs_string_index(idx)]
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/container.py", line 316, in _get_abs_string_index
+    raise IndexError(f"index {idx} is out of range")
+IndexError: index 1 is out of range
+

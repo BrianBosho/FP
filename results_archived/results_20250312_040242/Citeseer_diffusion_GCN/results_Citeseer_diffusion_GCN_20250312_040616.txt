@@ -1,0 +1,12 @@
+DEVICE: cuda
+Data loading option is diffusion
+Model type is GCN
+Full training flag is False
+
+Final Results:
+The global test results: [0.694, 0.696]
+The client test results: [0.6441646985394905, 0.6615744399588592]
+The average global test results: 0.695
+The average client test results: 0.6528695692491748
+The standard deviation global is: 0.0010000000000000009
+The standard deviation client is: 0.008704870709684343

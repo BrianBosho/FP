@@ -1,0 +1,38 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "efficient",
+        "model_type": "GCN",
+        "dataset": "Citeseer",
+        "num_clients": 10,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.709,
+            "client_result": 0.6790663080838713
+        },
+        {
+            "round": 2,
+            "global_result": 0.71,
+            "client_result": 0.6751134427555827
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.709,
+            0.71
+        ],
+        "client_results": [
+            0.6790663080838713,
+            0.6751134427555827
+        ],
+        "average_global_result": 0.7095,
+        "average_client_result": 0.677089875419727,
+        "std_global": 0.0005000000000000004,
+        "std_client": 0.0019764326641442675
+    }
+}

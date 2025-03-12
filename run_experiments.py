@@ -61,16 +61,16 @@ def parse_args():
     parser.add_argument(
         "--model", 
         type=str, 
-        choices=["GCN", "GAT"],
+        choices=["GCN", "GAT", "GCN_arxiv"],
         default="GCN",
         help="Model type (default: GCN)"
     )
     parser.add_argument(
         "--data_loading", 
         type=str,
-        choices=["split_dataset", "split_dataset_with_khop", "split_dataset_with_feature_prop"],
-        default="split_dataset",
-        help="Data loading method (default: split_dataset)"
+        choices=["zero", "propagation", "full", "adjacency", "diffusion", "random_walk", "efficient", "zero_hop"],
+        default= "zero_hop",
+        help="Data loading method (default: full)"
     )
     parser.add_argument(
         "--num_clients", 
@@ -81,7 +81,7 @@ def parse_args():
     parser.add_argument(
         "--hop", 
         type=int, 
-        default=1,
+        default=2,
         help="Number of hops for k-hop methods (default: 1)"
     )
     parser.add_argument(
@@ -211,15 +211,19 @@ def run_single_experiment(
 def run_all_experiments(args, logger):
     """Run experiments for all combinations of parameters"""
     # Define lists of options
-    datasets = ["Cora", "Citeseer", "Pubmed"]  # Add more datasets if available
+    datasets = ["ogbn-arxiv"]  # Add more datasets if available
     data_loading_options = [
         "zero_hop",
-        "khop_zero",
-        "khop_propagation",
-        "khop_full",
-        "khop_monte_carlo"
+        "zero",
+        "propagation",
+        "full",
+        "adjacency",
+        "diffusion",
+        "random_walk",        
+        "efficient",
+        # "khop_monte_carlo"
     ]
-    model_types = ["GCN", "GAT"]
+    model_types = ["GCN"]
     
     # Load configuration
     clients_num, beta, cfg = load_configuration(args.config_path)
@@ -323,7 +327,8 @@ def main():
             cfg=cfg,
             hop=args.hop,
             output_dir=args.output_dir,
-            logger=logger
+            logger=logger,
+            fulltraining_flag=False
         )
     else:
         # Run all experiments

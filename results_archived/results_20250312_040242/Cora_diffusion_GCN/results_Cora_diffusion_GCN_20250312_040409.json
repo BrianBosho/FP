@@ -1,0 +1,38 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "diffusion",
+        "model_type": "GCN",
+        "dataset": "Cora",
+        "num_clients": 10,
+        "beta": 10000,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.755,
+            "client_result": 0.6596457364556774
+        },
+        {
+            "round": 2,
+            "global_result": 0.745,
+            "client_result": 0.666170967601294
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.755,
+            0.745
+        ],
+        "client_results": [
+            0.6596457364556774,
+            0.666170967601294
+        ],
+        "average_global_result": 0.75,
+        "average_client_result": 0.6629083520284857,
+        "std_global": 0.0050000000000000044,
+        "std_client": 0.003262615572808325
+    }
+}

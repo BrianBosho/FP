@@ -1,0 +1,134 @@
+[
+  {
+    "dataset": "Cora",
+    "data_loading": "zero_hop",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.938758850097656,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_zero_hop_auto"
+  },
+  {
+    "dataset": "Cora",
+    "data_loading": "zero",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.942486047744751,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_zero_auto"
+  },
+  {
+    "dataset": "Cora",
+    "data_loading": "full",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.912781000137329,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_full_auto"
+  },
+  {
+    "dataset": "Cora",
+    "data_loading": "adjacency",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.942812442779541,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_adjacency_auto"
+  },
+  {
+    "dataset": "Cora",
+    "data_loading": "propagation",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 5.111356019973755,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_propagation_auto"
+  },
+  {
+    "dataset": "Cora",
+    "data_loading": "random_walk",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.967538833618164,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Cora_random_walk_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "zero_hop",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.930822372436523,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_zero_hop_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "zero",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.967110633850098,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_zero_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "full",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.9671008586883545,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_full_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "adjacency",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.965351581573486,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_adjacency_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "propagation",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.945403814315796,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_propagation_auto"
+  },
+  {
+    "dataset": "Citeseer",
+    "data_loading": "random_walk",
+    "model_type": "auto",
+    "success": false,
+    "execution_time": 4.979393243789673,
+    "stdout": "",
+    "stderr": "usage: run_enhanced.py [-h] [--dataset DATASET]\n                       [--data_loading {zero_hop,one_hop,two_hop,three_hop,page_rank,random_walk,diffusion,efficient,adjacency,propagation,zero,full,full_dataset}]\n                       [--hop HOP] [--num_clients NUM_CLIENTS] [--beta BETA]\n                       [--model_type {GCN,GAT,SAGE,VanillaGNN,MLP}]\n                       [--rounds ROUNDS] [--batch_size BATCH_SIZE]\n                       [--num_neighbors NUM_NEIGHBORS [NUM_NEIGHBORS ...]]\n ...",
+    "return_code": 2,
+    "results_dir": "results/results_20250309_234520/Citeseer_random_walk_auto"
+  }
+]

@@ -1,0 +1,52 @@
+# Quick Test Configuration for Enhanced Federated Learning
+
+# Datasets to run experiments on (one small dataset only)
+datasets:
+  - "Cora"
+  - "Citeseer"
+  # - "Pubmed"
+  # - "ogbn-arxiv"
+  # - "ogbn-products"
+
+# Data loading strategies (show both basic approaches)
+# options: kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "full"]
+data_loading_options:
+  - "zero_hop"
+  - "zero"  # Simple imputation method
+  - "full"
+  - "adjacency"
+  - "propagation"
+  - "random_walk"
+  # - "diffusion"
+  # - "efficient"
+  # - "page_rank"
+  
+# Number of clients (small number for quick test)
+num_clients_options:
+  - 10
+
+# Beta parameter (default value for balanced dataset distribution)
+# 0.1 for non-iid, and 10,000 for iid
+beta_options:
+  - 0.1
+
+# Number of communication rounds (minimal for quick test)
+rounds_options:
+  - 50
+
+# Number of local epochs (minimal)
+epochs_options:
+  default: 3
+
+# Default batch size
+batch_size_options:
+  default: 256
+
+# Don't use GPU for consistency
+use_cuda: false
+
+# Use memory efficient operations
+memory_efficient: true
+
+# Just run once
+repeats: 1 

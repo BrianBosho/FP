@@ -1,0 +1,185 @@
+2025-03-09 21:39:00,229 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:39:00,230 - __main__ - INFO - Random seed set to 42
+2025-03-09 21:39:00,230 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:39:00,230 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:39:00,230 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:39:02,241 - __main__ - INFO - Ray initialized successfully
+2025-03-09 21:39:02,241 - __main__ - INFO - Using CPU
+2025-03-09 21:39:02,244 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 21:39:02,289 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:39:02,290 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:39:02,437 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:39:02,437 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:39:02,437 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:39:02,438 - __main__ - INFO - Available system memory: 53.01 GB
+2025-03-09 21:39:12,968 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 21:39:12,968 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 21:39:12,968 - __main__ - INFO - Number of features: 100
+2025-03-09 21:39:12,968 - __main__ - INFO - Number of classes: 47
+2025-03-09 21:39:12,968 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 21:39:12,969 - __main__ - INFO - CPU Memory Usage: 7.50 GB
+2025-03-09 21:39:12,969 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:39:12,969 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 21:39:12,969 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 21:39:12,998 - __main__ - INFO - Global model type: GCN
+2025-03-09 21:39:12,998 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 21:39:12,999 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 21:39:12,999 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 1024
+2025-03-09 21:39:30,634 - __main__ - INFO - Initialized 3 clients
+2025-03-09 21:39:30,637 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 21:39:30,637 - __main__ - INFO - Round 1/20
+2025-03-09 21:39:30,637 - __main__ - INFO - CPU Memory Usage: 15.16 GB
+2025-03-09 21:39:30,638 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:39:30,638 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 21:39:34,907 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1935354, ip=172.29.98.248, actor_id=a70ceb2653dd1ce4e2b5833d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f1467896900>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 400, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 169, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 199, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_pl0ojxb1.py", line 128, in propagate
+    mutable_size = self._check_input(edge_index, size)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 235, in _check_input
+    raise ValueError(f"Expected 'edge_index' to be two-dimensional"
+ValueError: Expected 'edge_index' to be two-dimensional (got 1 dimensions)
+2025-03-09 21:39:34,909 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(ValueError): [36mray::EnhancedFLClient.train_client()[39m (pid=1935354, ip=172.29.98.248, actor_id=a70ceb2653dd1ce4e2b5833d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f1467896900>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 400, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 169, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 199, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_pl0ojxb1.py", line 128, in propagate
+    mutable_size = self._check_input(edge_index, size)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 235, in _check_input
+    raise ValueError(f"Expected 'edge_index' to be two-dimensional"
+ValueError: Expected 'edge_index' to be two-dimensional (got 1 dimensions)
+
+2025-03-09 21:39:38,979 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1935356, ip=172.29.98.248, actor_id=4a5093f2c10f0e80073bae2d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f0d812160f0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 400, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 169, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 199, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_4y5gdv38.py", line 128, in propagate
+    mutable_size = self._check_input(edge_index, size)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 235, in _check_input
+    raise ValueError(f"Expected 'edge_index' to be two-dimensional"
+ValueError: Expected 'edge_index' to be two-dimensional (got 1 dimensions)
+2025-03-09 21:39:38,979 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(ValueError): [36mray::EnhancedFLClient.train_client()[39m (pid=1935356, ip=172.29.98.248, actor_id=4a5093f2c10f0e80073bae2d01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7f0d812160f0>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 400, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 169, in enhanced_train_minibatch
+    out = model.forward_batch(x, adjs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_models.py", line 199, in forward_batch
+    x = self.convs[i]((x, x_target), edge_index)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/sage_conv.py", line 134, in forward
+    out = self.propagate(edge_index, x=x, size=size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/torch_geometric.nn.conv.sage_conv_SAGEConv_propagate_4y5gdv38.py", line 128, in propagate
+    mutable_size = self._check_input(edge_index, size)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/torch_geometric/nn/conv/message_passing.py", line 235, in _check_input
+    raise ValueError(f"Expected 'edge_index' to be two-dimensional"
+ValueError: Expected 'edge_index' to be two-dimensional (got 1 dimensions)
+

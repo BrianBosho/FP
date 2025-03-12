@@ -1,0 +1,12 @@
+DEVICE: cuda
+Data loading option is zero_hop
+Model type is GCN
+Full training flag is True
+
+Final Results:
+The global test results: [0.673, 0.683, 0.631]
+The client test results: [0.5914721996775408, 0.570579320934441, 0.5395418323471233]
+The average global test results: 0.6623333333333333
+The average client test results: 0.5671977843197017
+The standard deviation global is: 0.022528993664954422
+The standard deviation client is: 0.021334898721353888

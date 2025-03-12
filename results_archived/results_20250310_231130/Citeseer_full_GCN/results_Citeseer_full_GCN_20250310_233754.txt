@@ -1,0 +1,12 @@
+DEVICE: cuda
+Data loading option is full
+Model type is GCN
+Full training flag is False
+
+Final Results:
+The global test results: []
+The client test results: []
+The average global test results: nan
+The average client test results: nan
+The standard deviation global is: nan
+The standard deviation client is: nan

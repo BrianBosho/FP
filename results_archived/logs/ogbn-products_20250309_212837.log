@@ -1,0 +1,117 @@
+2025-03-09 21:28:37,977 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:28:37,978 - __main__ - INFO - Random seed set to 42
+2025-03-09 21:28:37,978 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:28:37,978 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:28:37,978 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:28:40,002 - __main__ - INFO - Ray initialized successfully
+2025-03-09 21:28:40,002 - __main__ - INFO - Using CPU
+2025-03-09 21:28:40,006 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 21:28:40,052 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:28:40,052 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:28:40,188 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:28:40,189 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:28:40,189 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:28:40,189 - __main__ - INFO - Available system memory: 53.10 GB
+2025-03-09 21:28:50,737 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 21:28:50,737 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 21:28:50,737 - __main__ - INFO - Number of features: 100
+2025-03-09 21:28:50,737 - __main__ - INFO - Number of classes: 47
+2025-03-09 21:28:50,737 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 21:28:50,737 - __main__ - INFO - CPU Memory Usage: 7.51 GB
+2025-03-09 21:28:50,738 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:28:50,738 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 21:28:50,738 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 21:28:50,767 - __main__ - INFO - Global model type: GCN
+2025-03-09 21:28:50,767 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 21:28:50,768 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 21:28:50,768 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 1024
+2025-03-09 21:29:08,072 - __main__ - INFO - Initialized 3 clients
+2025-03-09 21:29:08,075 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 21:29:08,075 - __main__ - INFO - Round 1/20
+2025-03-09 21:29:08,075 - __main__ - INFO - CPU Memory Usage: 15.17 GB
+2025-03-09 21:29:08,075 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:29:08,075 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 21:29:12,298 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1913602, ip=172.29.98.248, actor_id=16051bc61ef8df590a3f746b01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fe5b3d6c110>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 344, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 103, in enhanced_train_minibatch
+    edge_index, _, size = adj_tuple
+    ^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+2025-03-09 21:29:12,299 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(ValueError): [36mray::EnhancedFLClient.train_client()[39m (pid=1913602, ip=172.29.98.248, actor_id=16051bc61ef8df590a3f746b01000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fe5b3d6c110>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 344, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 103, in enhanced_train_minibatch
+    edge_index, _, size = adj_tuple
+    ^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+
+2025-03-09 21:29:16,339 - __main__ - ERROR - Error training client: [36mray::EnhancedFLClient.train_client()[39m (pid=1913601, ip=172.29.98.248, actor_id=57309c3852f998c931afe91501000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdcf189e390>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 344, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 103, in enhanced_train_minibatch
+    edge_index, _, size = adj_tuple
+    ^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+2025-03-09 21:29:16,340 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 901, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(ValueError): [36mray::EnhancedFLClient.train_client()[39m (pid=1913601, ip=172.29.98.248, actor_id=57309c3852f998c931afe91501000000, repr=<enhanced_client.EnhancedFLClient object at 0x7fdcf189e390>)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_client.py", line 145, in train_client
+    loss, acc, loss_list, acc_list = enhanced_train(
+                                     ^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 344, in enhanced_train
+    return enhanced_train_minibatch(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/enhanced_training.py", line 103, in enhanced_train_minibatch
+    edge_index, _, size = adj_tuple
+    ^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+

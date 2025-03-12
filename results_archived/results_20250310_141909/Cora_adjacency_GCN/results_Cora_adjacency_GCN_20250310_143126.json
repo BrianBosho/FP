@@ -1,0 +1,21 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "adjacency",
+        "model_type": "GCN",
+        "dataset": "Cora",
+        "num_clients": 10,
+        "beta": 0.001,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [],
+    "summary": {
+        "global_results": [],
+        "client_results": [],
+        "average_global_result": NaN,
+        "average_client_result": NaN,
+        "std_global": NaN,
+        "std_client": NaN
+    }
+}

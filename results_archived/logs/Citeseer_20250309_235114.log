@@ -1,0 +1,18 @@
+2025-03-09 23:51:14,049 - __main__ - INFO - Starting enhanced federated learning with Citeseer dataset
+2025-03-09 23:51:14,050 - __main__ - INFO - Random seed set to 42
+2025-03-09 23:51:14,050 - __main__ - INFO - Using memory-efficient models
+2025-03-09 23:51:15,901 - __main__ - INFO - Ray initialized successfully
+2025-03-09 23:51:15,902 - __main__ - INFO - Using CPU
+2025-03-09 23:51:16,054 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 23:51:16,099 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:51:16,099 - __main__ - INFO - Loading dataset: Citeseer
+2025-03-09 23:51:16,199 - __main__ - INFO - Dataset: Citeseer
+2025-03-09 23:51:16,199 - __main__ - INFO - Number of nodes: 3327
+2025-03-09 23:51:16,200 - __main__ - INFO - Number of features: 3703
+2025-03-09 23:51:16,207 - __main__ - INFO - Number of classes: 6
+2025-03-09 23:51:16,207 - __main__ - INFO - Number of edges: 9104
+2025-03-09 23:51:16,207 - __main__ - INFO - CPU Memory Usage: 0.94 GB
+2025-03-09 23:51:16,208 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:51:16,214 - __main__ - INFO - Using standard GCN model for citeseer
+2025-03-09 23:51:16,245 - __main__ - INFO - Global model type: EnhancedGCN
+2025-03-09 23:51:16,245 - __main__ - INFO - Total model parameters: 59398

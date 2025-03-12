@@ -1,0 +1,59 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "full",
+        "model_type": "GCN",
+        "dataset": "Pubmed",
+        "num_clients": 10,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.762,
+            "client_result": 0.7754166746964006
+        },
+        {
+            "round": 2,
+            "global_result": 0.722,
+            "client_result": 0.7440755910777778
+        },
+        {
+            "round": 3,
+            "global_result": 0.748,
+            "client_result": 0.756351234556943
+        },
+        {
+            "round": 4,
+            "global_result": 0.733,
+            "client_result": 0.7508970816118268
+        },
+        {
+            "round": 5,
+            "global_result": 0.737,
+            "client_result": 0.7438221070649403
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.762,
+            0.722,
+            0.748,
+            0.733,
+            0.737
+        ],
+        "client_results": [
+            0.7754166746964006,
+            0.7440755910777778,
+            0.756351234556943,
+            0.7508970816118268,
+            0.7438221070649403
+        ],
+        "average_global_result": 0.7404000000000001,
+        "average_client_result": 0.7541125378015777,
+        "std_global": 0.013632314550361591,
+        "std_client": 0.011626267111897742
+    }
+}

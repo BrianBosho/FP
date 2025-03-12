@@ -1,0 +1,94 @@
+{
+    "experiment_config": {
+        "device": "cuda",
+        "data_loading_option": "full",
+        "model_type": "GCN",
+        "dataset": "Pubmed",
+        "num_clients": 10,
+        "beta": 1,
+        "hop": 1,
+        "fulltraining_flag": false
+    },
+    "rounds": [
+        {
+            "round": 1,
+            "global_result": 0.682,
+            "client_result": 0.6960622653609776
+        },
+        {
+            "round": 2,
+            "global_result": 0.704,
+            "client_result": 0.7200469352993654
+        },
+        {
+            "round": 3,
+            "global_result": 0.691,
+            "client_result": 0.6912952959015497
+        },
+        {
+            "round": 4,
+            "global_result": 0.727,
+            "client_result": 0.7199554061836572
+        },
+        {
+            "round": 5,
+            "global_result": 0.692,
+            "client_result": 0.7073731353444189
+        },
+        {
+            "round": 6,
+            "global_result": 0.706,
+            "client_result": 0.7198759604871229
+        },
+        {
+            "round": 7,
+            "global_result": 0.675,
+            "client_result": 0.695420121538255
+        },
+        {
+            "round": 8,
+            "global_result": 0.643,
+            "client_result": 0.6573029490776646
+        },
+        {
+            "round": 9,
+            "global_result": 0.695,
+            "client_result": 0.7086092932989609
+        },
+        {
+            "round": 10,
+            "global_result": 0.711,
+            "client_result": 0.7087087834655919
+        }
+    ],
+    "summary": {
+        "global_results": [
+            0.682,
+            0.704,
+            0.691,
+            0.727,
+            0.692,
+            0.706,
+            0.675,
+            0.643,
+            0.695,
+            0.711
+        ],
+        "client_results": [
+            0.6960622653609776,
+            0.7200469352993654,
+            0.6912952959015497,
+            0.7199554061836572,
+            0.7073731353444189,
+            0.7198759604871229,
+            0.695420121538255,
+            0.6573029490776646,
+            0.7086092932989609,
+            0.7087087834655919
+        ],
+        "average_global_result": 0.6926000000000001,
+        "average_client_result": 0.7024650145957565,
+        "std_global": 0.02173108372815307,
+        "std_client": 0.018094213781337506
+    }
+}

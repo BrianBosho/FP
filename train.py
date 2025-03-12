@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from models import VanillaGNN, MLP, GCN, GAT
+from models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv
 from torch_geometric.utils import to_dense_adj
 
 # loga data instead of printing it
@@ -10,9 +10,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 def train(model, data, epochs, optimizer, criterion, writer):
-    adjacency = to_dense_adj(data.edge_index)[0]
+
+    if isinstance(model, VanillaGNN):
+        adjacency = to_dense_adj(data.edge_index)[0]
+        adjacency += torch.eye(len(adjacency), device=adjacency.device)
+    else:
+        adjacency = None
     # adjacency += torch.eye(len(adjacency))
-    adjacency += torch.eye(len(adjacency), device=adjacency.device)
+    
 
 
     # round_number = config["round_number"]-1
@@ -20,12 +25,21 @@ def train(model, data, epochs, optimizer, criterion, writer):
     training_accuracies = []
     torch.cuda.empty_cache()
 
+    # Add this check before using the model
+    if isinstance(model, GCN_arxiv):
+        # Ensure edge_index has correct format
+        if data.edge_index.dim() != 2 or data.edge_index.size(0) != 2:
+            raise ValueError(f"Edge index has incorrect format: {data.edge_index.shape}")
+        # Ensure x has correct format
+        if data.x.dim() != 2:
+            raise ValueError(f"Node features have incorrect format: {data.x.shape}")
+    
     model.train()
     for epoch in range(epochs):
         optimizer.zero_grad()
         if isinstance(model, VanillaGNN):
             output = model(data.x, adjacency)
-        elif isinstance(model, GCN) or isinstance(model, GAT):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
@@ -66,7 +80,7 @@ def evaluate(model, data, criterion):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
@@ -86,7 +100,7 @@ def test(model, data):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)

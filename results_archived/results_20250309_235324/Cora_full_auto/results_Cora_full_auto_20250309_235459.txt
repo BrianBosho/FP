@@ -1,0 +1,6 @@
+Experiment results for Cora with full
+Model: auto
+Clients: 10, Beta: 0.1
+==================================================
+Average global accuracy: 0.1632 ± 0.1730
+Average client accuracy: 0.4185 ± 0.1115

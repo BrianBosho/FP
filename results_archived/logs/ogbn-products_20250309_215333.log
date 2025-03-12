@@ -1,0 +1,796 @@
+2025-03-09 21:53:33,291 - __main__ - INFO - Starting enhanced federated learning with ogbn-products dataset
+2025-03-09 21:53:33,292 - __main__ - INFO - Random seed set to 42
+2025-03-09 21:53:33,292 - __main__ - INFO - Using memory-efficient models
+2025-03-09 21:53:33,292 - __main__ - INFO - Using mini-batch training with batch size 1024
+2025-03-09 21:53:33,292 - __main__ - INFO - Neighbor sampling: [10, 10]
+2025-03-09 21:53:35,171 - __main__ - INFO - Ray initialized successfully
+2025-03-09 21:53:35,171 - __main__ - INFO - Using CPU
+2025-03-09 21:53:35,175 - __main__ - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 21:53:35,220 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:53:35,220 - __main__ - INFO - Loading dataset: ogbn-products
+2025-03-09 21:53:35,359 - __main__ - INFO - Cleared memory before loading large dataset
+2025-03-09 21:53:35,359 - __main__ - INFO - Loading OGBN-Products dataset - this is a very large dataset
+2025-03-09 21:53:35,360 - __main__ - INFO - Ensuring system has enough memory...
+2025-03-09 21:53:35,360 - __main__ - INFO - Available system memory: 53.10 GB
+2025-03-09 21:53:45,944 - __main__ - INFO - Dataset: ogbn-products
+2025-03-09 21:53:45,944 - __main__ - INFO - Number of nodes: 2449029
+2025-03-09 21:53:45,944 - __main__ - INFO - Number of features: 100
+2025-03-09 21:53:45,944 - __main__ - INFO - Number of classes: 47
+2025-03-09 21:53:45,944 - __main__ - INFO - Number of edges: 123718152
+2025-03-09 21:53:45,945 - __main__ - INFO - CPU Memory Usage: 7.51 GB
+2025-03-09 21:53:45,945 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:53:45,945 - __main__ - INFO - Using specialized SAGE_Products model for OGBN-Products dataset
+2025-03-09 21:53:45,945 - __main__ - INFO - Using 2-layer GraphSAGE with 256 hidden units
+2025-03-09 21:53:45,974 - __main__ - INFO - Global model type: GCN
+2025-03-09 21:53:45,974 - __main__ - INFO - Total model parameters: 76079
+2025-03-09 21:53:45,974 - __main__ - INFO - Training for 20 rounds with 2 local epochs per round
+2025-03-09 21:53:45,974 - __main__ - INFO - Using mini-batch training for OGBN-Products with batch size 1024
+2025-03-09 21:54:03,188 - __main__ - INFO - Initialized 3 clients
+2025-03-09 21:54:03,191 - __main__ - INFO - Starting federated training for 20 rounds
+2025-03-09 21:54:03,191 - __main__ - INFO - Round 1/20
+2025-03-09 21:54:03,191 - __main__ - INFO - CPU Memory Usage: 15.17 GB
+2025-03-09 21:54:03,191 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:54:03,192 - __main__ - INFO - Starting client training for global round 0
+2025-03-09 21:54:35,069 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:54:35,085 - __main__ - INFO - Completed global round 0
+2025-03-09 21:54:35,085 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:54:35,086 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:54:35,086 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:54:35,086 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:54:35,878 - __main__ - INFO - Global model - Test Accuracy: 0.2409
+2025-03-09 21:55:03,809 - __main__ - INFO - Average client - Test Accuracy: 0.2536
+2025-03-09 21:55:03,810 - __main__ - INFO - Round 1 - Avg Train Loss: 0.7633, Avg Train Acc: 0.8048, Avg Test Acc: 0.2536
+2025-03-09 21:55:03,810 - __main__ - INFO - Round 2/20
+2025-03-09 21:55:03,810 - __main__ - INFO - CPU Memory Usage: 15.92 GB
+2025-03-09 21:55:03,811 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:55:03,811 - __main__ - INFO - Starting client training for global round 1
+2025-03-09 21:55:35,353 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:55:35,390 - __main__ - INFO - Completed global round 1
+2025-03-09 21:55:35,390 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:55:35,391 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:55:35,391 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:55:35,391 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:55:36,181 - __main__ - INFO - Global model - Test Accuracy: 0.4236
+2025-03-09 21:56:05,628 - __main__ - INFO - Average client - Test Accuracy: 0.4489
+2025-03-09 21:56:05,633 - __main__ - INFO - Round 2 - Avg Train Loss: 0.7957, Avg Train Acc: 0.7898, Avg Test Acc: 0.4489
+2025-03-09 21:56:05,633 - __main__ - INFO - Round 3/20
+2025-03-09 21:56:05,633 - __main__ - INFO - CPU Memory Usage: 15.88 GB
+2025-03-09 21:56:05,661 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:56:05,661 - __main__ - INFO - Starting client training for global round 2
+2025-03-09 21:56:37,439 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:56:37,455 - __main__ - INFO - Completed global round 2
+2025-03-09 21:56:37,455 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:56:37,455 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:56:37,455 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:56:37,456 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:56:38,376 - __main__ - INFO - Global model - Test Accuracy: 0.4183
+2025-03-09 21:57:08,430 - __main__ - INFO - Average client - Test Accuracy: 0.4421
+2025-03-09 21:57:08,430 - __main__ - INFO - Round 3 - Avg Train Loss: 0.6301, Avg Train Acc: 0.8310, Avg Test Acc: 0.4421
+2025-03-09 21:57:08,430 - __main__ - INFO - Round 4/20
+2025-03-09 21:57:08,430 - __main__ - INFO - CPU Memory Usage: 16.56 GB
+2025-03-09 21:57:08,456 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:57:08,456 - __main__ - INFO - Starting client training for global round 3
+2025-03-09 21:57:40,313 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:57:40,390 - __main__ - INFO - Completed global round 3
+2025-03-09 21:57:40,391 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:57:40,391 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:57:40,391 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:57:40,391 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:57:41,234 - __main__ - INFO - Global model - Test Accuracy: 0.4761
+2025-03-09 21:58:09,203 - __main__ - INFO - Average client - Test Accuracy: 0.5027
+2025-03-09 21:58:09,203 - __main__ - INFO - Round 4 - Avg Train Loss: 0.5756, Avg Train Acc: 0.8431, Avg Test Acc: 0.5027
+2025-03-09 21:58:09,203 - __main__ - INFO - Round 5/20
+2025-03-09 21:58:09,203 - __main__ - INFO - CPU Memory Usage: 15.81 GB
+2025-03-09 21:58:09,203 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:58:09,203 - __main__ - INFO - Starting client training for global round 4
+2025-03-09 21:58:40,557 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:58:40,572 - __main__ - INFO - Completed global round 4
+2025-03-09 21:58:40,572 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:58:40,587 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:58:40,588 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:58:40,588 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:58:41,385 - __main__ - INFO - Global model - Test Accuracy: 0.5146
+2025-03-09 21:59:03,078 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 21:59:03,079 - __main__ - INFO - Average client - Test Accuracy: 0.3611
+2025-03-09 21:59:03,079 - __main__ - INFO - Round 5 - Avg Train Loss: 0.5449, Avg Train Acc: 0.8514, Avg Test Acc: 0.3611
+2025-03-09 21:59:03,079 - __main__ - INFO - Round 6/20
+2025-03-09 21:59:03,079 - __main__ - INFO - CPU Memory Usage: 16.54 GB
+2025-03-09 21:59:03,080 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:59:03,080 - __main__ - INFO - Starting client training for global round 5
+2025-03-09 21:59:23,364 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 21:59:23,372 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 21:59:23,372 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 21:59:23,379 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 21:59:23,380 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 21:59:23,380 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 21:59:23,384 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 21:59:23,384 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 21:59:23,384 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 21:59:24,192 - __main__ - INFO - Global model - Test Accuracy: 0.5156
+2025-03-09 21:59:47,259 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 21:59:47,259 - __main__ - INFO - Average client - Test Accuracy: 0.3613
+2025-03-09 21:59:47,259 - __main__ - INFO - Round 6 - Avg Train Loss: 0.3768, Avg Train Acc: 0.8962, Avg Test Acc: 0.3613
+2025-03-09 21:59:47,259 - __main__ - INFO - Round 7/20
+2025-03-09 21:59:47,260 - __main__ - INFO - CPU Memory Usage: 15.04 GB
+2025-03-09 21:59:47,260 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 21:59:47,260 - __main__ - INFO - Starting client training for global round 6
+2025-03-09 22:00:07,620 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:00:07,621 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:00:07,621 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:00:07,628 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:00:07,629 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:00:07,629 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:00:07,630 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 22:00:07,630 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 22:00:07,630 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 22:00:08,491 - __main__ - INFO - Global model - Test Accuracy: 0.5160
+2025-03-09 22:00:30,443 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:00:30,443 - __main__ - INFO - Average client - Test Accuracy: 0.3648
+2025-03-09 22:00:30,443 - __main__ - INFO - Round 7 - Avg Train Loss: 0.3008, Avg Train Acc: 0.9159, Avg Test Acc: 0.3648
+2025-03-09 22:00:30,443 - __main__ - INFO - Round 8/20
+2025-03-09 22:00:30,444 - __main__ - INFO - CPU Memory Usage: 15.79 GB
+2025-03-09 22:00:30,444 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:00:30,444 - __main__ - INFO - Starting client training for global round 7
+2025-03-09 22:00:50,495 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:00:50,495 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:00:50,495 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:00:50,503 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:00:50,503 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:00:50,503 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:00:50,504 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 22:00:50,504 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 22:00:50,504 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 22:00:51,312 - __main__ - INFO - Global model - Test Accuracy: 0.5143
+2025-03-09 22:01:12,505 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:01:12,506 - __main__ - INFO - Average client - Test Accuracy: 0.3641
+2025-03-09 22:01:12,506 - __main__ - INFO - Round 8 - Avg Train Loss: 0.2729, Avg Train Acc: 0.9202, Avg Test Acc: 0.3641
+2025-03-09 22:01:12,506 - __main__ - INFO - Round 9/20
+2025-03-09 22:01:12,506 - __main__ - INFO - CPU Memory Usage: 16.54 GB
+2025-03-09 22:01:12,506 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:01:12,506 - __main__ - INFO - Starting client training for global round 8
+2025-03-09 22:01:32,285 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:01:32,285 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:01:32,286 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:01:32,369 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:01:32,370 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:01:32,370 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:01:32,372 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 22:01:32,372 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 22:01:32,372 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 22:01:33,200 - __main__ - INFO - Global model - Test Accuracy: 0.5157
+2025-03-09 22:01:54,334 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:01:54,334 - __main__ - INFO - Average client - Test Accuracy: 0.3617
+2025-03-09 22:01:54,334 - __main__ - INFO - Round 9 - Avg Train Loss: 0.2578, Avg Train Acc: 0.9245, Avg Test Acc: 0.3617
+2025-03-09 22:01:54,334 - __main__ - INFO - Round 10/20
+2025-03-09 22:01:54,335 - __main__ - INFO - CPU Memory Usage: 15.79 GB
+2025-03-09 22:01:54,335 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:01:54,335 - __main__ - INFO - Starting client training for global round 9
+2025-03-09 22:02:14,351 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:02:14,352 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:02:14,352 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:02:15,189 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:02:15,190 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:02:15,190 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:02:15,191 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 22:02:15,191 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 22:02:15,191 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 22:02:16,028 - __main__ - INFO - Global model - Test Accuracy: 0.5178
+2025-03-09 22:02:38,405 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:02:38,405 - __main__ - INFO - Average client - Test Accuracy: 0.3656
+2025-03-09 22:02:38,405 - __main__ - INFO - Round 10 - Avg Train Loss: 0.2486, Avg Train Acc: 0.9263, Avg Test Acc: 0.3656
+2025-03-09 22:02:38,405 - __main__ - INFO - Round 11/20
+2025-03-09 22:02:38,405 - __main__ - INFO - CPU Memory Usage: 16.54 GB
+2025-03-09 22:02:38,406 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:02:38,406 - __main__ - INFO - Starting client training for global round 10
+2025-03-09 22:02:58,703 - __main__ - ERROR - Error training client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:02:58,704 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    train_result = ray.get(client.train_client.remote())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:02:58,704 - __main__ - INFO - Collecting client parameters for aggregation
+2025-03-09 22:02:58,711 - __main__ - ERROR - Error in parameter aggregation: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:02:58,712 - __main__ - ERROR - Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 466, in run_federated_learning
+    client_params = [ray.get(client.get_params.remote()) for client in clients]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 2745, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/worker.py", line 903, in get_objects
+    raise value
+ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+
+2025-03-09 22:02:58,712 - root - INFO - Using mini-batch testing for OGBN-Products dataset
+2025-03-09 22:02:58,712 - root - INFO - Using a subset of test nodes: 10000 out of 737653
+2025-03-09 22:02:58,712 - root - INFO - Using 1 neighbor sampling step for 2-layer model during testing
+2025-03-09 22:02:58,712 - root - INFO - Testing with batch size: 1024, Neighbor sampling: [10]
+2025-03-09 22:02:59,620 - __main__ - INFO - Global model - Test Accuracy: 0.5151
+2025-03-09 22:03:21,419 - __main__ - ERROR - Error testing client: Task was killed due to the node running low on memory.
+Memory on the node (IP: 172.29.98.248, ID: 183eaeec36df5d6d93bf8aabb0a095759da37588d2e297d324bdf303) where the task (actor ID: 73349aaf06855fc33ab5999701000000, name=EnhancedFLClient.__init__, pid=1964532, memory used=9.92GB) was running was 60.50GB / 62.79GB (0.963528), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: 1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 172.29.98.248`. To see the logs of the worker, use `ray logs worker-1afbf0a2fbb95f0529c57533211ae7923ff4fde30dbd11780422e805*out -ip 172.29.98.248. Top 10 memory users:
+PID	MEM(GB)	COMMAND
+1964028	12.75	python src/run_enhanced.py --dataset ogbn-products --data_loading zero_hop --num_clients 3 --memory_...
+1964530	10.45	ray::EnhancedFLClient
+1964534	10.37	ray::EnhancedFLClient
+1964532	9.92	ray::EnhancedFLClient
+1344594	0.82	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1343079	0.34	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+1964208	0.12	/home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=...
+1964290	0.06	/home/brian_bosho/miniconda3/bin/python /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ra...
+1964501	0.06	/home/brian_bosho/miniconda3/bin/python -u /home/brian_bosho/miniconda3/lib/python3.12/site-packages...
+1330803	0.04	/home/brian_bosho/.cursor-server/cli/servers/Stable-3395357a4ee2975d5d03595e7607ee84e3db0f20/server/...
+Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+2025-03-09 22:03:21,419 - __main__ - INFO - Average client - Test Accuracy: 0.3634
+2025-03-09 22:03:21,419 - __main__ - INFO - Round 11 - Avg Train Loss: 0.2392, Avg Train Acc: 0.9296, Avg Test Acc: 0.3634
+2025-03-09 22:03:21,419 - __main__ - INFO - Round 12/20
+2025-03-09 22:03:21,420 - __main__ - INFO - CPU Memory Usage: 17.29 GB
+2025-03-09 22:03:21,420 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 22:03:21,420 - __main__ - INFO - Starting client training for global round 11

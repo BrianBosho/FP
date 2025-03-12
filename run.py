@@ -1,7 +1,7 @@
 import torch
 import ray
 from client import FLClient
-from models import GCN, GAT
+from models import GCN, GAT, GCN_arxiv
 from server import Server
 import pandas as pd
 from utils import load_config
@@ -12,8 +12,16 @@ from dataprocessing.loaders import (
     load_and_split_with_feature_prop    
 )
 import numpy as np
-
-import numpy as np
+from run_utils import (
+    setup_logging, 
+    log_training_results, 
+    log_evaluation_results, 
+    save_results_to_csv,
+    compare_model_parameters,
+    prepare_results_data,
+    compute_experiment_statistics,
+    generate_experiment_output
+)
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"DEVICE: {DEVICE}")
@@ -22,10 +30,15 @@ def load_configuration(config_path="conf/base.yaml"):
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 
-def instantiate_model(model_type, num_features, num_classes, device):
+def instantiate_model(model_type,  num_features, num_classes, device, dataset_name="Cora"):
     DEVICE = device
     if model_type == "GCN":
-        return GCN(num_features, 16, num_classes).to(DEVICE)
+        if dataset_name == "ogbn-arxiv": # 
+            model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
+            print(f"Model is {model}")
+            return model.to(DEVICE)
+        else:
+            return GCN(num_features, 16, num_classes).to(DEVICE)
     elif model_type == "GAT":
         return GAT(num_features, 16, num_classes).to(DEVICE)
     else:
@@ -34,21 +47,6 @@ def instantiate_model(model_type, num_features, num_classes, device):
 def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
     DEVICE = device
     return [FLClient.remote(data.to(DEVICE), dataset, i, cfg, device, model_type) for i, data in enumerate(clients_data)]
-
-def log_training_results(train_results):
-    print("Training done")
-    for i, results in enumerate(train_results):
-        print(f"Round {i+1}")
-        for loss, acc in results:
-            print(f"Train Loss: {loss:.3f}, Train Accuracy: {acc:.3f}")
-
-def log_evaluation_results(eval_results):
-    for loss, acc in eval_results:
-        print(f"Validation Loss: {loss:.3f}, Validation Accuracy: {acc:.3f}")
-
-def save_results_to_csv(results, filename="results.csv"):
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(filename)
 
 def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False):
     """
@@ -61,18 +59,41 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         imputation_method: zero, propagation, full
         fulltraining_flag: if True, use full training
     """
+
+    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full"]
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta)
-    elif data_loading_option == "khop_zero":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="zero", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_propagation":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="propagation", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_full":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="full", fulltraining_flag=fulltraining_flag)
-    elif data_loading_option == "khop_monte_carlo":
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="monte_carlo", fulltraining_flag=fulltraining_flag)
+
+    elif data_loading_option in kh_options:
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
+ 
+     
+
+# def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False):
+#     """
+#     Args:
+#         dat_loading_option: full_dataset, split_dataset, split_dataset_with_khop, split_dataset_with_feature_prop
+#         num_clients: number of clients
+#         beta: beta for dirichlet distribution
+#         dataset_name: name of the dataset
+#         hop: number of hops for k-hop subgraph
+#         imputation_method: zero, propagation, full
+#         fulltraining_flag: if True, use full training
+#     """
+#     if data_loading_option == "full_dataset":
+#         return load_dataset(dataset_name)
+#     elif data_loading_option == "zero_hop":
+#         return load_and_split(dataset_name, device, num_clients, beta)
+#     elif data_loading_option == "khop_zero":
+#         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="zero", fulltraining_flag=fulltraining_flag)
+#     elif data_loading_option == "khop_propagation":
+#         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="propagation", fulltraining_flag=fulltraining_flag)
+#     elif data_loading_option == "khop_full":
+#         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="full", fulltraining_flag=fulltraining_flag)
+#     elif data_loading_option == "khop_monte_carlo":
+#         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method="monte_carlo", fulltraining_flag=fulltraining_flag)
 
         
 
@@ -103,9 +124,11 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     print(len(clients_data))
     
     rounds = cfg['num_rounds']
-    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE)
+    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE, dataset_name)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
+
+    
     
     train_results = [server.train_clients(i) for i in range(rounds)]
     log_training_results(train_results)
@@ -115,9 +138,21 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     
     training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
     save_results_to_csv(training_results)
+
+    # After training and before testing
     
-    test_results = server.test_global_model(dataset)
-    client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+    # Call the comparison function after training
+    are_params_identical = compare_model_parameters(server.model, server.clients)
+    print(f"\nAll model parameters are identical: {are_params_identical}")
+
+    if dataset_name == "ogbn-arxiv":
+        test_results = server.test_global_model(clients_data[0])
+        client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+    else:
+        test_results = server.test_global_model(dataset)
+        client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+    
+
     
     average_results = sum(client_test_results) / len(client_test_results)
     print(f"The average client test results: {average_results}")
@@ -154,7 +189,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     try:
         ray.init(num_gpus=1, ignore_reinit_error=True)
         
-        for i in range(5):  # Change 1 to the desired number of repetitions
+        for i in range(2):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)
@@ -217,3 +252,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     return results_data, output
     
     
+def verify_test_masks(data):
+    print("Test Mask Details:")
+    print(f"Total nodes: {data.num_nodes}")
+    print(f"Test mask sum: {data.test_mask.sum()}")
+    print(f"Test mask indices: {torch.where(data.test_mask)[0]}")
