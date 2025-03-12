@@ -5,6 +5,8 @@ from models import GCN, GAT, GCN_arxiv
 from server import Server
 import pandas as pd
 from utils import load_config
+
+
 from dataprocessing.loaders import (
     load_dataset,
     load_and_split,

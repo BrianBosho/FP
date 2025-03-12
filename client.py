@@ -1,7 +1,13 @@
 import ray
-from train import train, evaluate, test
+from train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
 from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv
 import torch
+import sys
+
+# Configure batch sizes based on dataset size
+LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
+DEFAULT_BATCH_SIZE = 1024  # Default mini-batch size
+DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  # Default number of neighbors to sample at each layer
 
 gpu_nums = 1/10
 
@@ -12,10 +18,22 @@ class FLClient:
         self.DEVICE = device
         self.device = self.DEVICE
         self.data = data.to(self.device)
-        dataset = dataset
+        self.dataset = dataset
+        self.dataset_name = dataset.name if hasattr(dataset, 'name') else "unknown"
+        
+        # Determine if this is a large dataset that requires mini-batching
+        self.use_minibatch = False
+        if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
+            self.use_minibatch = True
+            print(f"Client {client_id}: Using mini-batch training for large dataset with {data.x.shape[0]} nodes")
+        
+        # For ogbn-arxiv, always use mini-batching
+        if self.dataset_name == "ogbn-arxiv":
+            self.use_minibatch = True
+            print(f"Client {client_id}: Using mini-batch training for ogbn-arxiv dataset")
 
         if model_type == "GCN":
-            if dataset.name == "ogbn-arxiv":
+            if self.dataset_name == "ogbn-arxiv":
                 self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
             else:
                 self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
@@ -23,9 +41,10 @@ class FLClient:
             self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
 
         self.epochs = cfg["epochs"]
-        # self.optimizer = torch.optim.Adam(
-        #     self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
-        #         )
+        
+        # Setup batch configuration from config if available
+        self.batch_size = cfg.get("batch_size", DEFAULT_BATCH_SIZE)
+        self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
 
         self.optimizer = torch.optim.SGD(
             self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
@@ -40,32 +59,63 @@ class FLClient:
         self.client_id = client_id
 
     def train_client(self):
-        loss, acc, loss_list, acc_list = train(self.model, self.data, self.epochs, self.optimizer, self.criterion, self.writer)
+        # Clear CUDA cache before training to free up memory
+        torch.cuda.empty_cache()
         
-        for loss_item in loss_list:
-            self.training_losses.append(loss_item)
+        try:
+            if self.use_minibatch:
+                loss, acc, loss_list, acc_list = train_with_minibatch(
+                    self.model, 
+                    self.data, 
+                    self.epochs, 
+                    self.optimizer, 
+                    self.criterion, 
+                    self.writer, 
+                    batch_size=self.batch_size,
+                    num_neighbors=self.num_neighbors
+                )
+            else:
+                loss, acc, loss_list, acc_list = train(
+                    self.model, 
+                    self.data, 
+                    self.epochs, 
+                    self.optimizer, 
+                    self.criterion, 
+                    self.writer
+                )
+            
+            for loss_item in loss_list:
+                self.training_losses.append(loss_item)
 
-        for acc_item in acc_list:
-            self.training_accuracies.append(acc_item)
-        
-        return loss, acc
+            for acc_item in acc_list:
+                self.training_accuracies.append(acc_item)
+            
+            return loss, acc
+        except Exception as e:
+            import traceback
+            print(f"Error in client {self.client_id} training: {str(e)}")
+            print(traceback.format_exc())
+            # Attempt to free memory and return default values
+            torch.cuda.empty_cache()
+            return 0.0, 0.0
 
     def evaluate(self, criterion):
         self.model.to(self.device)
         self.data = self.data.to(self.device)
-        return evaluate(self.model, self.data, criterion)
-
-    # In client.py
-    # def test(self, data=None):
-    #     self.model.to(self.device)
-    #     if data is None:
-    #         data = self.data
-    #     else:
-    #         data = data.to(self.device)
-    #     test_result = test(self.model, data)
-    #     # Convert parameters to a list of numpy arrays
-    #     params = [p.detach().cpu().numpy() for p in self.model.parameters()]
-    #     return test_result, params
+        
+        # Clear CUDA cache before evaluation
+        torch.cuda.empty_cache()
+        
+        if self.use_minibatch:
+            return evaluate_with_minibatch(
+                self.model, 
+                self.data, 
+                criterion,
+                batch_size=self.batch_size,
+                num_neighbors=self.num_neighbors
+            )
+        else:
+            return evaluate(self.model, self.data, criterion)
 
     def test(self, data=None):
         self.model.to(self.device)
@@ -73,7 +123,19 @@ class FLClient:
             data = self.data
         else:
             data = data.to(self.device)
-        return test(self.model, data)
+        
+        # Clear CUDA cache before testing
+        torch.cuda.empty_cache()
+        
+        if self.use_minibatch:
+            return test_with_minibatch(
+                self.model, 
+                data,
+                batch_size=self.batch_size,
+                num_neighbors=self.num_neighbors
+            )
+        else:
+            return test(self.model, data)
 
     def get_params(self) -> tuple:
         self.optimizer.zero_grad(set_to_none=True)

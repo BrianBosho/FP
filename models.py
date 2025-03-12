@@ -40,20 +40,20 @@ class GCN_arxiv(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5):
         super(GCN_arxiv, self).__init__()
         self.conv1 = GCNConv(input_dim, hidden_dim)
-        self.bn1 = BatchNorm(hidden_dim)
+        self.gn1 = torch.nn.GroupNorm(8, hidden_dim)
         self.conv2 = GCNConv(hidden_dim, hidden_dim)
-        self.bn2 = BatchNorm(hidden_dim)
+        self.gn2 = torch.nn.GroupNorm(8, hidden_dim)
         self.conv3 = GCNConv(hidden_dim, output_dim)
         self.dropout = dropout
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
-        x = self.bn1(x)
+        x = self.gn1(x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         
         x = self.conv2(x, edge_index)
-        x = self.bn2(x)
+        x = self.gn2(x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         

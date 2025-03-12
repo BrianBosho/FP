@@ -215,12 +215,9 @@ def run_all_experiments(args, logger):
     data_loading_options = [
         "zero_hop",
         "zero",
-        "propagation",
         "full",
         "adjacency",
-        "diffusion",
-        "random_walk",        
-        "efficient",
+      
         # "khop_monte_carlo"
     ]
     model_types = ["GCN"]
@@ -274,7 +271,9 @@ def run_all_experiments(args, logger):
                         "status": "failed",
                         "error": str(e)
                     })
-    
+                
+                # Clear CUDA cache after each iteration
+                torch.cuda.empty_cache()
     # Write summary of all experiments
     summary_path = os.path.join(main_output_dir, "summary.txt")
     with open(summary_path, "w") as f:
