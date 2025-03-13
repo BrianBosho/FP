@@ -298,7 +298,7 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)

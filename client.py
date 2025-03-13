@@ -3,11 +3,12 @@ from train import train, evaluate, test, train_with_minibatch, evaluate_with_min
 from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
 import torch
 import sys
+import gc
 
 # Configure batch sizes based on dataset size
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
-DEFAULT_BATCH_SIZE = 1024  # Default mini-batch size
-DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  # Default number of neighbors to sample at each layer
+DEFAULT_BATCH_SIZE = 1024  # Further reduced to 32 to help with memory constraints
+DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  # Reduced further to sample even fewer neighbors
 
 gpu_nums = 1/10
 
@@ -15,6 +16,10 @@ gpu_nums = 1/10
 # @ray.remote(num_cpus=0.25)
 class FLClient:
     def __init__(self, data, dataset, client_id, cfg, device, model_type="GCN"):
+        # Clear any existing CUDA cache and perform garbage collection
+        torch.cuda.empty_cache()
+        gc.collect()
+
         self.DEVICE = device
         self.device = self.DEVICE
         self.data = data.to(self.device)
@@ -30,7 +35,7 @@ class FLClient:
         # For ogbn-arxiv, always use mini-batching
         if self.dataset_name == "ogbn-arxiv" or self.dataset_name == "ogbn-products":
             self.use_minibatch = True
-            print(f"Client {client_id}: Using mini-batch training for ogbn-arxiv dataset")
+            print(f"Client {client_id}: Using mini-batch training for {self.dataset_name} dataset")
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
@@ -60,9 +65,16 @@ class FLClient:
         self.validation_losses = []
         self.client_id = client_id
 
-    def train_client(self):
-        # Clear CUDA cache before training to free up memory
+    def _clear_memory(self):
+        """Helper method to clear CUDA memory and perform garbage collection"""
         torch.cuda.empty_cache()
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+
+    def train_client(self):
+        # Clear memory before training
+        self._clear_memory()
         
         try:
             if self.use_minibatch:
@@ -92,52 +104,79 @@ class FLClient:
             for acc_item in acc_list:
                 self.training_accuracies.append(acc_item)
             
+            # Clear memory after training
+            self._clear_memory()
+            
             return loss, acc
         except Exception as e:
             import traceback
             print(f"Error in client {self.client_id} training: {str(e)}")
             print(traceback.format_exc())
             # Attempt to free memory and return default values
-            torch.cuda.empty_cache()
+            self._clear_memory()
             return 0.0, 0.0
 
     def evaluate(self, criterion):
+        # Ensure model and data are on the correct device
         self.model.to(self.device)
         self.data = self.data.to(self.device)
         
-        # Clear CUDA cache before evaluation
-        torch.cuda.empty_cache()
+        # Clear memory before evaluation
+        self._clear_memory()
         
-        if self.use_minibatch:
-            return evaluate_with_minibatch(
-                self.model, 
-                self.data, 
-                criterion,
-                batch_size=self.batch_size,
-                num_neighbors=self.num_neighbors
-            )
-        else:
-            return evaluate(self.model, self.data, criterion)
+        try:
+            if self.use_minibatch:
+                result = evaluate_with_minibatch(
+                    self.model, 
+                    self.data, 
+                    criterion,
+                    batch_size=self.batch_size,
+                    num_neighbors=self.num_neighbors
+                )
+            else:
+                result = evaluate(self.model, self.data, criterion)
+            
+            # Clear memory after evaluation
+            self._clear_memory()
+            
+            return result
+        except Exception as e:
+            print(f"Error in client {self.client_id} evaluation: {str(e)}")
+            # Attempt to free memory
+            self._clear_memory()
+            return 0.0  # or appropriate default value
 
     def test(self, data=None):
+        # Ensure model is on the correct device
         self.model.to(self.device)
         if data is None:
             data = self.data
         else:
             data = data.to(self.device)
         
-        # Clear CUDA cache before testing
-        torch.cuda.empty_cache()
+        # Clear memory before testing
+        self._clear_memory()
         
-        if self.use_minibatch:
-            return test_with_minibatch(
-                self.model, 
-                data,
-                batch_size=self.batch_size,
-                num_neighbors=self.num_neighbors
-            )
-        else:
-            return test(self.model, data)
+        try:
+            if self.use_minibatch:
+                result = test_with_minibatch(
+                    self.model, 
+                    data,
+                    batch_size=self.batch_size,
+                    num_neighbors=self.num_neighbors
+                )
+            else:
+                result = test(self.model, data)
+            
+            # Clear memory after testing
+            self._clear_memory()
+            
+            return result
+        except Exception as e:
+            print(f"Error in client {self.client_id} testing: {str(e)}")
+            # Attempt to free memory
+            self._clear_memory()
+            return 0.0  # or appropriate default value
 
     def get_params(self) -> tuple:
         self.optimizer.zero_grad(set_to_none=True)

@@ -61,7 +61,7 @@ def parse_args():
     parser.add_argument(
         "--model", 
         type=str, 
-        choices=["GCN", "GAT", "GCN_arxiv"],
+        choices=["GCN", "GAT", "GCN_arxiv", "GraphSAGEProducts"],
         default="GCN",
         help="Model type (default: GCN)"
     )
@@ -211,7 +211,7 @@ def run_single_experiment(
 def run_all_experiments(args, logger):
     """Run experiments for all combinations of parameters"""
     # Define lists of options
-    datasets = ["ogbn-arxiv"]  # Add more datasets if available
+    datasets = ["ogbn-products"]  # Add more datasets if available
     data_loading_options = [
         "zero_hop",
         "zero",

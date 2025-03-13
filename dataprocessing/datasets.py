@@ -33,7 +33,7 @@ class GraphDataset:
     SUPPORTED_DATASETS = {
         "planetoid": ["Cora", "Citeseer", "Pubmed"],
         "facebook": ["FacebookPagePage"],
-        "ogb": ["ogbn-arxiv"]
+        "ogb": ["ogbn-arxiv", "ogbn-products"]
     }
 
     def __init__(self, device = "cuda"):

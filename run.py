@@ -153,10 +153,12 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
 
     if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
         test_results = server.test_global_model(clients_data[0])
-        client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
     else:
         test_results = server.test_global_model(dataset)
-        client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
     
 
     
@@ -172,6 +174,13 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
+    
+    # Adjust clients_num based on dataset to avoid OOM
+    adjusted_clients = clients_num
+    if dataset_name == "ogbn-products":
+        # For very large datasets, reduce the number of clients to prevent OOM
+        adjusted_clients = min(5, clients_num)
+        print(f"Adjusting number of clients from {clients_num} to {adjusted_clients} for {dataset_name} dataset to prevent memory issues")
     
     # Create a dictionary to store all results
     results_data = {
@@ -193,7 +202,17 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
     # Initialize Ray once at the beginning
     try:
-        ray.init(num_gpus=1, ignore_reinit_error=True)
+        # Add memory-related configuration to Ray
+        ray.init(
+            num_gpus=1, 
+            ignore_reinit_error=True,
+            # _memory_monitor_refresh_ms=1000,  # More frequent memory monitoring
+            object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
+            _system_config={
+                "object_spilling_threshold": 0.8,  # Spill objects when 80% full
+                "max_io_workers": 4,  # Limit IO workers for spillage
+            }
+        )
         
         for i in range(2):  # Change 1 to the desired number of repetitions
             try:
