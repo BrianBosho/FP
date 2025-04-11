@@ -1,6 +1,6 @@
 num_clients: 10
-num_rounds: 2
-epochs: 3
+num_rounds: 1
+epochs: 1
 beta: 1
 lr: 0.5
 fulltraining_flag: False

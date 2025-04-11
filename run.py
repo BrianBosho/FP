@@ -6,6 +6,8 @@ from server import Server
 import pandas as pd
 from utils import load_config
 
+# Import from core module
+from core import load_configuration, get_device
 
 from dataprocessing.loaders import (
     load_dataset,
@@ -25,28 +27,26 @@ from run_utils import (
     generate_experiment_output
 )
 
-# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print(f"DEVICE: {DEVICE}")
+# We can comment this out since it's now imported from core.py
+# def load_configuration(config_path="conf/base.yaml"):
+#     cfg = load_config(config_path)
+#     return cfg["num_clients"], cfg["beta"], cfg
 
-def load_configuration(config_path="conf/base.yaml"):
-    cfg = load_config(config_path)
-    return cfg["num_clients"], cfg["beta"], cfg
-
-def instantiate_model(model_type,  num_features, num_classes, device, dataset_name="Cora"):
-    DEVICE = device
+def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora"):
+    # Use device directly instead of creating DEVICE variable
     if model_type == "GCN":
         if dataset_name == "ogbn-arxiv": # 
             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
             print(f"Model is {model}")
-            return model.to(DEVICE)
+            return model.to(device)
         elif dataset_name == "ogbn-products":
             model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
             print(f"Model is {model}")
-            return model.to(DEVICE)
+            return model.to(device)
         else:
-            return GCN(num_features, 16, num_classes).to(DEVICE)
+            return GCN(num_features, 16, num_classes).to(device)
     elif model_type == "GAT":
-        return GAT(num_features, 16, num_classes).to(DEVICE)
+        return GAT(num_features, 16, num_classes).to(device)
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -186,7 +186,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(1):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)

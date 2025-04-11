@@ -1,5 +1,6 @@
 import argparse
 import os
+import ray
 from run import load_configuration, main_experiment
 
 def run_experiments(data_options, model_types, dataset_name, clients, beta_value, hop_value):
@@ -45,6 +46,10 @@ def run_experiments(data_options, model_types, dataset_name, clients, beta_value
             print(f"Results saved to {filepath}\n")
 
 if __name__ == "__main__":
+    # Make sure Ray is shut down before starting
+    if ray.is_initialized():
+        ray.shutdown()
+        
     parser = argparse.ArgumentParser(description='Run federated learning experiments')
     parser.add_argument('--data_options', nargs='+', default=['adjacency'], 
                         help='List of data loading options')
