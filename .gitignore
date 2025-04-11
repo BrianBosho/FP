@@ -11,34 +11,60 @@ notebooks/Cora/
 notebooks/processed/
 notebooks/raw/
 
-# Results folders
+# Results directories
 results/
-centralized_results/
-*.csv
-results.txt
+**/results/
+Central_results*/
+New_results/
+old_results/
+results_*/
+result_processing/
+results_archived/
+results_1_client/
+extracted_results.xlsx
 
-# Python cache files
+# Logs
+logs/
+*.log
+training_logs/
+nohup*.out
+old_nohup.out
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
 
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
-
-# Virtual environment
-venv/
-env/
-.env/
-
-# IDE settings
+# VS Code
 .vscode/
-.idea/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
 
 # OS generated files
 .DS_Store
