@@ -1,6 +1,0 @@
-Experiment results for Citeseer with propagation
-Model: auto
-Clients: 10, Beta: 0.1
-==================================================
-Average global accuracy: 0.1920 ± 0.1626
-Average client accuracy: 0.3588 ± 0.2035

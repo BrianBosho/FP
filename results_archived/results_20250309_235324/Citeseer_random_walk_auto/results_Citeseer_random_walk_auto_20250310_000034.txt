@@ -1,6 +1,0 @@
-Experiment results for Citeseer with random_walk
-Model: auto
-Clients: 10, Beta: 0.1
-==================================================
-Average global accuracy: 0.1385 ± 0.1416
-Average client accuracy: 0.3449 ± 0.1985

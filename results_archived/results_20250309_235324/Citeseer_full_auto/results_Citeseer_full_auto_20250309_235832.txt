@@ -1,6 +1,0 @@
-Experiment results for Citeseer with full
-Model: auto
-Clients: 10, Beta: 0.1
-==================================================
-Average global accuracy: 0.2204 ± 0.1910
-Average client accuracy: 0.3660 ± 0.2061

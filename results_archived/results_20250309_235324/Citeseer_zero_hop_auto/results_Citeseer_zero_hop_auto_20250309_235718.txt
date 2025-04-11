@@ -1,6 +1,0 @@
-Experiment results for Citeseer with zero_hop
-Model: auto
-Clients: 10, Beta: 0.1
-==================================================
-Average global accuracy: 0.2327 ± 0.1872
-Average client accuracy: 0.3266 ± 0.1960

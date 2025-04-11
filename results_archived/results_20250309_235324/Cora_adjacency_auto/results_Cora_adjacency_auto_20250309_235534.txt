@@ -1,6 +1,0 @@
-Experiment results for Cora with adjacency
-Model: auto
-Clients: 10, Beta: 0.1
-==================================================
-Average global accuracy: 0.1805 ± 0.1850
-Average client accuracy: 0.4074 ± 0.1143

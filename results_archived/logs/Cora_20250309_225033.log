@@ -1,8 +1,0 @@
-2025-03-09 22:50:33,271 - __main__ - INFO - Starting enhanced federated learning with Cora dataset
-2025-03-09 22:50:33,272 - __main__ - INFO - Random seed set to 42
-2025-03-09 22:50:33,272 - __main__ - INFO - Using memory-efficient models
-2025-03-09 22:50:35,144 - __main__ - INFO - Ray initialized successfully
-2025-03-09 22:50:35,145 - __main__ - INFO - Using CPU
-2025-03-09 22:50:35,289 - __main__ - INFO - CPU Memory Usage: 0.66 GB
-2025-03-09 22:50:35,336 - __main__ - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
-2025-03-09 22:50:35,336 - __main__ - INFO - Loading dataset: Cora

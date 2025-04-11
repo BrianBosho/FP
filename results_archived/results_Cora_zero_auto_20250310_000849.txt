@@ -1,6 +1,0 @@
-Experiment results for Cora with zero
-Model: auto
-Clients: 10, Beta: 0.5
-==================================================
-Average global accuracy: 0.2353 ± 0.0878
-Average client accuracy: 0.4875 ± 0.0531
