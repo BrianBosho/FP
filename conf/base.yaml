@@ -5,10 +5,11 @@ beta: 1000
 lr: 0.5
 fulltraining_flag: True
 paths:
-  datasets_dir: "datasets"
+  datasets_dir: "data"
   planetoid:
-    cora: "datasets/cora"
-    citeseer: "datasets/citeseer"
-    pubmed: "datasets/pubmed"
+    cora: "data/cora"
+    citeseer: "data/citeseer"
+    pubmed: "data/pubmed"
   ogbn:
-    arxiv: "datasets/ogbn_arxiv"
+    arxiv: "data/ogbn_arxiv"
+    products: "data/ogbn_products"

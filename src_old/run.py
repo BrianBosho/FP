@@ -1,12 +1,11 @@
 import torch
 import ray
-from src.client import FLClient
+from src.federated.client import FLClient
 # from models import GCN, GAT
-from src.models import GCN, GAT
-from src.server import Server
+from src.core.models import GCN, GAT
+from src.federated.server import Server
 import pandas as pd
-from src.utils import load_config
-from pathlib import Path
+from src.core.utils import load_config
 
 # Import from core module
 from src.core import load_configuration, get_device, instantiate_model
@@ -18,7 +17,7 @@ from src.dataprocessing.loaders import (
     load_and_split_with_feature_prop    
 )
 import numpy as np
-from src.run_utils import (
+from src.experiments.run_utils import (
     setup_logging, 
     log_training_results, 
     log_evaluation_results, 
@@ -34,43 +33,13 @@ from src.run_utils import (
 #     cfg = load_config(config_path)
 #     return cfg["num_clients"], cfg["beta"], cfg
 
-# In src/core/__init__.py around line 4-16
-# def load_configuration(config_path=None):
-#     """
-#     Load configuration from a YAML file.
+def load_configuration(config_path="conf/base.yaml"):
+    """Load configuration from YAML file
     
-#     Args:
-#         config_path: Path to the configuration file, 
-#                      if None, will look in the project root
-        
-#     Returns:
-#         Tuple of (num_clients, beta, cfg) from the configuration
-#     """
-#     if config_path is None:
-#         # Get the project root (parent of src)
-#         project_root = Path(__file__).parent.parent.parent
-#         config_path = project_root / "conf" / "base.yaml"
-    
-#     cfg = load_config(str(config_path))
-#     return cfg["num_clients"], cfg["beta"], cfg
-
-def load_configuration(config_path=None):
+    The default path is relative to the project root.
+    If called from scripts directory, use "../conf/base.yaml"
     """
-    Load configuration from a YAML file.
-    
-    Args:
-        config_path: Path to the configuration file, 
-                     if None, will look in the project root
-        
-    Returns:
-        Tuple of (num_clients, beta, cfg) from the configuration
-    """
-    if config_path is None:
-        # Get the project root (parent of src)
-        project_root = Path(__file__).parent.parent
-        config_path = project_root / "conf" / "base.yaml"
-    
-    cfg = load_config(str(config_path))
+    cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 
 def instantiate_model(model_type, num_features, num_classes, device, dataset_name):
@@ -224,7 +193,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(1):  # Change 1 to the desired number of repetitions
+        for i in range(3):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)

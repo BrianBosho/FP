@@ -13,7 +13,7 @@ from pathlib import Path
 
 def load_config():
     # Get the project root directory (parent of conf/)
-    project_root = Path(__file__).parent.parent.parent
+    project_root = Path(__file__).parent.parent
     config_path = project_root / "conf" / "base.yaml"
     
     with open(config_path, 'r') as f:
@@ -28,7 +28,7 @@ def load_config():
     
     # Add path for ogbn-products if not present in config
     if 'products' not in config['paths']['ogbn']:
-        config['paths']['ogbn']['products'] = str(project_root / "data/ogbn_products")
+        config['paths']['ogbn']['products'] = str(project_root / "datasets/ogbn_products")
     
     return config
 

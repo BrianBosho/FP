@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Correct imports
-from src.run_utils import (
+from src.experiments.run_utils import (
     setup_logging, 
     log_training_results, 
     log_evaluation_results, 
