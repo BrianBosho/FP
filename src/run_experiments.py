@@ -61,16 +61,22 @@ def parse_args():
     parser.add_argument(
         "--model", 
         type=str, 
-        choices=["GCN", "GAT"],
+        choices=["GCN", "GAT", "GCN_arxiv", "GraphSAGEProducts"],
         default="GCN",
         help="Model type (default: GCN)"
     )
     parser.add_argument(
         "--data_loading", 
         type=str,
+<<<<<<< HEAD:src/run_experiments.py
         choices=["full_dataset", "zero_hop", "page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "full"],
         default="zero_hop",
         help="Data loading method (default: zero_hop)"
+=======
+        choices=["zero", "propagation", "full", "adjacency", "diffusion", "random_walk", "efficient", "zero_hop"],
+        default= "zero_hop",
+        help="Data loading method (default: full)"
+>>>>>>> working:run_experiments.py
     )
     parser.add_argument(
         "--num_clients", 
@@ -81,7 +87,7 @@ def parse_args():
     parser.add_argument(
         "--hop", 
         type=int, 
-        default=1,
+        default=2,
         help="Number of hops for k-hop methods (default: 1)"
     )
     parser.add_argument(
@@ -211,9 +217,20 @@ def run_single_experiment(
 def run_all_experiments(args, logger):
     """Run experiments for all combinations of parameters"""
     # Define lists of options
+<<<<<<< HEAD:src/run_experiments.py
     datasets = ["Cora", "Citeseer"]  # Add more datasets if available
     data_loading_options = [
          "zero_hop",  "diffusion",  
+=======
+    datasets = ["ogbn-products"]  # Add more datasets if available
+    data_loading_options = [
+        "zero_hop",
+        "zero",
+        "full",
+        "adjacency",
+      
+        # "khop_monte_carlo"
+>>>>>>> working:run_experiments.py
     ]
     model_types = ["GCN"]
     
@@ -266,7 +283,9 @@ def run_all_experiments(args, logger):
                         "status": "failed",
                         "error": str(e)
                     })
-    
+                
+                # Clear CUDA cache after each iteration
+                torch.cuda.empty_cache()
     # Write summary of all experiments
     summary_path = os.path.join(main_output_dir, "summary.txt")
     with open(summary_path, "w") as f:
@@ -322,7 +341,11 @@ def main():
             hop=args.hop,
             output_dir=args.output_dir,
             logger=logger,
+<<<<<<< HEAD:src/run_experiments.py
             fulltraining_flag=fulltraining
+=======
+            fulltraining_flag=False
+>>>>>>> working:run_experiments.py
         )
     else:
         # Run all experiments

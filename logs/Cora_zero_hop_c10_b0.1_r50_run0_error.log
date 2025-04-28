@@ -1,0 +1,37 @@
+Command: python src/run_enhanced.py --dataset Cora --data_loading zero_hop --num_clients 10 --beta 0.1 --rounds 50 --batch_size 256 --results_dir results/experiments_20250309_234045 --config results/experiments_20250309_234045/configs/cora_config.yaml --memory_efficient
+
+Exit code: 1
+
+Stdout:
+
+
+Stderr:
+2025-03-09 23:40:49,143 - INFO - Starting enhanced federated learning with Cora dataset
+2025-03-09 23:40:49,144 - INFO - Random seed set to 42
+2025-03-09 23:40:49,144 - INFO - Using memory-efficient models
+2025-03-09 23:40:50,378	INFO worker.py:1816 -- Started a local Ray instance.
+2025-03-09 23:40:51,033 - INFO - Ray initialized successfully
+2025-03-09 23:40:51,033 - INFO - Using CPU
+2025-03-09 23:40:51,177 - INFO - CPU Memory Usage: 0.67 GB
+2025-03-09 23:40:51,223 - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:40:51,223 - INFO - Loading dataset: Cora
+2025-03-09 23:40:51,248 - INFO - Dataset: Cora
+2025-03-09 23:40:51,248 - INFO - Number of nodes: 2708
+2025-03-09 23:40:51,248 - INFO - Number of features: 1433
+2025-03-09 23:40:51,251 - INFO - Number of classes: 7
+2025-03-09 23:40:51,251 - INFO - Number of edges: 10556
+2025-03-09 23:40:51,251 - INFO - CPU Memory Usage: 0.72 GB
+2025-03-09 23:40:51,251 - INFO - GPU 0 Memory: 0.00 GB allocated, 0.00 GB reserved
+2025-03-09 23:40:51,255 - INFO - Using standard GCN model for cora
+2025-03-09 23:40:51,286 - INFO - Global model type: EnhancedGCN
+2025-03-09 23:40:51,286 - INFO - Total model parameters: 23095
+Traceback (most recent call last):
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 862, in <module>
+    results, results_file = run_federated_learning(args)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/brian_bosho/FP/FP/src/run_enhanced.py", line 447, in run_federated_learning
+    epochs_per_round = cfg.get("epochs", cfg["local_step"])
+                       ^^^^^^^
+AttributeError: 'tuple' object has no attribute 'get'
+
+

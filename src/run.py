@@ -1,11 +1,18 @@
 import torch
 import ray
 from client import FLClient
+<<<<<<< HEAD:src/run.py
 # from models import GCN, GAT
 from gnn_models import GCN, GAT
+=======
+>>>>>>> working:run.py
 from server import Server
 import pandas as pd
 from utils import load_config
+
+# Import from core module
+from core import load_configuration, get_device, instantiate_model
+
 from dataprocessing.loaders import (
     load_dataset,
     load_and_split,
@@ -13,12 +20,23 @@ from dataprocessing.loaders import (
     load_and_split_with_feature_prop    
 )
 import numpy as np
+from run_utils import (
+    setup_logging, 
+    log_training_results, 
+    log_evaluation_results, 
+    save_results_to_csv,
+    compare_model_parameters,
+    prepare_results_data,
+    compute_experiment_statistics,
+    generate_experiment_output
+)
 
-import numpy as np
+# We can comment this out since it's now imported from core.py
+# def load_configuration(config_path="conf/base.yaml"):
+#     cfg = load_config(config_path)
+#     return cfg["num_clients"], cfg["beta"], cfg
 
-# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print(f"DEVICE: {DEVICE}")
-
+<<<<<<< HEAD:src/run.py
 def load_configuration(config_path="conf/base.yaml"):
     """Load configuration from YAML file
     
@@ -36,25 +54,30 @@ def instantiate_model(model_type, num_features, num_classes, device):
         return GAT(num_features, 16, num_classes).to(DEVICE)
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
+=======
+# We've moved instantiate_model to core.py
+# def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora"):
+#     # Use device directly instead of creating DEVICE variable
+#     if model_type == "GCN":
+#         if dataset_name == "ogbn-arxiv": # 
+#             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
+#             print(f"Model is {model}")
+#             return model.to(device)
+#         elif dataset_name == "ogbn-products":
+#             model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
+#             print(f"Model is {model}")
+#             return model.to(device)
+#         else:
+#             return GCN(num_features, 16, num_classes).to(device)
+#     elif model_type == "GAT":
+#         return GAT(num_features, 16, num_classes).to(device)
+#     else:
+#         raise ValueError(f"Unsupported model type: {model_type}")
+>>>>>>> working:run.py
 
 def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
     DEVICE = device
     return [FLClient.remote(data.to(DEVICE), dataset, i, cfg, device, model_type) for i, data in enumerate(clients_data)]
-
-def log_training_results(train_results):
-    print("Training done")
-    for i, results in enumerate(train_results):
-        print(f"Round {i+1}")
-        for loss, acc in results:
-            print(f"Train Loss: {loss:.3f}, Train Accuracy: {acc:.3f}")
-
-def log_evaluation_results(eval_results):
-    for loss, acc in eval_results:
-        print(f"Validation Loss: {loss:.3f}, Validation Accuracy: {acc:.3f}")
-
-def save_results_to_csv(results, filename="results.csv"):
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(filename)
 
 def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False):
     """
@@ -73,13 +96,19 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         return load_dataset(dataset_name)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta)
+<<<<<<< HEAD:src/run.py
 
     elif data_loading_option in kh_options:
         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
  
       
         
+=======
+>>>>>>> working:run.py
 
+    elif data_loading_option in kh_options:
+        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
+ 
 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
     """
@@ -107,9 +136,11 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     print(len(clients_data))
     
     rounds = cfg['num_rounds']
-    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE)
+    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE, dataset_name)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
+
+    
     
     train_results = [server.train_clients(i) for i in range(rounds)]
     log_training_results(train_results)
@@ -119,9 +150,23 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     
     training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
     save_results_to_csv(training_results)
+
+    # After training and before testing
     
-    test_results = server.test_global_model(dataset)
-    client_test_results = ray.get([client.test.remote(test.to(DEVICE)) for client, test in zip(server.clients, test_data)])
+    # Call the comparison function after training
+    are_params_identical = compare_model_parameters(server.model, server.clients)
+    print(f"\nAll model parameters are identical: {are_params_identical}")
+
+    if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
+        test_results = server.test_global_model(clients_data[0])
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+    else:
+        test_results = server.test_global_model(dataset)
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+    
+
     
     average_results = sum(client_test_results) / len(client_test_results)
     print(f"The average client test results: {average_results}")
@@ -135,6 +180,13 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
+    
+    # Adjust clients_num based on dataset to avoid OOM
+    adjusted_clients = clients_num
+    if dataset_name == "ogbn-products":
+        # For very large datasets, reduce the number of clients to prevent OOM
+        adjusted_clients = min(5, clients_num)
+        print(f"Adjusting number of clients from {clients_num} to {adjusted_clients} for {dataset_name} dataset to prevent memory issues")
     
     # Create a dictionary to store all results
     results_data = {
@@ -156,9 +208,23 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
     # Initialize Ray once at the beginning
     try:
-        ray.init(num_gpus=1, ignore_reinit_error=True)
+        # Add memory-related configuration to Ray
+        ray.init(
+            num_gpus=1, 
+            ignore_reinit_error=True,
+            # _memory_monitor_refresh_ms=1000,  # More frequent memory monitoring
+            object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
+            _system_config={
+                "object_spilling_threshold": 0.8,  # Spill objects when 80% full
+                "max_io_workers": 4,  # Limit IO workers for spillage
+            }
+        )
         
+<<<<<<< HEAD:src/run.py
         for i in range(3):  # Change 1 to the desired number of repetitions
+=======
+        for i in range(1):  # Change 1 to the desired number of repetitions
+>>>>>>> working:run.py
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)
@@ -220,4 +286,13 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     # Return both structured data and text output
     return results_data, output
     
-    
+
+# run centralized is equal to run main_experiment with num_clients = 1, zerohop
+
+
+
+def verify_test_masks(data):
+    print("Test Mask Details:")
+    print(f"Total nodes: {data.num_nodes}")
+    print(f"Test mask sum: {data.test_mask.sum()}")
+    print(f"Test mask indices: {torch.where(data.test_mask)[0]}")

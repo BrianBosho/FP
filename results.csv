@@ -1,0 +1,3 @@
+,client_id,training_losses,training_accuracies,validation_losses,epochs_data
+0,0,[1.930187702178955],[0.19696969696969696],[],"[{'epoch': 0, 'round': 0, 'loss': 1.930187702178955, 'accuracy': 0.19696969696969696}]"
+1,1,[1.9350436925888062],[0.17567567567567569],[],"[{'epoch': 0, 'round': 0, 'loss': 1.9350436925888062, 'accuracy': 0.17567567567567569}]"
