@@ -1,5 +1,5 @@
-from dataprocessing.datasets import GraphDataset
-from dataprocessing.partitioning import partition_data
+from src.dataprocessing.datasets import GraphDataset
+from src.dataprocessing.partitioning import partition_data
 from typing import Tuple, List, Optional
 
 # Note: Datasets are now loaded from the root-level 'datasets' folder

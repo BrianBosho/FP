@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
-from models import VanillaGNN, MLP
-from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
+from src.models import VanillaGNN, MLP
+from src.gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
 

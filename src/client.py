@@ -1,8 +1,8 @@
 import ray
-from train import train, evaluate, test
-from models import VanillaGNN, MLP
+from src.train import train, evaluate, test
+from src.models import VanillaGNN, MLP
 # from models import GCN, GAT, VanillaGNN, MLP
-from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
+from src.gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
 import torch
 import sys
 import gc
