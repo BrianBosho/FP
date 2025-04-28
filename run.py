@@ -1,13 +1,12 @@
 import torch
 import ray
 from client import FLClient
-from models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
 from server import Server
 import pandas as pd
 from utils import load_config
 
 # Import from core module
-from core import load_configuration, get_device
+from core import load_configuration, get_device, instantiate_model
 
 from dataprocessing.loaders import (
     load_dataset,
@@ -32,23 +31,24 @@ from run_utils import (
 #     cfg = load_config(config_path)
 #     return cfg["num_clients"], cfg["beta"], cfg
 
-def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora"):
-    # Use device directly instead of creating DEVICE variable
-    if model_type == "GCN":
-        if dataset_name == "ogbn-arxiv": # 
-            model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
-            print(f"Model is {model}")
-            return model.to(device)
-        elif dataset_name == "ogbn-products":
-            model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
-            print(f"Model is {model}")
-            return model.to(device)
-        else:
-            return GCN(num_features, 16, num_classes).to(device)
-    elif model_type == "GAT":
-        return GAT(num_features, 16, num_classes).to(device)
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
+# We've moved instantiate_model to core.py
+# def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora"):
+#     # Use device directly instead of creating DEVICE variable
+#     if model_type == "GCN":
+#         if dataset_name == "ogbn-arxiv": # 
+#             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
+#             print(f"Model is {model}")
+#             return model.to(device)
+#         elif dataset_name == "ogbn-products":
+#             model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
+#             print(f"Model is {model}")
+#             return model.to(device)
+#         else:
+#             return GCN(num_features, 16, num_classes).to(device)
+#     elif model_type == "GAT":
+#         return GAT(num_features, 16, num_classes).to(device)
+#     else:
+#         raise ValueError(f"Unsupported model type: {model_type}")
 
 def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
     DEVICE = device

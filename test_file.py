@@ -3,7 +3,7 @@ import os
 import ray
 from run import load_configuration, main_experiment
 
-def run_experiments(data_options, model_types, dataset_name, clients, beta_value, hop_value):
+def run_gnn_experiments(data_options, model_types, dataset_name, clients, beta_value, hop_value):
     """Run a set of experiments with given parameters"""
     
     # Load configuration
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    run_experiments(
+    run_gnn_experiments(
         args.data_options,
         args.model_types,
         args.dataset,
