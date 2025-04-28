@@ -1,11 +1,8 @@
 import torch
 import ray
 from client import FLClient
-<<<<<<< HEAD:src/run.py
 # from models import GCN, GAT
 from gnn_models import GCN, GAT
-=======
->>>>>>> working:run.py
 from server import Server
 import pandas as pd
 from utils import load_config
@@ -36,7 +33,6 @@ from run_utils import (
 #     cfg = load_config(config_path)
 #     return cfg["num_clients"], cfg["beta"], cfg
 
-<<<<<<< HEAD:src/run.py
 def load_configuration(config_path="conf/base.yaml"):
     """Load configuration from YAML file
     
@@ -46,7 +42,7 @@ def load_configuration(config_path="conf/base.yaml"):
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 
-def instantiate_model(model_type, num_features, num_classes, device):
+def instantiate_model(model_type, num_features, num_classes, device, dataset_name):
     DEVICE = device
     if model_type == "GCN":
         return GCN(num_features, 16, num_classes).to(DEVICE)
@@ -54,26 +50,6 @@ def instantiate_model(model_type, num_features, num_classes, device):
         return GAT(num_features, 16, num_classes).to(DEVICE)
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
-=======
-# We've moved instantiate_model to core.py
-# def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora"):
-#     # Use device directly instead of creating DEVICE variable
-#     if model_type == "GCN":
-#         if dataset_name == "ogbn-arxiv": # 
-#             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
-#             print(f"Model is {model}")
-#             return model.to(device)
-#         elif dataset_name == "ogbn-products":
-#             model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
-#             print(f"Model is {model}")
-#             return model.to(device)
-#         else:
-#             return GCN(num_features, 16, num_classes).to(device)
-#     elif model_type == "GAT":
-#         return GAT(num_features, 16, num_classes).to(device)
-#     else:
-#         raise ValueError(f"Unsupported model type: {model_type}")
->>>>>>> working:run.py
 
 def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
     DEVICE = device
@@ -96,15 +72,12 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         return load_dataset(dataset_name)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta)
-<<<<<<< HEAD:src/run.py
 
     elif data_loading_option in kh_options:
         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
  
       
         
-=======
->>>>>>> working:run.py
 
     elif data_loading_option in kh_options:
         return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
@@ -220,11 +193,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-<<<<<<< HEAD:src/run.py
         for i in range(3):  # Change 1 to the desired number of repetitions
-=======
-        for i in range(1):  # Change 1 to the desired number of repetitions
->>>>>>> working:run.py
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)

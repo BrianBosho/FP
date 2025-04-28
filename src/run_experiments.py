@@ -68,15 +68,9 @@ def parse_args():
     parser.add_argument(
         "--data_loading", 
         type=str,
-<<<<<<< HEAD:src/run_experiments.py
         choices=["full_dataset", "zero_hop", "page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "full"],
         default="zero_hop",
         help="Data loading method (default: zero_hop)"
-=======
-        choices=["zero", "propagation", "full", "adjacency", "diffusion", "random_walk", "efficient", "zero_hop"],
-        default= "zero_hop",
-        help="Data loading method (default: full)"
->>>>>>> working:run_experiments.py
     )
     parser.add_argument(
         "--num_clients", 
@@ -217,20 +211,9 @@ def run_single_experiment(
 def run_all_experiments(args, logger):
     """Run experiments for all combinations of parameters"""
     # Define lists of options
-<<<<<<< HEAD:src/run_experiments.py
     datasets = ["Cora", "Citeseer"]  # Add more datasets if available
     data_loading_options = [
          "zero_hop",  "diffusion",  
-=======
-    datasets = ["ogbn-products"]  # Add more datasets if available
-    data_loading_options = [
-        "zero_hop",
-        "zero",
-        "full",
-        "adjacency",
-      
-        # "khop_monte_carlo"
->>>>>>> working:run_experiments.py
     ]
     model_types = ["GCN"]
     
@@ -341,11 +324,7 @@ def main():
             hop=args.hop,
             output_dir=args.output_dir,
             logger=logger,
-<<<<<<< HEAD:src/run_experiments.py
             fulltraining_flag=fulltraining
-=======
-            fulltraining_flag=False
->>>>>>> working:run_experiments.py
         )
     else:
         # Run all experiments

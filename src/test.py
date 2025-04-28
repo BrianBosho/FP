@@ -15,16 +15,48 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Correct imports
+from run_utils import (
+    setup_logging, 
+    log_training_results, 
+    log_evaluation_results, 
+    save_results_to_csv,
+    compare_model_parameters,
+    prepare_results_data,
+    compute_experiment_statistics,
+    generate_experiment_output
+)
+
+# Import from core module
+from core import load_configuration, get_device, instantiate_model
+
+# Import from run module
+from run import main_experiment
+
+# Import from dataprocessing module
+from dataprocessing.loaders import (
+    load_and_split_with_khop,
+    load_and_split_with_feature_prop
+)
+
 def test_imports():
     """Test that all necessary imports work correctly"""
     logger.info("Testing imports...")
     try:
-        from run import (
-            load_configuration, 
-            main_experiment,
+        # Import from core module
+        from core import load_configuration, get_device, instantiate_model
+        
+        # Import from run module
+        from run import main_experiment
+        
+        # Import from dataprocessing module
+        from dataprocessing.loaders import (
             load_and_split_with_khop,
             load_and_split_with_feature_prop
         )
+        
         logger.info("✓ All imports successful")
         return True, (load_configuration, main_experiment)
     except ImportError as e:
@@ -49,6 +81,33 @@ def test_configuration(load_configuration):
     except Exception as e:
         logger.error(f"✗ Configuration loading error: {e}")
         return False, None
+
+def test_device():
+    """Test that device detection works correctly"""
+    logger.info("Testing device detection...")
+    try:
+        from core import get_device
+        device = get_device()
+        logger.info(f"✓ Device detected: {device}")
+        return True, device
+    except Exception as e:
+        logger.error(f"✗ Device detection error: {e}")
+        return False, None
+
+def test_model_instantiation():
+    """Test that model instantiation works correctly"""
+    logger.info("Testing model instantiation...")
+    try:
+        from core import instantiate_model, get_device
+        device = get_device()
+        
+        # Test with dummy values
+        model = instantiate_model("GCN", num_features=10, num_classes=7, device=device)
+        logger.info(f"✓ Model instantiated: {type(model).__name__}")
+        return True
+    except Exception as e:
+        logger.error(f"✗ Model instantiation error: {e}")
+        return False
 
 def test_mini_experiment(main_experiment, cfg):
     """Run a minimal experiment to test core functionality"""
@@ -104,6 +163,18 @@ def run_tests():
         logger.error("Configuration tests failed. Aborting further tests.")
         return False
     
+    # Test device detection
+    device_ok, _ = test_device()
+    if not device_ok:
+        logger.error("Device detection test failed.")
+        return False
+    
+    # Test model instantiation
+    model_ok = test_model_instantiation()
+    if not model_ok:
+        logger.error("Model instantiation test failed.")
+        return False
+    
     clients_num, beta, cfg = config_data
     
     # Test minimal experiment
@@ -127,12 +198,13 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     
-    # Check for CUDA
+    # Check for CUDA using our get_device function
     if args.cuda:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        from core import get_device
+        device = get_device()
     else:
         device = torch.device("cpu")
-    logger.info(f"Using device: {device}")
+        logger.info(f"Forcing CPU device: {device}")
     
     # Run tests
     success = run_tests()

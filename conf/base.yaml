@@ -1,13 +1,7 @@
 num_clients: 10
-<<<<<<< HEAD
-num_rounds: 10
+num_rounds: 3
 epochs: 2
 beta: 1000
-=======
-num_rounds: 1
-epochs: 1
-beta: 1
->>>>>>> working
 lr: 0.5
 fulltraining_flag: True
 paths:

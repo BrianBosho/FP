@@ -1,11 +1,7 @@
 import torch
 import torch.nn.functional as F
-<<<<<<< HEAD:src/train.py
 from models import VanillaGNN, MLP
 from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
-=======
-from models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv, GraphSAGEProducts
->>>>>>> working:train.py
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
 
@@ -32,7 +28,7 @@ def train(model, data, epochs, optimizer, criterion, writer):
     torch.cuda.empty_cache()
 
     # Add this check before using the model
-    if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
+    if isinstance(model, GCN_arxiv) or isinstance(model, SAGE_products):
         # Ensure edge_index has correct format
         if data.edge_index.dim() != 2 or data.edge_index.size(0) != 2:
             raise ValueError(f"Edge index has incorrect format: {data.edge_index.shape}")

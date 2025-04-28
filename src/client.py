@@ -1,13 +1,8 @@
 import ray
-<<<<<<< HEAD:src/client.py
 from train import train, evaluate, test
 from models import VanillaGNN, MLP
 # from models import GCN, GAT, VanillaGNN, MLP
 from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
-=======
-from train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
-from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
->>>>>>> working:client.py
 import torch
 import sys
 import gc
