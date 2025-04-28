@@ -48,3 +48,5 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Ignore result folders
+**/results*/
