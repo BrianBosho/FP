@@ -2,7 +2,7 @@ import torch
 import ray
 from client import FLClient
 # from models import GCN, GAT
-from models import GCN, GAT
+from gnn_models import GCN, GAT
 from server import Server
 import pandas as pd
 from utils import load_config

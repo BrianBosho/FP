@@ -1,60 +1,89 @@
-# Federated Learning Project (FP)
+# Federated GNN Learning
 
-This repository contains code for running federated learning experiments with graph neural networks.
+A framework for experimenting with Federated Learning on Graph Neural Networks.
 
-## Directory Structure
+## Overview
 
-- `src/`: Source code files
-  - `dataprocessing/`: Data processing modules
-  - `result_processing/`: Result processing utilities
-- `scripts/`: Utility scripts for running experiments
-- `tests/`: Test files
-- `config/`: Configuration files
-- `docs/`: Documentation
-- `notebooks/`: Jupyter notebooks for analysis
-- `results/`: Experiment results
-- `results_archive/`: Archive of all previous results
-- `logs/`: Log files
+This project implements a federated learning system for Graph Neural Networks (GNNs) that enables training across multiple decentralized clients without sharing raw data. The framework supports various GNN architectures and data distribution strategies.
 
-## Running Experiments
+## Key Features
 
-To run experiments, use the `run_experiments.py` script in the `scripts` directory:
+- Federated training with configurable number of clients
+- Support for GCN and GAT architectures
+- Multiple data loading options including k-hop neighborhood approaches
+- Non-IID data partitioning with Dirichlet distribution
+- Comprehensive evaluation metrics
+- Ray-based parallel client processing
 
-```bash
-# Run a single experiment
-python scripts/run_experiments.py --mode single --dataset Cora --model GCN --data_loading zero_hop
+## Quick Start
 
-# Run all experiment combinations
-python scripts/run_experiments.py --mode all
-```
+### Testing the Framework
 
-For more details on the available options, see the documentation in `docs/run_experiments_documentation.md`.
-
-## Configuration
-
-Configuration files are stored in the `config/` directory. The default configuration file is `base.yaml`.
-
-## Repository Management
-
-The repository includes scripts for organizing and cleaning up files:
+To test that the framework is working properly:
 
 ```bash
-# Move all result folders to results_archive
-./scripts/organize_results.sh
-
-# Clean up duplicated files and directories
-./scripts/cleanup_duplicates.sh
-
-# Remove unnecessary log files (nohup.out)
-./scripts/cleanup.sh
+python src/test.py
 ```
 
-You can also run the setup script which provides interactive options for all of these tasks:
+This runs a lightweight version of the experiments with minimal computation to verify everything works correctly.
+
+### Running Experiments
+
+To run a federated learning experiment:
 
 ```bash
-./setup.sh
+# Import the main experiment function
+from src.run import main_experiment, load_configuration
+
+# Load configuration
+clients_num, beta, cfg = load_configuration("conf/base.yaml")
+
+# Run experiment with specific parameters
+results_data, result_text = main_experiment(
+    clients_num=10,        # Number of clients
+    beta=0.5,              # Dirichlet concentration parameter (lower = more non-IID)
+    data_loading_option="zero_hop",  # Data loading strategy
+    model_type="GCN",      # Model architecture (GCN or GAT)
+    cfg=cfg,               # Configuration parameters
+    dataset_name="Cora",   # Dataset to use
+    hop=1,                 # Number of hops for k-hop strategies
+    fulltraining_flag=False # Whether to use full training
+)
+
+# Print results
+print(result_text)
 ```
+
+## Data Loading Options
+
+- `zero_hop`: Basic data splitting without neighborhood information
+- `page_rank`, `random_walk`, `diffusion`, `efficient`, `adjacency`, `propagation`, `zero`, `full`: Various k-hop neighborhood strategies
+
+## Project Structure
+
+- `src/`: Source code
+  - `run.py`: Main experiment execution code
+  - `test.py`: Test framework for verifying code integrity
+  - `client.py`: Implementation of federated clients
+  - `server.py`: Implementation of federated server
+  - `gnn_models.py`: GNN model implementations
+  - `core/`: Core functionality
+  - `dataprocessing/`: Data processing utilities
+  - `run_utils.py`: Utilities for experiment execution
+- `conf/`: Configuration files
+  - `base.yaml`: Default configuration
 
 ## Requirements
 
-See `requirements.txt` for the required Python packages. 
+- PyTorch
+- Ray
+- PyTorch Geometric
+- CUDA-compatible GPU (optional but recommended)
+
+## Example Results
+
+The framework outputs comprehensive results including:
+- Global model performance
+- Average client performance
+- Performance distribution across clients
+- Standard deviation across experiment runs 

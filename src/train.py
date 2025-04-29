@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as F
-from models import VanillaGNN, MLP
-from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products
+from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products, VanillaGNN, MLP
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
 
@@ -12,7 +11,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 def train(model, data, epochs, optimizer, criterion, writer):
-
+    # print model name
+    print(f"Training model: {type(model)}")
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
@@ -107,6 +107,7 @@ def test(model, data):
         elif isinstance(model, MLP):
             output = model(data.x)
         else:
+            print(f"Unknown model while testing: {type(model)}")
             raise ValueError("Unknown model while testing")
         # out = model(data.x, data.edge_index)
         out = output

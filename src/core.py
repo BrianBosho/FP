@@ -1,6 +1,6 @@
 import torch
 from utils import load_config
-from models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
+from gnn_models import GCN, GAT, GCN_arxiv, SAGE_products
 from pathlib import Path
 from pathlib import Path
 import yaml
