@@ -1,24 +1,24 @@
 import torch
 import ray
-from src.client import FLClient
+from client import FLClient
 # from models import GCN, GAT
-from src.models import GCN, GAT
-from src.server import Server
+from models import GCN, GAT
+from server import Server
 import pandas as pd
-from src.utils import load_config
+from utils import load_config
 from pathlib import Path
 
 # Import from core module
-from src.core import load_configuration, get_device, instantiate_model
+from core import load_configuration, get_device, instantiate_model
 
-from src.dataprocessing.loaders import (
+from dataprocessing.loaders import (
     load_dataset,
     load_and_split,
     load_and_split_with_khop,
     load_and_split_with_feature_prop    
 )
 import numpy as np
-from src.run_utils import (
+from run_utils import (
     setup_logging, 
     log_training_results, 
     log_evaluation_results, 

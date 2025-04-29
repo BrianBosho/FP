@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 from torch_geometric.data import Data
-from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
+from dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

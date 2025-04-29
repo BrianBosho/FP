@@ -2,9 +2,9 @@ import torch
 import numpy as np
 from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
-from src.dataprocessing.data_utils import propagate_features
-from src.dataprocessing.label_propagation import apply_label_propagation
-from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
+from dataprocessing.data_utils import propagate_features
+from dataprocessing.label_propagation import apply_label_propagation
+from dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

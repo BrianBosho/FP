@@ -1,6 +1,6 @@
 import ray
 import torch
-from src.train import evaluate, test, evaluate_with_minibatch, test_with_minibatch
+from train import evaluate, test, evaluate_with_minibatch, test_with_minibatch
 import gc
 
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
