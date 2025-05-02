@@ -74,16 +74,4 @@ ENV/
 .Trashes
 ehthumbs.db
 Thumbs.db
-<<<<<<< HEAD
-# Ignore result folders
-**/results*/
-
-# Additional result folders
-Central_results2/
-Central_results2_demo/
-Central_results3/
-Central_results4/
-results_Cora_2_clients/
-=======
->>>>>>> minimal
 archive/
