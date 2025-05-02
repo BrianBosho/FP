@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from gnn_models import GCN, GAT, GCN_arxiv, GCN_products, SAGE_products, VanillaGNN, MLP
+from models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv, GraphSAGEProducts
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
 
@@ -11,8 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 def train(model, data, epochs, optimizer, criterion, writer):
-    # print model name
-    print(f"Training model: {type(model)}")
+
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
@@ -28,7 +27,7 @@ def train(model, data, epochs, optimizer, criterion, writer):
     torch.cuda.empty_cache()
 
     # Add this check before using the model
-    if isinstance(model, GCN_arxiv) or isinstance(model, SAGE_products):
+    if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
         # Ensure edge_index has correct format
         if data.edge_index.dim() != 2 or data.edge_index.size(0) != 2:
             raise ValueError(f"Edge index has incorrect format: {data.edge_index.shape}")
@@ -41,7 +40,7 @@ def train(model, data, epochs, optimizer, criterion, writer):
         optimizer.zero_grad()
         if isinstance(model, VanillaGNN):
             output = model(data.x, adjacency)
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, SAGE_products):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
@@ -82,12 +81,12 @@ def evaluate(model, data, criterion):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, SAGE_products):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
         else:
-            raise ValueError("Unknown model in Evaluation")
+            raise ValueError("Unknown model")
         # out = model(data.x, data.edge_index)
         out = output
         # out = model(data.x, data.edge_index)
@@ -102,13 +101,12 @@ def test(model, data):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, SAGE_products):
+        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
         else:
-            print(f"Unknown model while testing: {type(model)}")
-            raise ValueError("Unknown model while testing")
+            raise ValueError("Unknown model")
         # out = model(data.x, data.edge_index)
         out = output
         _, pred = torch.max(out[data.test_mask], dim=1)
@@ -173,7 +171,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, SAGE_products)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)
@@ -248,7 +246,7 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, SAGE_products)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)
@@ -300,7 +298,7 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, SAGE_products)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)

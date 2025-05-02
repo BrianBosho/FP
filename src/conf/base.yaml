@@ -1,0 +1,14 @@
+num_clients: 10
+num_rounds: 100
+epochs: 3
+beta: 1
+lr: 0.5
+fulltraining_flag: False
+paths:
+  datasets_dir: "datasets"
+  planetoid:
+    cora: "datasets/cora"
+    citeseer: "datasets/citeseer"
+    pubmed: "datasets/pubmed"
+  ogbn:
+    arxiv: "datasets/ogbn_arxiv"

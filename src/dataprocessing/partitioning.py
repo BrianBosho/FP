@@ -3,8 +3,6 @@ import numpy as np
 from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
 from dataprocessing.data_utils import propagate_features
-from dataprocessing.label_propagation import apply_label_propagation
-from dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -138,7 +136,7 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
-                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, mode: str = "adjacency") -> tuple[list, list, list]:
+                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, mode: str = "propagation") -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
     """
@@ -160,8 +158,6 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         clients_data = []
         for i in range(num_clients):
             subgraph, node_map, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device, full_data, fulltraining_flag)
-            # generate labels for each client using label propagation
-            
             clients_data.append(subgraph)
         
         # clients_data = k_hop_subgraphs
@@ -179,9 +175,6 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     else:
         final_subgraphs = clients_data
-    
-    # generate labels for each client using label propagation
-    # final_subgraphs = [apply_label_propagation(subgraph) for subgraph in final_subgraphs]
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 
@@ -251,11 +244,12 @@ def reset_subgraph_features2(subset_data: Data, mapping: torch.Tensor, full_data
         reset_x = subset_data.x.clone()
         reset_y = subset_data.y.clone()
     else:
-        # Initialize with zeros for features and -100 for labels (PyTorch's ignore index)
+        reset_y = subset_data.y.clone()
+        # Initialize with zeros and only copy original nodes' data
         reset_x = torch.zeros_like(subset_data.x)
-        reset_y = torch.full_like(subset_data.y, -100)  # Use -100 instead of 0 as it's PyTorch's ignore index
+       # reset_y = torch.zeros_like(subset_data.y)
         reset_x[subset_mask] = subset_data.x[subset_mask]
-        reset_y[subset_mask] = subset_data.y[subset_mask]
+        #reset_y[subset_mask] = subset_data.y[subset_mask]
     
     if fulltraining_flag:
         # Use all masks from the expanded subgraph
