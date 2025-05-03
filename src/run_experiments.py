@@ -9,23 +9,25 @@ import yaml
 from tabulate import tabulate
 from datetime import datetime
 import shutil
+from utils import load_config
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run federated GNN experiments and print results')
     parser.add_argument('--config', type=str, help='Path to YAML configuration file')
     
     # Keep command-line arguments as fallback options
-    parser.add_argument('--clients', type=int, default=10, help='Number of clients (if no config file)')
-    parser.add_argument('--beta', type=float, default=1, help='Beta parameter for Dirichlet distribution (if no config file)')
-    parser.add_argument('--datasets', nargs='+', default=["Cora"], 
-                        help='List of datasets to run experiments on (if no config file)')
-    parser.add_argument('--data_loading', nargs='+', default=["full", "adjacency", "zero_hop"], 
-                        help='Data loading options (if no config file)')
-    parser.add_argument('--models', nargs='+', default=["GCN"], 
-                        help='Model types to use (if no config file)')
+    parser.add_argument('--clients', type=int, help='Number of clients')
+    parser.add_argument('--rounds', type=int, help='Number of communication rounds')
+    parser.add_argument('--epochs', type=int, help='Number of local epochs per round')
+    parser.add_argument('--beta', type=float, help='Beta parameter for Dirichlet distribution')
+    parser.add_argument('--lr', type=float, help='Learning rate')
+    parser.add_argument('--datasets', nargs='+', help='List of datasets to run experiments on')
+    parser.add_argument('--data_loading', nargs='+', help='Data loading options')
+    parser.add_argument('--models', nargs='+', help='Model types to use')
+    parser.add_argument('--hop', type=int, help='Number of hops for graph propagation')
     parser.add_argument('--save_results', action='store_true', help='Save detailed results to files')
-    parser.add_argument('--results_dir', type=str, default="results/Planetoid_test_results", 
-                        help='Directory to save results (if no config file)')
+    parser.add_argument('--results_dir', type=str, help='Directory to save results')
+    parser.add_argument('--fulltraining_flag', action='store_true', help='Use full training flag')
     return parser.parse_args()
 
 def load_yaml_config(config_path):
@@ -55,36 +57,154 @@ def copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp):
         shutil.copy2(source_file, target_file)
         print(f"Training CSV results saved to {target_file}")
 
+def save_summary_results(summary_rows, all_results, results_dir, config):
+    """Save summary results to a file in the parent results directory"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create summary TXT file
+    summary_txt_path = os.path.join(results_dir, f"summary_results_{timestamp}.txt")
+    
+    with open(summary_txt_path, 'w') as f:
+        # Write experiment configuration
+        f.write("EXPERIMENT CONFIGURATION\n")
+        f.write("=" * 80 + "\n")
+        f.write(f"- Clients: {config['num_clients']}\n")
+        f.write(f"- Rounds: {config['num_rounds']}\n")
+        f.write(f"- Epochs: {config['epochs']}\n")
+        f.write(f"- Learning Rate: {config['lr']}\n")
+        f.write(f"- Beta: {config['beta']}\n")
+        f.write(f"- Datasets: {config['datasets']}\n")
+        f.write(f"- Data Loading Options: {config['data_loading']}\n")
+        f.write(f"- Model Types: {config['models']}\n")
+        f.write(f"- Results Directory: {config['results_dir']}\n")
+        f.write(f"- Save Detailed Results: {config['save_results']}\n")
+        f.write(f"- Hop: {config['hop']}\n")
+        f.write(f"- Full Training Flag: {config['fulltraining_flag']}\n\n")
+        
+        # Write summary table
+        f.write("\n" + "=" * 80 + "\n")
+        f.write("EXPERIMENT RESULTS SUMMARY\n")
+        f.write("=" * 80 + "\n\n")
+        
+        headers = ["Dataset", "Data Loading", "Model", "Avg Global Result", "Avg Client Result"]
+        f.write(tabulate(summary_rows, headers=headers, tablefmt="grid") + "\n\n")
+        
+        # Write key results
+        f.write("KEY RESULTS:\n")
+        f.write("-" * 40 + "\n")
+        for row in summary_rows:
+            f.write(f"{row[0]} with {row[1]} using {row[2]}:\n")
+            f.write(f"  - Average Global Result: {row[3]}\n")
+            f.write(f"  - Average Client Result: {row[4]}\n")
+            f.write("-" * 40 + "\n")
+    
+    # Create summary JSON file
+    summary_json_path = os.path.join(results_dir, f"summary_results_{timestamp}.json")
+    
+    # Create a structured JSON with all results
+    summary_json = {
+        "timestamp": timestamp,
+        "configuration": config,
+        "results": [
+            {
+                "dataset": result["dataset"],
+                "data_loading": result["data_loading"],
+                "model": result["model"],
+                "avg_global": result["avg_global"],
+                "avg_client": result["avg_client"]
+            }
+            for result in all_results
+        ]
+    }
+    
+    with open(summary_json_path, 'w') as f:
+        json.dump(summary_json, f, indent=2)
+    
+    print(f"\nSummary results saved to:")
+    print(f"- Text file: {summary_txt_path}")
+    print(f"- JSON file: {summary_json_path}")
+    
+    return summary_txt_path, summary_json_path
+
 def run_experiments(args):
-    # Load configuration from YAML if provided
+    # Load base configuration from base.yaml
+    base_config_path = "conf/base.yaml"
+    base_cfg = load_config(base_config_path)
+    
+    # Set default values from base.yaml
+    cfg = {
+        "num_clients": base_cfg.get("num_clients", 10),
+        "num_rounds": base_cfg.get("num_rounds", 10),
+        "epochs": base_cfg.get("epochs", 3),
+        "beta": base_cfg.get("beta", 1),
+        "lr": base_cfg.get("lr", 0.5),
+        "fulltraining_flag": base_cfg.get("fulltraining_flag", False),
+        "datasets": ["Cora"],
+        "data_loading": ["full", "adjacency", "zero_hop"],
+        "models": ["GCN"],
+        "results_dir": "results/Planetoid_test_results",
+        "save_results": False,
+        "hop": 1
+    }
+    
+    # Update with YAML config if provided
     if args.config:
         yaml_config = load_yaml_config(args.config)
-        clients_num = yaml_config.get('clients', args.clients)
-        beta = yaml_config.get('beta', args.beta)
-        datasets = yaml_config.get('datasets', args.datasets)
-        data_loading_options = yaml_config.get('data_loading', args.data_loading)
-        model_types = yaml_config.get('models', args.models)
-        results_dir = yaml_config.get('results_dir', args.results_dir)
-        save_results = yaml_config.get('save_results', args.save_results)
-        hop = yaml_config.get('hop', 1)
-    else:
-        clients_num = args.clients
-        beta = args.beta
-        datasets = args.datasets
-        data_loading_options = args.data_loading
-        model_types = args.models
-        results_dir = args.results_dir
-        save_results = args.save_results
-        hop = 1
+        # Update config with values from YAML
+        for key, value in yaml_config.items():
+            cfg[key] = value
+    
+    # Override with command-line arguments if provided
+    if args.clients is not None:
+        cfg["num_clients"] = args.clients
+    if args.rounds is not None:
+        cfg["num_rounds"] = args.rounds
+    if args.epochs is not None:
+        cfg["epochs"] = args.epochs
+    if args.beta is not None:
+        cfg["beta"] = args.beta
+    if args.lr is not None:
+        cfg["lr"] = args.lr
+    if args.datasets is not None:
+        cfg["datasets"] = args.datasets
+    if args.data_loading is not None:
+        cfg["data_loading"] = args.data_loading
+    if args.models is not None:
+        cfg["models"] = args.models
+    if args.hop is not None:
+        cfg["hop"] = args.hop
+    if args.save_results:
+        cfg["save_results"] = args.save_results
+    if args.results_dir is not None:
+        cfg["results_dir"] = args.results_dir
+    if args.fulltraining_flag:
+        cfg["fulltraining_flag"] = args.fulltraining_flag
+    
+    # Extract values from the merged configuration
+    clients_num = cfg["num_clients"]
+    beta = cfg["beta"]
+    datasets = cfg["datasets"]
+    data_loading_options = cfg["data_loading"]
+    model_types = cfg["models"]
+    results_dir = cfg["results_dir"]
+    save_results = cfg["save_results"]
+    hop = cfg["hop"]
+    fulltraining_flag = cfg["fulltraining_flag"]
+    
+    # Create a training configuration for the experiment
+    training_cfg = {
+        "num_rounds": cfg["num_rounds"],
+        "epochs": cfg["epochs"],
+        "lr": cfg["lr"],
+        "beta": beta,
+        "fulltraining_flag": fulltraining_flag
+    }
     
     # Ensure Ray is shut down before starting
     try:
         ray.shutdown()
     except:
         pass
-    
-    # Load configuration
-    _, _, cfg = load_configuration()
     
     # Create main results directory
     os.makedirs(results_dir, exist_ok=True)
@@ -98,6 +218,9 @@ def run_experiments(args):
     # Print experiment configuration
     print("\nExperiment Configuration:")
     print(f"- Clients: {clients_num}")
+    print(f"- Rounds: {cfg['num_rounds']}")
+    print(f"- Epochs: {cfg['epochs']}")
+    print(f"- Learning Rate: {cfg['lr']}")
     print(f"- Beta: {beta}")
     print(f"- Datasets: {datasets}")
     print(f"- Data Loading Options: {data_loading_options}")
@@ -105,6 +228,7 @@ def run_experiments(args):
     print(f"- Results Directory: {results_dir}")
     print(f"- Save Detailed Results: {save_results}")
     print(f"- Hop: {hop}")
+    print(f"- Full Training Flag: {fulltraining_flag}")
     
     # Run experiments for each combination
     for dataset_name in datasets:
@@ -124,6 +248,24 @@ def run_experiments(args):
                 def patched_save_func(results, filename=None):
                     # Use the original function but with our custom filename
                     csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+                    # Save as JSON too
+                    json_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.json")
+                    with open(json_filename, 'w') as f:
+                        # Process the data to ensure it's JSON serializable
+                        processed_results = []
+                        for result in results:
+                            processed_result = {}
+                            for key, value in result.items():
+                                # Convert any numpy arrays to lists
+                                if hasattr(value, 'tolist'):
+                                    processed_result[key] = value.tolist()
+                                else:
+                                    processed_result[key] = value
+                            processed_results.append(processed_result)
+                        
+                        json.dump(processed_results, f, indent=2)
+                    print(f"Training JSON results saved to {json_filename}")
+                    
                     return original_save_func(results, csv_filename)
                 
                 # Apply the monkey patch to the imported function
@@ -141,9 +283,10 @@ def run_experiments(args):
                     beta, 
                     data_loading_option, 
                     model_type, 
-                    cfg, 
+                    training_cfg, 
                     dataset_name=dataset_name, 
-                    hop=hop
+                    hop=hop,
+                    fulltraining_flag=fulltraining_flag
                 )
                 
                 # Extract key metrics
@@ -189,6 +332,9 @@ def run_experiments(args):
                     "details": result
                 })
     
+    # Save summary results to the parent directory
+    save_summary_results(summary_rows, all_results, results_dir, cfg)
+    
     return summary_rows, all_results
 
 def print_summary(summary_rows):
@@ -215,14 +361,18 @@ def print_summary(summary_rows):
 def create_example_config(output_path="experiment_config_example.yaml"):
     """Create an example YAML configuration file"""
     example_config = {
-        "clients": 10,
+        "num_clients": 10,
+        "num_rounds": 10,
+        "epochs": 3,
         "beta": 1,
+        "lr": 0.5,
         "datasets": ["Cora", "Citeseer"],
         "data_loading": ["full", "adjacency", "zero_hop"],
         "models": ["GCN"],
         "results_dir": "results/yaml_experiment_results",
         "save_results": True,
-        "hop": 1
+        "hop": 1,
+        "fulltraining_flag": False
     }
     
     with open(output_path, 'w') as file:
@@ -239,4 +389,4 @@ if __name__ == "__main__":
         exit(0)
     
     summary_rows, all_results = run_experiments(args)
-    print_summary(summary_rows) 
+    print_summary(summary_rows)
