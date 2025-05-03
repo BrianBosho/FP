@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import logging
 import torch.nn.functional as F
+import os
 
 def setup_logging(log_dir="logs"):
     """
@@ -16,9 +17,6 @@ def setup_logging(log_dir="logs"):
     Returns:
         logging.Logger: Configured logger
     """
-    import os
-    from datetime import datetime
-    
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     
@@ -67,8 +65,25 @@ def save_results_to_csv(results, filename="results.csv"):
         results (list): Results to be saved
         filename (str): Name of the output CSV file
     """
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(filename)
+    # Check if environment variables are set for experiment directory and timestamp
+    exp_dir = os.environ.get("EXPERIMENT_RESULTS_DIR")
+    timestamp = os.environ.get("EXPERIMENT_TIMESTAMP")
+    
+    if exp_dir and timestamp and filename == "results.csv":
+        # Extract experiment name from directory path
+        experiment_name = os.path.basename(exp_dir)
+        # Create a custom filename in the experiment directory
+        custom_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+        results_df = pd.DataFrame(results)
+        results_df.to_csv(custom_filename)
+        print(f"Training CSV results saved to {custom_filename}")
+        
+        # Also save to the default location for backward compatibility
+        results_df.to_csv(filename)
+    else:
+        # Original behavior
+        results_df = pd.DataFrame(results)
+        results_df.to_csv(filename)
 
 def compare_model_parameters(server_model, clients):
     """

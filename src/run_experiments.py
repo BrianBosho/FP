@@ -8,6 +8,7 @@ import json
 import yaml
 from tabulate import tabulate
 from datetime import datetime
+import shutil
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run federated GNN experiments and print results')
@@ -32,6 +33,27 @@ def load_yaml_config(config_path):
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
     return config
+
+def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, results_dir, timestamp):
+    """Setup environment variables to redirect CSV output to experiment directory"""
+    # Create experiment directory path
+    experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}"
+    exp_dir = os.path.join(results_dir, experiment_name)
+    os.makedirs(exp_dir, exist_ok=True)
+    
+    # Set environment variables that will be checked in run_utils.py
+    os.environ["EXPERIMENT_RESULTS_DIR"] = exp_dir
+    os.environ["EXPERIMENT_TIMESTAMP"] = timestamp
+    
+    return exp_dir, experiment_name
+
+def copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp):
+    """Copy training CSV file to experiment directory and rename it"""
+    source_file = "results.csv"
+    if os.path.exists(source_file):
+        target_file = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+        shutil.copy2(source_file, target_file)
+        print(f"Training CSV results saved to {target_file}")
 
 def run_experiments(args):
     # Load configuration from YAML if provided
@@ -88,7 +110,27 @@ def run_experiments(args):
     for dataset_name in datasets:
         for data_loading_option in data_loading_options:
             for model_type in model_types:
-                experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}"
+                # Generate timestamp for this experiment
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Setup environment for this experiment
+                exp_dir, experiment_name = setup_environment_for_experiment(
+                    dataset_name, data_loading_option, model_type, results_dir, timestamp
+                )
+                
+                # Create a monkey patch for save_results_to_csv in run_utils
+                from run_utils import save_results_to_csv as original_save_func
+                
+                def patched_save_func(results, filename=None):
+                    # Use the original function but with our custom filename
+                    csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+                    return original_save_func(results, csv_filename)
+                
+                # Apply the monkey patch to the imported function
+                import run_utils
+                run_utils.save_results_to_csv = patched_save_func
+                
+                # Print experiment header
                 print(f"\n{'='*80}")
                 print(f"Running experiment: {experiment_name}")
                 print(f"{'='*80}")
@@ -119,12 +161,7 @@ def run_experiments(args):
                 
                 # Save results if requested
                 if save_results:
-                    # Create directory for this experiment
-                    exp_dir = os.path.join(results_dir, experiment_name)
-                    os.makedirs(exp_dir, exist_ok=True)
-                    
                     # Save detailed results
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     filename = f"results_{experiment_name}_{timestamp}.json"
                     filepath = os.path.join(exp_dir, filename)
                     
@@ -137,6 +174,10 @@ def run_experiments(args):
                         f.write(output)
                     
                     print(f"Results saved to {filepath}")
+                
+                # Make sure the training CSV was copied to experiment directory
+                # This is a fallback in case our monkey patching didn't work
+                copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp)
                 
                 # Store results for final summary
                 all_results.append({
