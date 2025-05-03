@@ -5,25 +5,56 @@ import os
 import ray
 import argparse
 import json
+import yaml
 from tabulate import tabulate
 from datetime import datetime
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run federated GNN experiments and print results')
-    parser.add_argument('--clients', type=int, default=10, help='Number of clients')
-    parser.add_argument('--beta', type=float, default=1, help='Beta parameter for Dirichlet distribution')
+    parser.add_argument('--config', type=str, help='Path to YAML configuration file')
+    
+    # Keep command-line arguments as fallback options
+    parser.add_argument('--clients', type=int, default=10, help='Number of clients (if no config file)')
+    parser.add_argument('--beta', type=float, default=1, help='Beta parameter for Dirichlet distribution (if no config file)')
     parser.add_argument('--datasets', nargs='+', default=["Cora"], 
-                        help='List of datasets to run experiments on')
+                        help='List of datasets to run experiments on (if no config file)')
     parser.add_argument('--data_loading', nargs='+', default=["full", "adjacency", "zero_hop"], 
-                        help='Data loading options')
+                        help='Data loading options (if no config file)')
     parser.add_argument('--models', nargs='+', default=["GCN"], 
-                        help='Model types to use')
+                        help='Model types to use (if no config file)')
     parser.add_argument('--save_results', action='store_true', help='Save detailed results to files')
     parser.add_argument('--results_dir', type=str, default="results/Planetoid_test_results", 
-                        help='Directory to save results')
+                        help='Directory to save results (if no config file)')
     return parser.parse_args()
 
+def load_yaml_config(config_path):
+    """Load experiment configuration from YAML file"""
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
 def run_experiments(args):
+    # Load configuration from YAML if provided
+    if args.config:
+        yaml_config = load_yaml_config(args.config)
+        clients_num = yaml_config.get('clients', args.clients)
+        beta = yaml_config.get('beta', args.beta)
+        datasets = yaml_config.get('datasets', args.datasets)
+        data_loading_options = yaml_config.get('data_loading', args.data_loading)
+        model_types = yaml_config.get('models', args.models)
+        results_dir = yaml_config.get('results_dir', args.results_dir)
+        save_results = yaml_config.get('save_results', args.save_results)
+        hop = yaml_config.get('hop', 1)
+    else:
+        clients_num = args.clients
+        beta = args.beta
+        datasets = args.datasets
+        data_loading_options = args.data_loading
+        model_types = args.models
+        results_dir = args.results_dir
+        save_results = args.save_results
+        hop = 1
+    
     # Ensure Ray is shut down before starting
     try:
         ray.shutdown()
@@ -34,7 +65,7 @@ def run_experiments(args):
     _, _, cfg = load_configuration()
     
     # Create main results directory
-    os.makedirs(args.results_dir, exist_ok=True)
+    os.makedirs(results_dir, exist_ok=True)
     
     # Store all experiment results
     all_results = []
@@ -42,10 +73,21 @@ def run_experiments(args):
     # Create a summary table for the final output
     summary_rows = []
     
+    # Print experiment configuration
+    print("\nExperiment Configuration:")
+    print(f"- Clients: {clients_num}")
+    print(f"- Beta: {beta}")
+    print(f"- Datasets: {datasets}")
+    print(f"- Data Loading Options: {data_loading_options}")
+    print(f"- Model Types: {model_types}")
+    print(f"- Results Directory: {results_dir}")
+    print(f"- Save Detailed Results: {save_results}")
+    print(f"- Hop: {hop}")
+    
     # Run experiments for each combination
-    for dataset_name in args.datasets:
-        for data_loading_option in args.data_loading:
-            for model_type in args.models:
+    for dataset_name in datasets:
+        for data_loading_option in data_loading_options:
+            for model_type in model_types:
                 experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}"
                 print(f"\n{'='*80}")
                 print(f"Running experiment: {experiment_name}")
@@ -53,13 +95,13 @@ def run_experiments(args):
                 
                 # Run the experiment
                 result, output = main_experiment(
-                    args.clients, 
-                    args.beta, 
+                    clients_num, 
+                    beta, 
                     data_loading_option, 
                     model_type, 
                     cfg, 
                     dataset_name=dataset_name, 
-                    hop=1
+                    hop=hop
                 )
                 
                 # Extract key metrics
@@ -76,9 +118,9 @@ def run_experiments(args):
                 ])
                 
                 # Save results if requested
-                if args.save_results:
+                if save_results:
                     # Create directory for this experiment
-                    exp_dir = os.path.join(args.results_dir, experiment_name)
+                    exp_dir = os.path.join(results_dir, experiment_name)
                     os.makedirs(exp_dir, exist_ok=True)
                     
                     # Save detailed results
@@ -129,7 +171,31 @@ def print_summary(summary_rows):
         print(f"  - Average Client Result: {row[4]}")
         print("-" * 40)
 
+def create_example_config(output_path="experiment_config_example.yaml"):
+    """Create an example YAML configuration file"""
+    example_config = {
+        "clients": 10,
+        "beta": 1,
+        "datasets": ["Cora", "Citeseer"],
+        "data_loading": ["full", "adjacency", "zero_hop"],
+        "models": ["GCN"],
+        "results_dir": "results/yaml_experiment_results",
+        "save_results": True,
+        "hop": 1
+    }
+    
+    with open(output_path, 'w') as file:
+        yaml.dump(example_config, file, default_flow_style=False)
+    
+    print(f"Example configuration file created at: {output_path}")
+
 if __name__ == "__main__":
     args = parse_arguments()
+    
+    # Generate example config file if requested
+    if args.config == "generate_example":
+        create_example_config()
+        exit(0)
+    
     summary_rows, all_results = run_experiments(args)
     print_summary(summary_rows) 

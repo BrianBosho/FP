@@ -1,0 +1,14 @@
+beta: 1
+clients: 10
+data_loading:
+- full
+- adjacency
+- zero_hop
+datasets:
+- Cora
+- Citeseer
+hop: 1
+models:
+- GCN
+results_dir: results/yaml_experiment_results
+save_results: true
