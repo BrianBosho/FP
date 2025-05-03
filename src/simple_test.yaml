@@ -1,0 +1,12 @@
+dataset: Cora
+data_loading: full
+model: GCN
+num_clients: 3
+num_rounds: 3
+epochs: 2
+beta: 0.5
+lr: 0.3
+results_dir: results/simple_test
+save_results: true
+hop: 1
+fulltraining_flag: false 

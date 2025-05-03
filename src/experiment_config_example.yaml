@@ -16,7 +16,10 @@ hop: 1
 lr: 0.5
 models:
 - GCN
-num_clients: 10
+num_clients:
+- 5
+- 10
+- 20
 num_rounds: 10
 results_dir: results/yaml_experiment_results
 save_results: true

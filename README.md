@@ -1,0 +1,185 @@
+# Federated Graph Neural Networks (Federated-GNN)
+
+This repository contains code for running Federated Learning experiments with Graph Neural Networks (GNNs). It allows you to train GNN models in a federated setting across multiple clients and evaluate their performance.
+
+## Overview
+
+Federated Learning enables training machine learning models across multiple decentralized clients without sharing raw data. This implementation focuses on federated training of Graph Neural Networks on graph-structured data.
+
+Features:
+- Train GNN models in a federated setting
+- Support for various GNN architectures (GCN, GAT)
+- Different data loading and partitioning strategies
+- Control over client heterogeneity (via Dirichlet distribution parameter beta)
+- Comprehensive experiment configuration and results logging
+
+## Installation
+
+### Prerequisites
+- Python 3.7+
+- PyTorch
+- PyTorch Geometric
+- Ray (for distributed computing)
+
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/federated-gnn.git
+cd federated-gnn
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+## Running Experiments
+
+The repository provides two main scripts for running experiments:
+
+1. **run_simple.py**: For running single experiments with a specific configuration
+2. **run_experiments.py**: For running ablation studies with multiple parameters
+
+### Simple Experiments
+
+To run a basic experiment with a single configuration:
+
+```bash
+cd src
+python run_simple.py --config your_config.yaml
+```
+
+You can generate an example configuration file:
+
+```bash
+python run_simple.py --config generate_example
+```
+
+Example configuration file (simple_config_example.yaml):
+```yaml
+beta: 1.0
+data_loading: full
+dataset: Cora
+epochs: 3
+fulltraining_flag: false
+hop: 1
+lr: 0.5
+model: GCN
+num_clients: 10
+num_rounds: 10
+results_dir: results/simple_experiment
+save_results: true
+```
+
+### Ablation Studies
+
+For comprehensive ablation studies across multiple parameters:
+
+```bash
+cd src
+python run_experiments.py --config your_ablation_config.yaml
+```
+
+Generate an example ablation configuration:
+
+```bash
+python run_experiments.py --config generate_example
+```
+
+Example ablation configuration (testing multiple beta values and client counts):
+```yaml
+num_clients:
+  - 5
+  - 10
+  - 20
+num_rounds: 10
+epochs: 3
+beta:
+  - 0.1
+  - 0.5
+  - 1.0
+  - 5.0
+lr: 0.5
+datasets:
+  - Cora
+  - Citeseer
+data_loading:
+  - full
+  - adjacency
+  - zero_hop
+models:
+  - GCN
+results_dir: results/ablation_study
+save_results: true
+hop: 1
+fulltraining_flag: false
+```
+
+## Configuration Parameters
+
+Key parameters for experiment configuration:
+
+| Parameter | Description |
+|-----------|-------------|
+| `num_clients` | Number of clients in federated learning |
+| `num_rounds` | Number of communication rounds |
+| `epochs` | Number of local training epochs per round |
+| `beta` | Dirichlet distribution parameter to control data heterogeneity |
+| `lr` | Learning rate |
+| `datasets` | Dataset(s) to use (Cora, Citeseer, Pubmed, etc.) |
+| `data_loading` | Data loading strategy (full, adjacency, zero_hop, etc.) |
+| `models` | GNN models to use (GCN, GAT) |
+| `results_dir` | Directory to save experiment results |
+| `save_results` | Whether to save detailed results |
+| `hop` | Number of hops for graph propagation |
+| `fulltraining_flag` | Whether to use full training flag |
+
+## Finding and Analyzing Results
+
+Experiment results are saved in the specified `results_dir` with the following structure:
+
+```
+results_dir/
+├── dataset_data-loading_model_beta{value}_clients{count}/
+│   ├── results_*.json          # Detailed experiment results in JSON format
+│   ├── results_*.txt           # Human-readable experiment output
+│   └── training_*.csv          # Training logs with client-wise metrics
+└── summary_results_*.json      # Summary of all experiments in JSON format
+└── summary_results_*.txt       # Human-readable summary of all experiments
+```
+
+For ablation studies, a summary file is also created in the parent directory that contains aggregated results from all experiment combinations.
+
+The key metrics reported are:
+- Average Global Result: Test accuracy of the global model
+- Average Client Result: Average test accuracy across all clients
+
+## Analyzing Training Logs
+
+The repository includes utilities for analyzing the training logs:
+
+```python
+from training_logs_analysis import parse_client_csv
+
+# Parse the training logs
+results = parse_client_csv('path/to/training_logs.csv')
+
+# Access various dataframes with training metrics
+loss_df = results['loss_df']  # Loss values indexed by (round, epoch)
+acc_df = results['acc_df']    # Accuracy values indexed by (round, epoch)
+```
+
+## Citation
+
+If you use this code in your research, please cite:
+
+```
+@article{fedgnn2025,
+  title={Federated Learning with Graph Neural Networks},
+  author={Brian Bosho},
+  journal={arXiv preprint},
+  year={2025}
+}
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details. 
