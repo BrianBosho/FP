@@ -1,5 +1,5 @@
 num_clients: 10
-num_rounds: 100
+num_rounds: 10
 epochs: 3
 beta: 1 # high beta means
 lr: 0.5
