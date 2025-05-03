@@ -1,8 +1,8 @@
 dataset: Cora
-data_loading: full
+data_loading: adjacency
 model: GCN
 num_clients: 10
-num_rounds: 100
+num_rounds: 10
 epochs: 3
 beta: 0.5
 lr: 0.5

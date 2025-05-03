@@ -62,9 +62,11 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
         mask[idx] = True
     return mask
 
-def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 50, mode: str = "adjacency", alpha: float = 0.5) -> Tensor:
+def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, 
+                       num_iterations: int = 50, mode: str = "adjacency", 
+                       alpha: float = 0.5, client_id=None, log_file=None) -> Tensor:
     """
-    Improved feature propagation with better stability
+    Improved feature propagation with logging capabilities.
     
     Args:
         x: Node features
@@ -80,15 +82,36 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
             - "efficient": Efficient propagation (returns directly)
             - "propagation": Custom propagation matrix
         alpha: Weight for diffused features (higher means more weight to diffused features)
-            
-    Returns:
-        Tensor: Propagated features
+        client_id: Optional client ID for logging
+        log_file: Optional path to JSON log file
     """
     DEVICE = device
     x = x.to(DEVICE)
     mask = mask.bool().to(DEVICE)
     edge_index = edge_index.to(DEVICE)
 
+    # Initialize metrics tracking if logging is enabled
+    logging_enabled = log_file is not None and client_id is not None
+    
+    if logging_enabled:
+        import time, json
+        import os
+        start_time = time.time()
+        metrics = {
+            "client_id": client_id,
+            "nodes_total": x.size(0),
+            "nodes_known": mask.sum().item(),
+            "nodes_unknown": (x.size(0) - mask.sum()).item(),
+            "mode": mode,
+            "alpha": alpha,
+            "deltas": [],
+            "iterations": 0,
+            "converged": False,
+            "runtime": 0,
+            "initial_zeros": (x == 0).all(dim=1).sum().item(),
+            "final_zeros": 0
+        }
+    
     # Initialize output tensor
     out = torch.zeros_like(x)
     out[mask] = x[mask]
@@ -161,45 +184,38 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_
         # Reset original known features
         out[mask] = x[mask]
         
+        # Track metrics if logging is enabled
+        if logging_enabled and prev_out is not None:
+            delta = torch.norm(out - prev_out).item()
+            metrics["deltas"].append(delta)
+        
         # Check for convergence
         if prev_out is not None and torch.allclose(out, prev_out, rtol=1e-5):
+            if logging_enabled:
+                metrics["converged"] = True
             break
             
         prev_out = out.clone()
     
+    # Record final metrics if logging is enabled
+    if logging_enabled:
+        metrics["iterations"] = i + 1
+        metrics["runtime"] = time.time() - start_time
+        metrics["final_zeros"] = (out == 0).all(dim=1).sum().item()
+        
+        if len(metrics["deltas"]) > 0:
+            metrics["final_delta"] = metrics["deltas"][-1]
+        
+        # Append client metrics to the experiment JSON file
+        with open(log_file, 'r') as f:
+            experiment_data = json.load(f)
+        
+        # Add this client's metrics to the clients array
+        experiment_data["clients"].append(metrics)
+        
+        # Write back the updated experiment data
+        with open(log_file, 'w') as f:
+            json.dump(experiment_data, f, indent=2)
+    
     return out
 
-# def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, num_iterations: int = 5) -> Tensor:
-#     """
-#     Propagate features through the graph.
-#     """
-#     DEVICE = device
-#     x = x.to(DEVICE)
-#     mask = mask.bool().to(DEVICE)
-#     edge_index = edge_index.to(DEVICE)
-
-#     if mask is not None:
-#         out = torch.zeros_like(x)
-#         out[mask] = x[mask]
-#     else: 
-#         out = x.clone()
-
-#     n_nodes = x.size(0)
-    
-#     # Debug information
-#     # print(f"Feature matrix shape: {x.shape}")
-#     # print(f"Edge index shape: {edge_index.shape}")
-#     # print(f"Edge index max before remapping: {edge_index.max().item()}")
-#     # print(f"Number of nodes: {n_nodes}")
-    
-#     adj = get_propagation_matrix(out, edge_index, n_nodes, device)
-    
-#     for _ in range(num_iterations):
-#         # Diffuse current features
-#         out = torch.sparse.mm(adj, out)
-#         # number of nodes with zero features
-#         zero_features = (out == 0).sum().item()
-#         # print(f"Number of nodes with zero features: {zero_features}")
-#         # Reset original known features
-#         out[mask] = x[mask]
-#     return out

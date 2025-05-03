@@ -165,14 +165,49 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         clients_data = initial_subgraphs    
    
     if use_feature_prop:
-        # apply feature propagation to final subgraphs if use_feature_prop is True
+        # Create a timestamp-based experiment ID
+        import time, os, json
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        experiment_id = f"prop_exp_{timestamp}_{mode}"
+        
+        # Create logs directory if it doesn't exist
+        logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Create experiment JSON file with metadata
+        json_file = os.path.join(logs_dir, f"{experiment_id}.json")
+        experiment_data = {
+            "experiment_id": experiment_id,
+            "propagation_mode": mode,
+            "num_clients": num_clients,
+            "beta": beta,
+            "hop": hop,
+            "clients": []
+        }
+        with open(json_file, 'w') as f:
+            json.dump(experiment_data, f)
+        
+        # Apply feature propagation to each client's subgraph
         final_subgraphs = []
         for i in range(num_clients):
             zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
             non_zero_vector_mask = ~zero_vector_mask
-            clients_data[i].x = propagate_features(clients_data[i].x, clients_data[i].edge_index, non_zero_vector_mask, DEVICE, mode=mode)
+            
+            # Pass the JSON file path to propagate_features
+            clients_data[i].x = propagate_features(
+                clients_data[i].x, 
+                clients_data[i].edge_index, 
+                non_zero_vector_mask, 
+                DEVICE, 
+                mode=mode,
+                client_id=i,
+                log_file=json_file
+            )
             final_subgraphs.append(clients_data[i])
-
+        
+       
+        
+        print(f"Feature propagation logs saved to: {json_file}")
     else:
         final_subgraphs = clients_data
 
