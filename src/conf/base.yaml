@@ -1,7 +1,7 @@
 num_clients: 10
 num_rounds: 100
 epochs: 3
-beta: 1
+beta: 1 # high beta means
 lr: 0.5
 fulltraining_flag: False
 paths:
