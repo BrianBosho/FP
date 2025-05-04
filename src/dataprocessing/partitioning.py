@@ -139,7 +139,7 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
-                  mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16) -> tuple[list, list, list]:
+                  mode: str = "propagation", use_pe: bool = False, pe_r: int = 64, pe_P: int = 16) -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
     
