@@ -100,9 +100,13 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     
     print(dataset)
     print(len(clients_data))
+
+    # print shapeof clients_data
+    print(f"Shape of clients_data: {clients_data[0].x.shape}")
+    input_dim = clients_data[0].x.size(1)
     
     rounds = cfg['num_rounds']
-    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE, dataset_name)
+    model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
 
@@ -141,8 +145,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     return test_results, average_results
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # DEVICE = "cpu"
+    # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    DEVICE = "cpu"
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")

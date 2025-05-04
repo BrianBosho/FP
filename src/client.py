@@ -25,7 +25,10 @@ class FLClient:
         self.data = data.to(self.device)
         self.dataset = dataset
         self.dataset_name = dataset.name if hasattr(dataset, 'name') else "unknown"
-        
+
+        # get input dim from data
+        self.input_dim = data.x.shape[1]
+        print(f"Input dim: {self.input_dim}")
         # Determine if this is a large dataset that requires mini-batching
         self.use_minibatch = False
         if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
@@ -43,7 +46,7 @@ class FLClient:
             elif self.dataset_name == "ogbn-products":
                 self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
             else:
-                self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
+                self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":
             self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
 
@@ -149,6 +152,10 @@ class FLClient:
     def test(self, data=None):
         # Ensure model is on the correct device
         self.model.to(self.device)
+        # check input dimenoso of the model itself
+        print(f"Input dim of the model: {self.model.dim_in}")
+        # print input dim of the data
+        print(f"Input dim of the data: {self.data.x.shape[1]}")
         if data is None:
             data = self.data
         else:

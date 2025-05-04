@@ -15,6 +15,9 @@ class Server():
         self.model = model.to(self.device)
         self.num_of_trainers = len(clients)
 
+        # print input dim of the model
+        print(f"Input dim of the model in server: {self.model.dim_in}")
+
         # update the client params
         self.broadcast_params(-1)
         
