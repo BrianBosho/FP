@@ -4,6 +4,7 @@ from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
 from dataprocessing.data_utils import propagate_features, compute_dirichlet_energy
 from dataprocessing.positional_encoding import generate_rfp_encoding
+import torch.nn.functional as F
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -138,7 +139,7 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
-                  mode: str = "propagation", use_pe: bool = True, pe_r: int = 8, pe_P: int = 4) -> tuple[list, list, list]:
+                  mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16) -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
     
@@ -211,10 +212,18 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         # Apply feature propagation to each client's subgraph
         final_subgraphs = []
         for i in range(num_clients):
-            zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
-            non_zero_vector_mask = ~zero_vector_mask
+            # Get the original node mapping if available
+            original_nodes_mask = None
+            if hasattr(clients_data[i], 'mapping'):
+                # Create mask based on original node mapping
+                original_nodes_mask = torch.zeros(clients_data[i].num_nodes, dtype=torch.bool, device=DEVICE)
+                original_nodes_mask[clients_data[i].mapping] = True
+            else:
+                # Fallback to checking for zero vectors
+                zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
+                original_nodes_mask = ~zero_vector_mask
             
-            # Step 1: Generate positional encodings if requested and store separately
+            # Step 1: First generate and add positional encodings if requested
             if use_pe:
                 # Generate RFP encoding 
                 rfp = generate_rfp_encoding(
@@ -226,24 +235,29 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                     device=DEVICE
                 )
                 
-                # Store the positional encoding as a separate attribute
-                # This doesn't change the x feature matrix used by the model
-                clients_data[i].pe_features = rfp
-                clients_data[i].has_pe = True
+                # Store original dimension before concatenation
+                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
                 
-                # Important: update the dataset's num_features attribute to match the total dimension
-                # This will be read by the client when initializing the model
+                # Normalize features before concatenation for better integration
+                # Scale factor to balance the contribution of positional encodings
+                alpha = 0.5  # Can be tuned as a hyperparameter
+                
+                # Apply L2 normalization to both feature sets
+                orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
+                rfp_norm = F.normalize(rfp, p=2, dim=1) * alpha
+                
+                # Concatenate normalized features
+                clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
+                
+                # Update num_features if it exists
                 if hasattr(clients_data[i], 'num_features'):
-                    # Store the original dimension
-                    clients_data[i].original_num_features = clients_data[i].num_features
-                    # Set the new dimension including positional encoding
-                    clients_data[i].num_features = clients_data[i].x.size(1) + rfp.size(1)
+                    clients_data[i].num_features = clients_data[i].x.size(1)
             
-            # Step 2: Apply feature propagation on original features
+            # Step 2: Then propagate features using original node mask
             clients_data[i].x = propagate_features(
                 clients_data[i].x, 
                 clients_data[i].edge_index, 
-                non_zero_vector_mask, 
+                original_nodes_mask,  # Use original node mask for propagation
                 DEVICE, 
                 mode=mode,
                 client_id=i,
@@ -267,17 +281,23 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                     device=DEVICE
                 )
                 
-                # Store the positional encoding as a separate attribute
-                clients_data[i].pe_features = rfp
-                clients_data[i].has_pe = True
+                # Store original feature dimension before concatenation
+                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
                 
-                # Important: update the dataset's num_features attribute to match the total dimension
-                # This will be read by the client when initializing the model
+                # Normalize features before concatenation for better integration
+                # Scale factor to balance the contribution of positional encodings
+                alpha = 0.5  # Can be tuned as a hyperparameter
+                
+                # Apply L2 normalization to both feature sets
+                orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
+                rfp_norm = F.normalize(rfp, p=2, dim=1) * alpha
+                
+                # Concatenate normalized features
+                clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
+                
+                # Update num_features if it exists
                 if hasattr(clients_data[i], 'num_features'):
-                    # Store the original dimension
-                    clients_data[i].original_num_features = clients_data[i].num_features
-                    # Set the new dimension including positional encoding
-                    clients_data[i].num_features = clients_data[i].x.size(1) + rfp.size(1)
+                    clients_data[i].num_features = clients_data[i].x.size(1)
         
         final_subgraphs = clients_data
 

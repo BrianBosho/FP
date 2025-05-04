@@ -21,7 +21,7 @@ def get_symmetrically_normalized_adjacency(edge_index: Tensor, num_nodes: int):
 
 
 def generate_rfp_encoding(edge_index: Tensor, num_nodes: int,
-                          r: int = 8, P: int = 4,
+                          r: int = 64, P: int = 16,
                           normalize: str = "l2",
                           device: str = "cpu") -> Tensor:
     """
