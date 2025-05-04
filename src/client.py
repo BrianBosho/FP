@@ -39,13 +39,13 @@ class FLClient:
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
-                self.model = GCN_arxiv(input_dim=self.data.x.size(1), hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
+                self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
             elif self.dataset_name == "ogbn-products":
-                self.model = GraphSAGEProducts(input_dim=self.data.x.size(1), hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
+                self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
             else:
-                self.model = GCN(self.data.x.size(1), 16, dataset.num_classes).to(self.device)
+                self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":
-            self.model = GAT(self.data.x.size(1), 16, dataset.num_classes).to(self.device)
+            self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
 
         self.epochs = cfg["epochs"]
         

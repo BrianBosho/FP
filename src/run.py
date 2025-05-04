@@ -101,14 +101,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     print(dataset)
     print(len(clients_data))
     
-    # Get feature dimensions for debugging
-    client_feat_dim = clients_data[0].x.size(1)
-    dataset_feat_dim = dataset.num_features
-    print(f"Feature dimensions: Dataset={dataset_feat_dim}, Client={client_feat_dim}")
-    
     rounds = cfg['num_rounds']
-    # Use client feature dimension for the model
-    model = instantiate_model(model_type, client_feat_dim, dataset.num_classes, DEVICE, dataset_name)
+    model = instantiate_model(model_type, dataset.num_features, dataset.num_classes, DEVICE, dataset_name)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
 
@@ -129,10 +123,16 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     are_params_identical = compare_model_parameters(server.model, server.clients)
     print(f"\nAll model parameters are identical: {are_params_identical}")
 
-    # Always use client data for testing to ensure consistent feature dimensions
-    test_results = server.test_global_model(clients_data[0])
-    # Test with individual clients
-    client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+    if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
+        test_results = server.test_global_model(clients_data[0])
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+    else:
+        test_results = server.test_global_model(dataset)
+        # Don't move the entire test datasets to device at once
+        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+    
+
     
     average_results = sum(client_test_results) / len(client_test_results)
     print(f"The average client test results: {average_results}")
@@ -186,7 +186,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(1):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)

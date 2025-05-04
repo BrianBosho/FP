@@ -75,5 +75,3 @@ ENV/
 ehthumbs.db
 Thumbs.db
 archive/
-
-src/results.csv
