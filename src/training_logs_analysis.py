@@ -1,6 +1,6 @@
 import pandas as pd
 import ast
-
+import json
 def parse_client_csv(file_path):
     """
     Parses a federated training CSV with embedded epoch logs into structured DataFrames.
@@ -67,4 +67,62 @@ def parse_client_csv(file_path):
         'epoch_acc_df': epoch_acc_df,
         'final_loss_df': final_loss_df,     # <--- NEW
         'final_acc_df': final_acc_df 
+    }
+
+
+
+def process_fp_logs(filepath):
+    # Load JSON from file
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+    
+    clients = data.get("clients", [])
+    
+    summary_data = []
+    deltas_data = {}
+    energy_raw_data = {}
+    energy_per_node_data = {}
+    energy_per_edge_data = {}
+
+    for client in clients:
+        client_id = client["client_id"]
+
+        # Deltas
+        deltas = client.get("deltas", [])
+        deltas_data[client_id] = deltas
+
+        # Energies
+        energies = client.get("energies", [])
+        energy_raw_data[client_id] = [e["raw"] for e in energies]
+        energy_per_node_data[client_id] = [e["per_node"] for e in energies]
+        energy_per_edge_data[client_id] = [e["per_edge"] for e in energies]
+
+        # Summary (excluding deltas and energies)
+        summary_entry = {k: v for k, v in client.items() if k not in ["deltas", "energies"]}
+        summary_data.append(summary_entry)
+    
+    # Create DataFrames
+    fp_stats_df = pd.DataFrame(summary_data)
+    # find missing rate by dividign num_missing by num_nodes
+    fp_stats_df["missing_rate"] = fp_stats_df["nodes_unknown"] / fp_stats_df["nodes_total"]
+        
+    deltas_df = pd.DataFrame.from_dict(deltas_data, orient='columns')
+    deltas_df.index.name = 'iteration'
+
+    energy_raw_df = pd.DataFrame.from_dict(energy_raw_data, orient='columns')
+    energy_raw_df.index.name = 'iteration'
+
+    energy_per_node_df = pd.DataFrame.from_dict(energy_per_node_data, orient='columns')
+    energy_per_node_df.index.name = 'iteration'
+
+    energy_per_edge_df = pd.DataFrame.from_dict(energy_per_edge_data, orient='columns')
+    energy_per_edge_df.index.name = 'iteration'
+
+    # Return as dictionary of DataFrames
+    return {
+        "fp_stats_df": fp_stats_df,
+        "deltas_df": deltas_df,
+        "energy_raw_df": energy_raw_df,
+        "energy_per_node_df": energy_per_node_df,
+        "energy_per_edge_df": energy_per_edge_df
     }
