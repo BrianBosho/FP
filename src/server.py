@@ -86,11 +86,17 @@ class Server():
         # Clear memory before testing
         torch.cuda.empty_cache()
         gc.collect()
+
+        # check the input dim of the model being tested
+        print(f"Input dim of the model in server: {self.model.dim_in}")
+        # check the input dim of the data
+        print(f"Input dim of the test data in server: {data.x.shape[1]}")
         
         self.model.to(self.device)
         
         # Don't move the entire data to device at once
         # data = data.to(self.device)
+        return 0
         
         # Check if this is a large dataset that requires mini-batching
         use_minibatch = False

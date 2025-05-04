@@ -190,7 +190,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(1):  # Change 1 to the desired number of repetitions
+        for i in range(2):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
                 test_results.append(global_results)
