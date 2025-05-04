@@ -96,7 +96,7 @@ class Server():
         
         # Don't move the entire data to device at once
         # data = data.to(self.device)
-        return 0
+        # return 0
         
         # Check if this is a large dataset that requires mini-batching
         use_minibatch = False

@@ -1,6 +1,9 @@
 from dataprocessing.datasets import GraphDataset
 from dataprocessing.partitioning import partition_data
 from typing import Tuple, List, Optional
+from dataprocessing.positional_encoding import generate_rfp_encoding
+import torch
+import torch.nn.functional as F
 
 # Note: Datasets are now loaded from the root-level 'datasets' folder
 # instead of being stored in the src directory. This change is implemented
@@ -69,7 +72,25 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         print(f"Warning: Unrecognized imputation method '{imputation_method}'. Using default (zero imputation).")
 
     data, dataset = load_dataset(name, device)
+    use_pe = True
+    use_pe = use_feature_prop and use_pe
+    # Inject RFP positional coding into global data.x (for global evaluation)
+  
     clients_data, test_data,  _ = partition_data(data, num_clients, beta, device, hop=hop, use_feature_prop=use_feature_prop, full_data=full_data, fulltraining_flag=fulltraining_flag, mode=propagation_mode)
+    
+    if use_pe:
+        rfp = generate_rfp_encoding(
+            edge_index=data.edge_index,
+            num_nodes=data.num_nodes,
+            r=64,           # match what clients use (e.g., pe_r)
+            P=16,           # match what clients use (e.g., pe_P)
+            normalize="qr",
+            device=device
+        )
+        orig_features = F.normalize(data.x.to(device), p=2, dim=1)
+        rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5  # use same rfp_alpha as clients
+        data.x = torch.cat([orig_features, rfp_norm], dim=1)
+    
     return data, dataset, clients_data, test_data
 
 def load_and_split_with_feature_prop(name: str, device, num_clients: int = 10, beta: float = 0.5, hop: int = 2, use_feature_prop: bool = True, full_data: bool = False, fulltraining_flag: bool = False):

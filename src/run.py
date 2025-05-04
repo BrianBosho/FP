@@ -132,7 +132,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         # Don't move the entire test datasets to device at once
         client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
     else:
-        test_results = server.test_global_model(dataset)
+        test_results = server.test_global_model(data)
         # Don't move the entire test datasets to device at once
         client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
     

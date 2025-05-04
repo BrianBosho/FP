@@ -138,61 +138,37 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
-                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
-                  mode: str = "propagation", use_pe: bool = False, pe_r: int = 16, pe_P: int = 4) -> tuple[list, list, list]:
+                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
+                   mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16) -> tuple[list, list, list]:
     """
-    Main partitioning function that handles both feature propagation and non-feature propagation cases.
-    
-    Args:
-        data: PyG Data object containing the graph
-        num_clients: Number of clients for partitioning
-        beta: Dirichlet concentration parameter
-        device: Device to run computations on
-        hop: Number of hops for subgraph expansion
-        use_feature_prop: Whether to use feature propagation
-        full_data: If True, use all node features in k-hop neighborhood
-        fulltraining_flag: If True, use all masks from k-hop subgraph
-        mode: Feature propagation mode
-        use_pe: Whether to use positional encoding before feature propagation (default: False)
-        pe_r: Dimensionality of random features for positional encoding
-        pe_P: Number of propagation steps for positional encoding
+    Main partitioning function that handles both feature propagation and positional encoding.
     """
-    # Move data to CPU for initial processing
+    import time, os, json
     DEVICE = device
     labels = data.y.cpu().numpy()
     N = len(labels)
     K = len(np.unique(labels))
     initial_graph_de = compute_dirichlet_energy(data.x, data.edge_index)
 
-
-    # Get initial partition
     split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
-    
-    # Create test data
     initial_subgraphs = [create_subgraph(data, indices, device) for indices in split_data_indexes]
 
+    clients_data = []
     if hop > 0:
-        # get k-hop subgraph for each client
-        clients_data = []
         for i in range(num_clients):
             subgraph, node_map, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device, full_data, fulltraining_flag)
             clients_data.append(subgraph)
-        
-        # clients_data = k_hop_subgraphs
     else:
         clients_data = initial_subgraphs    
-   
+
+    use_pe = use_feature_prop and use_pe
+
+    # Setup logging if needed
     if use_feature_prop:
-        # Create a timestamp-based experiment ID
-        import time, os, json
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         experiment_id = f"prop_exp_{timestamp}_{mode}_beta_{beta}_hop_{hop}"
-        
-        # Create logs directory if it doesn't exist
         logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
         os.makedirs(logs_dir, exist_ok=True)
-        
-        # Create experiment JSON file with metadata
         json_file = os.path.join(logs_dir, f"{experiment_id}.json")
         experiment_data = {
             "experiment_id": experiment_id,
@@ -208,92 +184,213 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         }
         with open(json_file, 'w') as f:
             json.dump(experiment_data, f)
-        
-        # Apply feature propagation to each client's subgraph
-        final_subgraphs = []
-        for i in range(num_clients):
-            # Get the original node mapping if available
-            original_nodes_mask = None
-            if hasattr(clients_data[i], 'mapping'):
-                # Create mask based on original node mapping
-                original_nodes_mask = torch.zeros(clients_data[i].num_nodes, dtype=torch.bool, device=DEVICE)
-                original_nodes_mask[clients_data[i].mapping] = True
-            else:
-                # Fallback to checking for zero vectors
-                zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
-                original_nodes_mask = ~zero_vector_mask
-            
-            # Step 1: First generate and add positional encodings if requested
-            if use_pe:
-                # Store original dimension before concatenation
-                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
-                
-                # Generate RFP encoding with L2 normalization
-                rfp = generate_rfp_encoding(
-                    edge_index=clients_data[i].edge_index,
-                    num_nodes=clients_data[i].num_nodes,
-                    r=pe_r, 
-                    P=pe_P,
-                    normalize="qr",  # Use QR for better orthogonality
-                    device=DEVICE
-                )
-                
-                # Normalize both features before concatenation
-                orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
-                rfp_norm = F.normalize(rfp, p=2, dim=1)
-                
-                # Concatenate normalized features
-                clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
-                
-                # Update num_features if it exists
-                if hasattr(clients_data[i], 'num_features'):
-                    clients_data[i].num_features = clients_data[i].x.size(1)
-            
-            # Step 2: Then propagate features using original node mask
+
+    final_subgraphs = []
+    for i in range(num_clients):
+        # Determine original node mask
+        if hasattr(clients_data[i], 'mapping'):
+            original_nodes_mask = torch.zeros(clients_data[i].num_nodes, dtype=torch.bool, device=DEVICE)
+            original_nodes_mask[clients_data[i].mapping] = True
+        else:
+            zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
+            original_nodes_mask = ~zero_vector_mask
+
+        # Step 1: Feature Propagation comes first
+        if use_feature_prop:
             clients_data[i].x = propagate_features(
                 clients_data[i].x, 
                 clients_data[i].edge_index, 
-                original_nodes_mask,  # Use original node mask for propagation
+                original_nodes_mask,
                 DEVICE, 
                 mode=mode,
                 client_id=i,
                 log_file=json_file
             )
-            
-            final_subgraphs.append(clients_data[i])
-        
-        print(f"Feature propagation logs saved to: {json_file}")
-    else:
-        # Even if we're not using feature propagation, we can still generate PE if requested
+
+        # Step 2: Then Positional Encoding (if requested)
         if use_pe:
-            for i in range(num_clients):
-                # Generate RFP encoding
-                rfp = generate_rfp_encoding(
-                    edge_index=clients_data[i].edge_index,
-                    num_nodes=clients_data[i].num_nodes,
-                    r=pe_r, 
-                    P=pe_P,
-                    normalize="qr",  # Use QR for better orthogonality
-                    device=DEVICE
-                )
-                
-                # Store original feature dimension before concatenation
-                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
-                
-                # Normalize both features before concatenation
-                orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
-                rfp_norm = F.normalize(rfp, p=2, dim=1)
-                
-                # Concatenate normalized features
-                clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
-                
-                # Update num_features if it exists
-                if hasattr(clients_data[i], 'num_features'):
-                    clients_data[i].num_features = clients_data[i].x.size(1)
-        
-        final_subgraphs = clients_data
+            clients_data[i].original_feature_dim = clients_data[i].x.size(1)
+            rfp = generate_rfp_encoding(
+                edge_index=clients_data[i].edge_index,
+                num_nodes=clients_data[i].num_nodes,
+                r=pe_r, 
+                P=pe_P,
+                normalize="qr",
+                device=DEVICE
+            )
+            orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
+            rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5
+            clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
+
+            if hasattr(clients_data[i], 'num_features'):
+                clients_data[i].num_features = clients_data[i].x.size(1)
+
+        final_subgraphs.append(clients_data[i])
+
+    if use_feature_prop:
+        print(f"Feature propagation logs saved to: {json_file}")
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
+
+
+
+# def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
+#                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
+#                   mode: str = "propagation", use_pe: bool = False, pe_r: int = 16, pe_P: int = 4) -> tuple[list, list, list]:
+#     """
+#     Main partitioning function that handles both feature propagation and non-feature propagation cases.
+    
+#     Args:
+#         data: PyG Data object containing the graph
+#         num_clients: Number of clients for partitioning
+#         beta: Dirichlet concentration parameter
+#         device: Device to run computations on
+#         hop: Number of hops for subgraph expansion
+#         use_feature_prop: Whether to use feature propagation
+#         full_data: If True, use all node features in k-hop neighborhood
+#         fulltraining_flag: If True, use all masks from k-hop subgraph
+#         mode: Feature propagation mode
+#         use_pe: Whether to use positional encoding before feature propagation (default: False)
+#         pe_r: Dimensionality of random features for positional encoding
+#         pe_P: Number of propagation steps for positional encoding
+#     """
+#     # Move data to CPU for initial processing
+#     DEVICE = device
+#     labels = data.y.cpu().numpy()
+#     N = len(labels)
+#     K = len(np.unique(labels))
+#     initial_graph_de = compute_dirichlet_energy(data.x, data.edge_index)
+
+
+#     # Get initial partition
+#     split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
+    
+#     # Create test data
+#     initial_subgraphs = [create_subgraph(data, indices, device) for indices in split_data_indexes]
+
+#     if hop > 0:
+#         # get k-hop subgraph for each client
+#         clients_data = []
+#         for i in range(num_clients):
+#             subgraph, node_map, mapping = create_k_hop_subgraph(data, split_data_indexes[i], hop, device, full_data, fulltraining_flag)
+#             clients_data.append(subgraph)
+        
+#         # clients_data = k_hop_subgraphs
+#     else:
+#         clients_data = initial_subgraphs    
+   
+#     if use_feature_prop:
+#         # Create a timestamp-based experiment ID
+#         import time, os, json
+#         timestamp = time.strftime("%Y%m%d-%H%M%S")
+#         experiment_id = f"prop_exp_{timestamp}_{mode}_beta_{beta}_hop_{hop}"
+        
+#         # Create logs directory if it doesn't exist
+#         logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
+#         os.makedirs(logs_dir, exist_ok=True)
+        
+#         # Create experiment JSON file with metadata
+#         json_file = os.path.join(logs_dir, f"{experiment_id}.json")
+#         experiment_data = {
+#             "experiment_id": experiment_id,
+#             "propagation_mode": mode,
+#             "num_clients": num_clients,
+#             "beta": beta,
+#             "hop": hop,
+#             "initial_energy": initial_graph_de,
+#             "use_pe": use_pe,
+#             "pe_r": pe_r if use_pe else None,
+#             "pe_P": pe_P if use_pe else None,
+#             "clients": []
+#         }
+#         with open(json_file, 'w') as f:
+#             json.dump(experiment_data, f)
+        
+#         # Apply feature propagation to each client's subgraph
+#         final_subgraphs = []
+#         for i in range(num_clients):
+#             # Get the original node mapping if available
+#             original_nodes_mask = None
+#             if hasattr(clients_data[i], 'mapping'):
+#                 # Create mask based on original node mapping
+#                 original_nodes_mask = torch.zeros(clients_data[i].num_nodes, dtype=torch.bool, device=DEVICE)
+#                 original_nodes_mask[clients_data[i].mapping] = True
+#             else:
+#                 # Fallback to checking for zero vectors
+#                 zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
+#                 original_nodes_mask = ~zero_vector_mask
+            
+#             # Step 1: First generate and add positional encodings if requested
+#             if use_pe:
+#                 # Store original dimension before concatenation
+#                 clients_data[i].original_feature_dim = clients_data[i].x.size(1)
+                
+#                 # Generate RFP encoding with L2 normalization
+#                 rfp = generate_rfp_encoding(
+#                     edge_index=clients_data[i].edge_index,
+#                     num_nodes=clients_data[i].num_nodes,
+#                     r=pe_r, 
+#                     P=pe_P,
+#                     normalize="qr",  # Use QR for better orthogonality
+#                     device=DEVICE
+#                 )
+                
+#                 # Normalize both features before concatenation
+#                 orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
+#                 rfp_norm = F.normalize(rfp, p=2, dim=1)
+                
+#                 # Concatenate normalized features
+#                 clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
+                
+#                 # Update num_features if it exists
+#                 if hasattr(clients_data[i], 'num_features'):
+#                     clients_data[i].num_features = clients_data[i].x.size(1)
+            
+#             # Step 2: Then propagate features using original node mask
+#             clients_data[i].x = propagate_features(
+#                 clients_data[i].x, 
+#                 clients_data[i].edge_index, 
+#                 original_nodes_mask,  # Use original node mask for propagation
+#                 DEVICE, 
+#                 mode=mode,
+#                 client_id=i,
+#                 log_file=json_file
+#             )
+            
+#             final_subgraphs.append(clients_data[i])
+        
+#         print(f"Feature propagation logs saved to: {json_file}")
+#     else:
+#         # Even if we're not using feature propagation, we can still generate PE if requested
+#         if use_pe:
+#             for i in range(num_clients):
+#                 # Generate RFP encoding
+#                 rfp = generate_rfp_encoding(
+#                     edge_index=clients_data[i].edge_index,
+#                     num_nodes=clients_data[i].num_nodes,
+#                     r=pe_r, 
+#                     P=pe_P,
+#                     normalize="qr",  # Use QR for better orthogonality
+#                     device=DEVICE
+#                 )
+                
+#                 # Store original feature dimension before concatenation
+#                 clients_data[i].original_feature_dim = clients_data[i].x.size(1)
+                
+#                 # Normalize both features before concatenation
+#                 orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
+#                 rfp_norm = F.normalize(rfp, p=2, dim=1)
+                
+#                 # Concatenate normalized features
+#                 clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
+                
+#                 # Update num_features if it exists
+#                 if hasattr(clients_data[i], 'num_features'):
+#                     clients_data[i].num_features = clients_data[i].x.size(1)
+        
+#         final_subgraphs = clients_data
+
+#     return final_subgraphs, initial_subgraphs, split_data_indexes
 
 def reset_subgraph_features(subset_data: Data, mapping: torch.Tensor) -> Data:
 
