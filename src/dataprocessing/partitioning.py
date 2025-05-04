@@ -225,26 +225,22 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             
             # Step 1: First generate and add positional encodings if requested
             if use_pe:
-                # Generate RFP encoding 
+                # Store original dimension before concatenation
+                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
+                
+                # Generate RFP encoding with L2 normalization
                 rfp = generate_rfp_encoding(
                     edge_index=clients_data[i].edge_index,
                     num_nodes=clients_data[i].num_nodes,
                     r=pe_r, 
                     P=pe_P,
-                    normalize="qr",
+                    normalize="qr",  # Use QR for better orthogonality
                     device=DEVICE
                 )
                 
-                # Store original dimension before concatenation
-                clients_data[i].original_feature_dim = clients_data[i].x.size(1)
-                
-                # Normalize features before concatenation for better integration
-                # Scale factor to balance the contribution of positional encodings
-                alpha = 0.5  # Can be tuned as a hyperparameter
-                
-                # Apply L2 normalization to both feature sets
+                # Normalize both features before concatenation
                 orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
-                rfp_norm = F.normalize(rfp, p=2, dim=1) * alpha
+                rfp_norm = F.normalize(rfp, p=2, dim=1)
                 
                 # Concatenate normalized features
                 clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
@@ -277,20 +273,16 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                     num_nodes=clients_data[i].num_nodes,
                     r=pe_r, 
                     P=pe_P,
-                    normalize="l2",
+                    normalize="qr",  # Use QR for better orthogonality
                     device=DEVICE
                 )
                 
                 # Store original feature dimension before concatenation
                 clients_data[i].original_feature_dim = clients_data[i].x.size(1)
                 
-                # Normalize features before concatenation for better integration
-                # Scale factor to balance the contribution of positional encodings
-                alpha = 0.5  # Can be tuned as a hyperparameter
-                
-                # Apply L2 normalization to both feature sets
+                # Normalize both features before concatenation
                 orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
-                rfp_norm = F.normalize(rfp, p=2, dim=1) * alpha
+                rfp_norm = F.normalize(rfp, p=2, dim=1)
                 
                 # Concatenate normalized features
                 clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
