@@ -43,7 +43,7 @@ class FLClient:
             elif self.dataset_name == "ogbn-products":
                 self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
             else:
-                self.model = GCN(dataset.num_features, 16, dataset.num_classes).to(self.device)
+                self.model = GCN(1473, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":
             self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
 

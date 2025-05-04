@@ -3,6 +3,7 @@ import numpy as np
 from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
 from dataprocessing.data_utils import propagate_features, compute_dirichlet_energy
+from dataprocessing.positional_encoding import generate_rfp_encoding
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -136,9 +137,24 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
-                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, mode: str = "propagation") -> tuple[list, list, list]:
+                  use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
+                  mode: str = "propagation", use_pe: bool = True, pe_r: int = 8, pe_P: int = 4) -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and non-feature propagation cases.
+    
+    Args:
+        data: PyG Data object containing the graph
+        num_clients: Number of clients for partitioning
+        beta: Dirichlet concentration parameter
+        device: Device to run computations on
+        hop: Number of hops for subgraph expansion
+        use_feature_prop: Whether to use feature propagation
+        full_data: If True, use all node features in k-hop neighborhood
+        fulltraining_flag: If True, use all masks from k-hop subgraph
+        mode: Feature propagation mode
+        use_pe: Whether to use positional encoding before feature propagation (default: False)
+        pe_r: Dimensionality of random features for positional encoding
+        pe_P: Number of propagation steps for positional encoding
     """
     # Move data to CPU for initial processing
     DEVICE = device
@@ -184,6 +200,9 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             "beta": beta,
             "hop": hop,
             "initial_energy": initial_graph_de,
+            "use_pe": use_pe,
+            "pe_r": pe_r if use_pe else None,
+            "pe_P": pe_P if use_pe else None,
             "clients": []
         }
         with open(json_file, 'w') as f:
@@ -195,7 +214,32 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
             non_zero_vector_mask = ~zero_vector_mask
             
-            # Pass the JSON file path to propagate_features
+            # Step 1: Generate positional encodings if requested and store separately
+            if use_pe:
+                # Generate RFP encoding 
+                rfp = generate_rfp_encoding(
+                    edge_index=clients_data[i].edge_index,
+                    num_nodes=clients_data[i].num_nodes,
+                    r=pe_r, 
+                    P=pe_P,
+                    normalize="l2",
+                    device=DEVICE
+                )
+                
+                # Store the positional encoding as a separate attribute
+                # This doesn't change the x feature matrix used by the model
+                clients_data[i].pe_features = rfp
+                clients_data[i].has_pe = True
+                
+                # Important: update the dataset's num_features attribute to match the total dimension
+                # This will be read by the client when initializing the model
+                if hasattr(clients_data[i], 'num_features'):
+                    # Store the original dimension
+                    clients_data[i].original_num_features = clients_data[i].num_features
+                    # Set the new dimension including positional encoding
+                    clients_data[i].num_features = clients_data[i].x.size(1) + rfp.size(1)
+            
+            # Step 2: Apply feature propagation on original features
             clients_data[i].x = propagate_features(
                 clients_data[i].x, 
                 clients_data[i].edge_index, 
@@ -205,12 +249,36 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 client_id=i,
                 log_file=json_file
             )
+            
             final_subgraphs.append(clients_data[i])
-        
-       
         
         print(f"Feature propagation logs saved to: {json_file}")
     else:
+        # Even if we're not using feature propagation, we can still generate PE if requested
+        if use_pe:
+            for i in range(num_clients):
+                # Generate RFP encoding
+                rfp = generate_rfp_encoding(
+                    edge_index=clients_data[i].edge_index,
+                    num_nodes=clients_data[i].num_nodes,
+                    r=pe_r, 
+                    P=pe_P,
+                    normalize="l2",
+                    device=DEVICE
+                )
+                
+                # Store the positional encoding as a separate attribute
+                clients_data[i].pe_features = rfp
+                clients_data[i].has_pe = True
+                
+                # Important: update the dataset's num_features attribute to match the total dimension
+                # This will be read by the client when initializing the model
+                if hasattr(clients_data[i], 'num_features'):
+                    # Store the original dimension
+                    clients_data[i].original_num_features = clients_data[i].num_features
+                    # Set the new dimension including positional encoding
+                    clients_data[i].num_features = clients_data[i].x.size(1) + rfp.size(1)
+        
         final_subgraphs = clients_data
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
