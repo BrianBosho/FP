@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
-from dataprocessing.data_utils import propagate_features
+from dataprocessing.data_utils import propagate_features, compute_dirichlet_energy
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -145,6 +145,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     labels = data.y.cpu().numpy()
     N = len(labels)
     K = len(np.unique(labels))
+    initial_graph_de = compute_dirichlet_energy(data.x, data.edge_index)
 
 
     # Get initial partition
@@ -168,7 +169,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         # Create a timestamp-based experiment ID
         import time, os, json
         timestamp = time.strftime("%Y%m%d-%H%M%S")
-        experiment_id = f"prop_exp_{timestamp}_{mode}"
+        experiment_id = f"prop_exp_{timestamp}_{mode}_beta_{beta}_hop_{hop}"
         
         # Create logs directory if it doesn't exist
         logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
@@ -182,6 +183,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             "num_clients": num_clients,
             "beta": beta,
             "hop": hop,
+            "initial_energy": initial_graph_de,
             "clients": []
         }
         with open(json_file, 'w') as f:

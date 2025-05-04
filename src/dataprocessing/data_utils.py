@@ -102,6 +102,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             "nodes_total": x.size(0),
             "nodes_known": mask.sum().item(),
             "nodes_unknown": (x.size(0) - mask.sum()).item(),
+            "num_edges": edge_index.size(1),
             "mode": mode,
             "alpha": alpha,
             "deltas": [],
@@ -109,7 +110,8 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             "converged": False,
             "runtime": 0,
             "initial_zeros": (x == 0).all(dim=1).sum().item(),
-            "final_zeros": 0
+            "final_zeros": 0,
+            "energies": []
         }
     
     # Initialize output tensor
@@ -188,6 +190,8 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         if logging_enabled and prev_out is not None:
             delta = torch.norm(out - prev_out).item()
             metrics["deltas"].append(delta)
+            energy = compute_dirichlet_energy(out, edge_index)
+            metrics["energies"].append(energy)
         
         # Check for convergence
         if prev_out is not None and torch.allclose(out, prev_out, rtol=1e-5):
@@ -218,4 +222,29 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             json.dump(experiment_data, f, indent=2)
     
     return out
+
+def compute_dirichlet_energy(features: torch.Tensor, edge_index: torch.Tensor) -> dict:
+    """
+    Compute raw and normalized Dirichlet energy of a feature matrix on a graph.
+
+    Returns a dict with:
+    - 'raw': unnormalized energy
+    - 'per_node': energy normalized by number of nodes
+    - 'per_edge': energy normalized by number of edges
+    """
+    row, col = edge_index[0], edge_index[1]
+    diffs = features[row] - features[col]  # shape: [num_edges, feature_dim]
+    squared_norms = torch.sum(diffs ** 2, dim=1)  # shape: [num_edges]
+    raw_energy = 0.5 * torch.sum(squared_norms).item()
+
+    num_nodes = features.size(0)
+    num_edges = edge_index.size(1)
+
+    return {
+        "raw": raw_energy,
+        "per_node": raw_energy / num_nodes,
+        "per_edge": raw_energy / num_edges
+    }
+
+
 
