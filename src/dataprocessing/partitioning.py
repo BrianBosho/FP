@@ -231,7 +231,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                     num_nodes=clients_data[i].num_nodes,
                     r=pe_r, 
                     P=pe_P,
-                    normalize="l2",
+                    normalize="qr",
                     device=DEVICE
                 )
                 
