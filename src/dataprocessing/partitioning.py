@@ -139,12 +139,38 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
 
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
                    use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
-                   mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16) -> tuple[list, list, list]:
+                   mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16, 
+                   config: dict = None) -> tuple[list, list, list]:
     """
     Main partitioning function that handles both feature propagation and positional encoding.
+    
+    Args:
+        data: PyG Data object containing the graph
+        num_clients: Number of clients for partitioning
+        beta: Dirichlet concentration parameter
+        device: Device to run computations on
+        hop: Number of hops for subgraph expansion
+        use_feature_prop: Whether to use feature propagation
+        full_data: If True, use all node features in k-hop neighborhood
+        fulltraining_flag: If True, use all masks from k-hop subgraph
+        mode: Feature propagation mode
+        use_pe: Whether to use positional encoding (default: True)
+        pe_r: Dimensionality of random features for positional encoding (default: 64)
+        pe_P: Number of propagation steps for positional encoding (default: 16)
+        config: Configuration dictionary from YAML file (optional)
     """
     import time, os, json
     DEVICE = device
+    
+    # Update parameters from config if provided
+    if config is not None:
+        use_pe = config.get("use_pe", use_pe)
+        pe_r = config.get("pe_r", pe_r)
+        pe_P = config.get("pe_P", pe_P)
+        normalize = config.get("normalize", "qr")  # Get normalization method
+    else:
+        normalize = "qr"
+    
     labels = data.y.cpu().numpy()
     N = len(labels)
     K = len(np.unique(labels))
@@ -167,7 +193,16 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     if use_feature_prop:
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         experiment_id = f"prop_exp_{timestamp}_{mode}_beta_{beta}_hop_{hop}"
-        logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
+        
+        # Determine logs directory from config or use default
+        if config is not None and "results_dir" in config:
+            # Use results directory from config if available
+            results_dir = config.get("results_dir")
+            logs_dir = os.path.join(results_dir, "propagation_stats")
+        else:
+            # Use default logs directory
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs", "propagation_stats")
+        
         os.makedirs(logs_dir, exist_ok=True)
         json_file = os.path.join(logs_dir, f"{experiment_id}.json")
         experiment_data = {
@@ -180,6 +215,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             "use_pe": use_pe,
             "pe_r": pe_r if use_pe else None,
             "pe_P": pe_P if use_pe else None,
+            "normalize": normalize if use_pe else None,
             "clients": []
         }
         with open(json_file, 'w') as f:
@@ -215,7 +251,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 num_nodes=clients_data[i].num_nodes,
                 r=pe_r, 
                 P=pe_P,
-                normalize="qr",
+                normalize=normalize,
                 device=DEVICE
             )
             orig_features = F.normalize(clients_data[i].x, p=2, dim=1)

@@ -1,8 +1,7 @@
 num_clients:
-  - 2
   - 10
-num_rounds: 3
-epochs: 2
+num_rounds: 300
+epochs: 3
 beta:
   - 1
   - 10000
@@ -12,13 +11,17 @@ datasets:
   - Citeseer
   - Pubmed
 data_loading:
-  - full
-  - adjacency
-  - zero-hop
   - diffusion
+  - adjacency
+  - full
+  - zero_hop
 models:
-  - GCN
-results_dir: results/multi_ablation_test_pe
+  - GAT
+results_dir: results/GAT_final/planetoid_300_rounds_no_pe
 save_results: true
 hop: 1
-fulltraining_flag: false 
+fulltraining_flag: false
+use_pe: False
+pe_r: 64
+pe_P: 16
+normalize: qr

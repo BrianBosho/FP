@@ -1,0 +1,24 @@
+num_clients:
+  - 10
+num_rounds: 300
+epochs: 3
+beta:
+  - 1
+  - 10000
+lr: 0.5
+datasets:
+   - Pubmed
+data_loading:
+  - zero_hop
+  - adjacency
+  - full
+models:
+  - GCN
+results_dir: results/publmed_300_rounds_NO_PE
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe: false
+pe_r: 64
+pe_P: 16
+normalize: qr

@@ -37,10 +37,16 @@ def load_yaml_config(config_path):
         config = yaml.safe_load(file)
     return config
 
-def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp):
+def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, pe_info=None):
     """Setup environment variables to redirect CSV output to experiment directory"""
     # Create experiment directory path
     experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}_beta{beta_value}_clients{clients_num}"
+    # Add PE info to experiment name if provided
+    if pe_info and pe_info.get("use_pe"):
+        pe_str = f"_pe{pe_info.get('pe_r', 'NA')}_{pe_info.get('pe_P', 'NA')}"
+        experiment_name += pe_str
+
+
     exp_dir = os.path.join(results_dir, experiment_name)
     os.makedirs(exp_dir, exist_ok=True)
     
@@ -138,51 +144,35 @@ def save_summary_results(summary_rows, all_results, results_dir, config):
     return summary_txt_path, summary_json_path
 
 def run_experiments(args):
-    # Load base configuration from base.yaml
-    base_config_path = "conf/base.yaml"
-    base_cfg = load_config(base_config_path)
-    
-    # Set default values from base.yaml
+    # Start with a minimal default configuration
     cfg = {
-        "num_clients": [base_cfg.get("num_clients", 10)],  # Default as list with single value
-        "num_rounds": base_cfg.get("num_rounds", 10),
-        "epochs": base_cfg.get("epochs", 3),
-        "beta": [base_cfg.get("beta", 1)],  # Default as list with single value
-        "lr": base_cfg.get("lr", 0.5),
-        "fulltraining_flag": base_cfg.get("fulltraining_flag", False),
+        "num_clients": [10],
+        "beta": [1.0],
         "datasets": ["Cora"],
-        "data_loading": ["full", "adjacency", "zero_hop"],
+        "data_loading": ["full"],
         "models": ["GCN"],
-        "results_dir": "results/Planetoid_test_results",
+        "num_rounds": 10,
+        "epochs": 3,
+        "lr": 0.5,
+        "results_dir": "results/experiments",
         "save_results": False,
-        "hop": 1
+        "hop": 1,
+        "fulltraining_flag": False
     }
     
-    # Update with YAML config if provided
+    # If a YAML config is provided, use it as the base configuration
     if args.config:
         yaml_config = load_yaml_config(args.config)
         
-        # Handle beta specially to ensure it's always a list
-        if "beta" in yaml_config:
-            if isinstance(yaml_config["beta"], list):
-                cfg["beta"] = yaml_config["beta"]
-            else:
-                cfg["beta"] = [yaml_config["beta"]]
-            # Remove beta so it's not overwritten in the loop below
-            del yaml_config["beta"]
-            
-        # Handle clients specially to ensure it's always a list
-        if "num_clients" in yaml_config:
-            if isinstance(yaml_config["num_clients"], list):
-                cfg["num_clients"] = yaml_config["num_clients"]
-            else:
-                cfg["num_clients"] = [yaml_config["num_clients"]]
-            # Remove clients so it's not overwritten in the loop below
-            del yaml_config["num_clients"]
+        # Replace the default config with the YAML config
+        cfg = yaml_config
         
-        # Update config with values from YAML (except beta and num_clients)
-        for key, value in yaml_config.items():
-            cfg[key] = value
+        # Ensure iteration parameters are lists
+        for param in ["num_clients", "beta", "datasets", "data_loading", "models"]:
+            if param in cfg and not isinstance(cfg[param], list):
+                # lets print param and cfg[param]
+                print(f"param: {param}, cfg[param]: {cfg[param]}")
+                cfg[param] = [cfg[param]]
     
     # Override with command-line arguments if provided
     if args.clients is not None:
@@ -210,7 +200,7 @@ def run_experiments(args):
     if args.fulltraining_flag:
         cfg["fulltraining_flag"] = args.fulltraining_flag
     
-    # Extract values from the merged configuration
+    # Extract values for iteration
     client_nums = cfg["num_clients"]
     beta_values = cfg["beta"]
     datasets = cfg["datasets"]
@@ -283,13 +273,13 @@ def run_experiments(args):
                         print(f"{'='*80}")
                         
                         # Create a training configuration for the experiment
-                        training_cfg = {
-                            "num_rounds": cfg["num_rounds"],
-                            "epochs": cfg["epochs"],
-                            "lr": cfg["lr"],
-                            "beta": beta,
-                            "fulltraining_flag": fulltraining_flag
-                        }
+                        training_cfg = cfg.copy()  # Pass all parameters through
+                        training_cfg["beta"] = beta
+                        # also overwrite dataset_name, data_loading_option, model_type, clients_num
+                        training_cfg["dataset_name"] = dataset_name
+                        training_cfg["data_loading_option"] = data_loading_option
+                        training_cfg["model_type"] = model_type
+                        training_cfg["clients_num"] = clients_num
                         
                         # Start time measurement
                         start_time = time.time()

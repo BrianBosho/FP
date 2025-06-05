@@ -54,7 +54,7 @@ def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
     DEVICE = device
     return [FLClient.remote(data.to(DEVICE), dataset, i, cfg, device, model_type) for i, data in enumerate(clients_data)]
 
-def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False):
+def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False, config = None):
     """
     Args:
         dat_loading_option: full_dataset, split_dataset, split_dataset_with_khop, split_dataset_with_feature_prop
@@ -64,16 +64,26 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         hop: number of hops for k-hop subgraph
         imputation_method: zero, propagation, full
         fulltraining_flag: if True, use full training
+        config: Configuration dictionary from YAML file (optional)
     """
 
     kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full"]
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name)
     elif data_loading_option == "zero_hop":
-        return load_and_split(dataset_name, device, num_clients, beta)
+        return load_and_split(dataset_name, device, num_clients, beta, config=config)
 
     elif data_loading_option in kh_options:
-        return load_and_split_with_khop(dataset_name, device, num_clients, beta, hop=hop, imputation_method=data_loading_option, fulltraining_flag=fulltraining_flag)
+        return load_and_split_with_khop(
+            dataset_name, 
+            device, 
+            num_clients, 
+            beta, 
+            hop=hop, 
+            imputation_method=data_loading_option, 
+            fulltraining_flag=fulltraining_flag, 
+            config=config
+        )
  
 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
@@ -92,7 +102,16 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     
     print(f"data_loading_option: {data_loading_option}")
 
-    data, dataset, clients_data, test_data = load_data(data_loading_option, num_clients, beta, dataset_name, device=DEVICE, hop=hop, fulltraining_flag=fulltraining_flag)
+    data, dataset, clients_data, test_data = load_data(
+        data_loading_option, 
+        num_clients, 
+        beta, 
+        dataset_name, 
+        device=DEVICE, 
+        hop=hop, 
+        fulltraining_flag=fulltraining_flag,
+        config=cfg  # Pass the config to load_data
+    )
     test_data = clients_data
     print("Data loaded")
     data = data.to(DEVICE)
@@ -145,8 +164,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     return test_results, average_results
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    DEVICE = "cpu"
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # DEVICE = "cpu"
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
@@ -190,9 +209,19 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(5):  # Change 1 to the desired number of repetitions
             try:
-                global_results, client_results = run_with_server(dataset_name, clients_num, beta, data_loading_option, model_type, cfg, DEVICE, hop=1, fulltraining_flag=fulltraining_flag)
+                global_results, client_results = run_with_server(
+                    dataset_name, 
+                    clients_num, 
+                    beta, 
+                    data_loading_option, 
+                    model_type, 
+                    cfg, 
+                    DEVICE, 
+                    hop=hop, 
+                    fulltraining_flag=fulltraining_flag
+                )
                 test_results.append(global_results)
                 client_test_results.append(client_results)
                 print(f"Round {i+1} is complete")

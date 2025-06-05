@@ -5,8 +5,8 @@ epochs: 3
 fulltraining_flag: false
 hop: 1
 lr: 0.5
-model: GCN
+models: GAT
 num_clients: 10
 num_rounds: 10
-results_dir: results/simple_experiment
+results_dir: results/new_simple_experiment
 save_results: true

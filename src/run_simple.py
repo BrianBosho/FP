@@ -94,14 +94,17 @@ def run_simple_experiment(args):
     lr = yaml_config.get("lr", 0.5)
     
     # Create a training configuration for the experiment
-    training_cfg = {
-        "num_rounds": num_rounds,
-        "epochs": epochs,
-        "lr": lr,
-        "beta": beta,
-        "fulltraining_flag": fulltraining_flag
-    }
-    
+ # Use the entire YAML config instead of just a subset
+    training_cfg = yaml_config.copy()  # Copy the complete config
+
+    # Ensure critical parameters are present with defaults
+    training_cfg.setdefault("num_rounds", num_rounds)
+    training_cfg.setdefault("epochs", epochs)
+    training_cfg.setdefault("lr", lr)
+    training_cfg.setdefault("beta", beta)
+    training_cfg.setdefault("fulltraining_flag", fulltraining_flag)
+    training_cfg.setdefault("hop", hop)
+    training_cfg.setdefault("results_dir", results_dir)
     # Ensure Ray is shut down before starting
     try:
         ray.shutdown()
