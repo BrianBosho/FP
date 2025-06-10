@@ -209,7 +209,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(5):  # Change 1 to the desired number of repetitions
+        for i in range(1):  # Change 1 to the desired number of repetitions
             try:
                 global_results, client_results = run_with_server(
                     dataset_name, 
