@@ -10,18 +10,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 
-def train(model, data, epochs, optimizer, criterion, writer):
-
+def train(model, data, epochs, optimizer, criterion, writer, patience=10, model_path='best_model.pth'):
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
     else:
         adjacency = None
-    # adjacency += torch.eye(len(adjacency))
     
-
-
-    # round_number = config["round_number"]-1
     training_losses = []
     training_accuracies = []
     torch.cuda.empty_cache()
@@ -35,8 +30,14 @@ def train(model, data, epochs, optimizer, criterion, writer):
         if data.x.dim() != 2:
             raise ValueError(f"Node features have incorrect format: {data.x.shape}")
     
-    model.train()
+    # Early stopping variables
+    best_val_loss = float('inf')
+    counter = 0
+    best_epoch = 0
+    
     for epoch in range(epochs):
+        # Training phase
+        model.train()
         optimizer.zero_grad()
         if isinstance(model, VanillaGNN):
             output = model(data.x, adjacency)
@@ -46,35 +47,47 @@ def train(model, data, epochs, optimizer, criterion, writer):
             output = model(data.x)
         else:
             raise ValueError("Unknown model")
-        # out = model(data.x, data.edge_index)
+        
         out = output
         loss = criterion(out[data.train_mask], data.y[data.train_mask])
         loss.backward()
-         # Apply gradient clipping
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
-
         optimizer.step()
 
         training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / data.train_mask.sum().item()
-        # global_epoch = round_number * epochs + epoch
-        # writer.add_scalar(f'Loss/train_round_{round_number}', loss, epoch) 
         training_losses.append(loss.item())
         training_accuracies.append(training_acc)
+        
         if writer is not None:
             writer.add_scalar('Loss/train', loss, epoch)
-            # write training accuracy
             writer.add_scalar('Accuracy/train', training_acc, epoch)
-         
-        # if epoch % 2 == 0:
-        logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}')
+        
+        # Validation phase
+        val_loss, val_acc = evaluate(model, data, criterion)
+        
+        if writer is not None:
+            writer.add_scalar('Loss/val', val_loss, epoch)
+            writer.add_scalar('Accuracy/val', val_acc, epoch)
+        
+        logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
+        
+        # Early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            counter = 0
+            best_epoch = epoch
+            # Save the best model
+            torch.save(model.state_dict(), model_path)
+        else:
+            counter += 1
+            if counter >= patience:
+                logging.info(f'Early stopping at epoch {epoch}. Best epoch: {best_epoch}')
+                break
     
-    # evaluate the model by calling hr the evaluate function
-    loss, acc = evaluate(model, data, criterion)
-    logging.info(f'Epoch {epoch:>3}| Validation Loss: {loss:.3f}, Validation Accuracy: {acc:.3f}')
-
-
-    return loss, training_acc, training_losses, training_accuracies
+    # Load the best model
+    model.load_state_dict(torch.load(model_path))
+    
+    return best_val_loss, training_acc, training_losses, training_accuracies
 
 def evaluate(model, data, criterion):
     model.eval()

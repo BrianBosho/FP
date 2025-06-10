@@ -21,7 +21,7 @@ class GCN(torch.nn.Module):
     def __init__(self, dim_in, dim_h, dim_out):
         super().__init__()
         self.dim_in = dim_in
-        self.dim_h = dim_h
+        self.dim_h = 64
         self.dim_out = dim_out
         self.gcn1 = GCNConv(dim_in, dim_h)
         self.gcn2 = GCNConv(dim_h, dim_out)

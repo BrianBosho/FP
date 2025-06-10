@@ -1,0 +1,19 @@
+num_clients:
+  - 1
+num_rounds: 200
+epochs: 1
+beta:
+  - 1
+lr: 0.01
+datasets:
+  - Cora
+data_loading:
+  - zero_hop
+models:
+  - GCN
+results_dir: results/pubmed_tests
+save_results: true
+hop: 0
+fulltraining_flag: false
+use_pe: false
+normalize: qr

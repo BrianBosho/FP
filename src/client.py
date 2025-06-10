@@ -56,9 +56,14 @@ class FLClient:
         self.batch_size = cfg.get("batch_size", DEFAULT_BATCH_SIZE)
         self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
 
-        self.optimizer = torch.optim.SGD(
-            self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
-        )
+        # self.optimizer = torch.optim.SGD(
+        #     self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
+        # )
+
+        # optimizer with weight decay
+        optimizer = torch.optim.Adam(self.model.parameters(),
+                                    lr=0.01,
+                                    weight_decay=5e-4)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.writer = None
 
