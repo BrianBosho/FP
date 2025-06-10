@@ -61,7 +61,7 @@ class FLClient:
         # )
 
         # optimizer with weight decay
-        optimizer = torch.optim.Adam(self.model.parameters(),
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
                                     lr=0.01,
                                     weight_decay=5e-4)
         self.criterion = torch.nn.CrossEntropyLoss()
