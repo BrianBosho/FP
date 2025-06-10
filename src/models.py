@@ -127,6 +127,37 @@ class GAT(torch.nn.Module):
         return F.log_softmax(h, dim=1)
 
 
+class PubmedGAT(torch.nn.Module):
+    def __init__(self, dim_in, dim_h, dim_out, heads=16):
+        super().__init__()
+        self.dim_in = dim_in
+        self.dim_h = dim_h
+        self.dim_out = dim_out
+        self.heads = heads
+        
+        # Three GAT layers with 16 attention heads
+        self.gat1 = GATv2Conv(dim_in, dim_h, heads=heads)
+        self.gat2 = GATv2Conv(dim_h*heads, dim_h, heads=heads)
+        self.gat3 = GATv2Conv(dim_h*heads, dim_out, heads=1)
+
+    def forward(self, x, edge_index):
+        # First layer
+        h = F.dropout(x, p=0.0, training=self.training)
+        h = self.gat1(h, edge_index)
+        h = F.elu(h)
+        
+        # Second layer
+        h = F.dropout(h, p=0.0, training=self.training)
+        h = self.gat2(h, edge_index)
+        h = F.elu(h)
+        
+        # Third layer
+        h = F.dropout(h, p=0.0, training=self.training)
+        h = self.gat3(h, edge_index)
+        
+        return F.log_softmax(h, dim=1)
+
+
 class VanillaGNN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(VanillaGNN, self).__init__()

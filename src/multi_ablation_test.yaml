@@ -17,11 +17,11 @@ data_loading:
   - zero_hop
 models:
   - GAT
-results_dir: results/GAT_final/planetoid_300_rounds_no_pe
+results_dir: results/GAT_final/planetoid_300_rounds_pe
 save_results: true
 hop: 1
 fulltraining_flag: false
-use_pe: False
+use_pe: True
 pe_r: 64
 pe_P: 16
 normalize: qr

@@ -1,0 +1,17 @@
+num_clients: 3
+num_rounds: 3
+epochs: 2
+beta:
+  - 0.1
+  - 1.0
+lr: 0.3
+datasets:
+  - Cora
+data_loading:
+  - full
+models:
+  - GCN
+results_dir: results/client_num_ablation_test
+save_results: false
+hop: 1
+fulltraining_flag: false 
