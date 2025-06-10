@@ -24,6 +24,7 @@ from run_utils import (
     compute_experiment_statistics,
     generate_experiment_output
 )
+import gc
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"DEVICE: {DEVICE}")
@@ -87,17 +88,6 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
  
 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
-    """
-    Run federated learning with a server coordinating multiple clients.
-    Args:
-        num_clients (int): Number of clients participating in federated learning.
-        beta (float): Parameter controlling the degree of non-IID data distribution among clients.
-        data_loading_option (str): Option for loading data, can be "feature_prop", "no_feature_prop", "ogbn-arxiv", or other dataset names.
-        model_type (str): Type of model to be instantiated and used for training.
-        cfg (dict): Configuration dictionary containing various settings such as number of rounds.
-    Returns:
-        tuple: A tuple containing the final global test results and the average client test results.
-    """
     DEVICE = device
     
     print(f"data_loading_option: {data_loading_option}")
@@ -110,7 +100,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         device=DEVICE, 
         hop=hop, 
         fulltraining_flag=fulltraining_flag,
-        config=cfg  # Pass the config to load_data
+        config=cfg
     )
     test_data = clients_data
     print("Data loaded")
@@ -120,7 +110,6 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     print(dataset)
     print(len(clients_data))
 
-    # print shapeof clients_data
     print(f"Shape of clients_data: {clients_data[0].x.shape}")
     input_dim = clients_data[0].x.size(1)
     
@@ -129,43 +118,40 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
 
-    
-    
-    train_results = [server.train_clients(i) for i in range(rounds)]
-    log_training_results(train_results)
-    
-    eval_results = server.evaluate_clients()
-    log_evaluation_results(eval_results)
-    
-    training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
-    save_results_to_csv(training_results)
+    try:
+        train_results = [server.train_clients(i) for i in range(rounds)]
+        log_training_results(train_results)
+        
+        eval_results = server.evaluate_clients()
+        log_evaluation_results(eval_results)
+        
+        training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
+        save_results_to_csv(training_results)
 
-    # After training and before testing
-    
-    # Call the comparison function after training
-    are_params_identical = compare_model_parameters(server.model, server.clients)
-    print(f"\nAll model parameters are identical: {are_params_identical}")
+        are_params_identical = compare_model_parameters(server.model, server.clients)
+        print(f"\nAll model parameters are identical: {are_params_identical}")
 
-    if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
-        test_results = server.test_global_model(clients_data[0])
-        # Don't move the entire test datasets to device at once
-        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
-    else:
-        test_results = server.test_global_model(data)
-        # Don't move the entire test datasets to device at once
-        client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
-    
+        if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
+            test_results = server.test_global_model(clients_data[0])
+            client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+        else:
+            test_results = server.test_global_model(data)
+            client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+        
+        average_results = sum(client_test_results) / len(client_test_results)
+        print(f"The average client test results: {average_results}")
+        print(f"The final global test results: {test_results}")
 
-    
-    average_results = sum(client_test_results) / len(client_test_results)
-    print(f"The average client test results: {average_results}")
-    print(f"The final global test results: {test_results}")
-
-    return test_results, average_results
+        return test_results, average_results
+    finally:
+        # Clean up resources
+        for client in clients:
+            ray.kill(client)
+        torch.cuda.empty_cache()
+        gc.collect()
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # DEVICE = "cpu"
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
@@ -173,11 +159,9 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     # Adjust clients_num based on dataset to avoid OOM
     adjusted_clients = clients_num
     if dataset_name == "ogbn-products":
-        # For very large datasets, reduce the number of clients to prevent OOM
         adjusted_clients = min(5, clients_num)
         print(f"Adjusting number of clients from {clients_num} to {adjusted_clients} for {dataset_name} dataset to prevent memory issues")
     
-    # Create a dictionary to store all results
     results_data = {
         "experiment_config": {
             "device": str(DEVICE),
@@ -195,22 +179,24 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     print(f"Data loading option is {data_loading_option}")
     print(f"Model type is {model_type}")
 
-    # Initialize Ray once at the beginning
     try:
-        # Add memory-related configuration to Ray
+        # Initialize Ray with memory management settings
         ray.init(
             num_gpus=1, 
             ignore_reinit_error=True,
-            # _memory_monitor_refresh_ms=1000,  # More frequent memory monitoring
             object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
             _system_config={
-                "object_spilling_threshold": 0.8,  # Spill objects when 80% full
-                "max_io_workers": 4,  # Limit IO workers for spillage
+                "object_spilling_threshold": 0.8,
+                "max_io_workers": 4,
             }
         )
         
-        for i in range(1):  # Change 1 to the desired number of repetitions
+        for i in range(5):  # Change 1 to the desired number of repetitions
             try:
+                # Clear CUDA cache before each iteration
+                torch.cuda.empty_cache()
+                gc.collect()
+                
                 global_results, client_results = run_with_server(
                     dataset_name, 
                     clients_num, 
@@ -226,7 +212,6 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 client_test_results.append(client_results)
                 print(f"Round {i+1} is complete")
                 
-                # Store round results in the dictionary
                 results_data["rounds"].append({
                     "round": i+1,
                     "global_result": float(global_results),
@@ -234,9 +219,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 })
             except Exception as e:
                 print(f"Error in round {i+1}: {e}")
-                # Continue with the next iteration
+                # Clear resources even if there's an error
+                torch.cuda.empty_cache()
+                gc.collect()
+                continue
         
-        # Rest of the code remains the same
         print(f"The global test results: {test_results}")
         print(f"The client test results: {client_test_results}")
 
@@ -248,10 +235,9 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
         print(f"The average global test results: {average_global_results}")
         print(f"The average client test results: {average_client_results}")
-        print(f"The standad deviation global is: {std_global}")
-        print(f"The standad deviation client is: {std_client}")
+        print(f"The standard deviation global is: {std_global}")
+        print(f"The standard deviation client is: {std_client}")
 
-        # Add summary statistics to the results dictionary
         results_data["summary"] = {
             "global_results": [float(x) for x in test_results],
             "client_results": [float(x) for x in client_test_results],
@@ -261,7 +247,6 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             "std_client": float(std_client)
         }
 
-        # Output remains the same
         output = f"DEVICE: {DEVICE}\n"
         output += f"Data loading option is {data_loading_option}\n"
         output += f"Model type is {model_type}\n"
@@ -275,10 +260,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         output += f"The standard deviation client is: {std_client}\n"
         
     finally:
-        # Make sure Ray is always shut down, even if there's an exception
+        # Make sure Ray is always shut down
         ray.shutdown()
+        # Final cleanup
+        torch.cuda.empty_cache()
+        gc.collect()
     
-    # Return both structured data and text output
     return results_data, output
     
 

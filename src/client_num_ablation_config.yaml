@@ -1,13 +1,21 @@
 num_clients:
   - 1
-  - 3
-  - 5 
+  - 2
+  - 4
+  - 6
+  - 8
   - 10
+  - 12
+  - 14
+  - 16
+  - 18
   - 20
-num_rounds: 3
-epochs: 2
+
+num_rounds: 100
+epochs: 3
 beta:
   - 10000
+  - 1
 lr: 0.5
 datasets:
   - Cora
@@ -19,8 +27,8 @@ data_loading:
   - zero_hop
 models:
   - GCN
-results_dir: results/client_num_ablation_test
-save_results: false
+results_dir: results/client_num_ablation_results
+save_results: True
 hop: 1
 fulltraining_flag: false 
 use_pe: True

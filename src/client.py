@@ -10,7 +10,7 @@ LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
 DEFAULT_BATCH_SIZE = 1024  # Further reduced to 32 to help with memory constraints
 DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  # Reduced further to sample even fewer neighbors
 
-gpu_nums = 1/10
+gpu_nums = 1/20
 
 @ray.remote(num_gpus=gpu_nums)
 # @ray.remote(num_cpus=0.25)

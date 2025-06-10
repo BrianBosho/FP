@@ -1,0 +1,16 @@
+dataset: Cora
+data_loading: adjacency
+model: GCN
+num_clients: 10
+num_rounds: 3
+epochs: 3
+beta: 1
+lr: 0.5
+results_dir: results/simple_test/cora_baseline
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe: true
+pe_r: 64
+pe_P: 16
+normalize: qr
