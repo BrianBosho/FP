@@ -21,13 +21,13 @@ class GCN(torch.nn.Module):
     def __init__(self, dim_in, dim_h, dim_out):
         super().__init__()
         self.dim_in = dim_in
-        self.dim_h = 64
+        self.dim_h = 16
         self.dim_out = dim_out
         self.gcn1 = GCNConv(dim_in, dim_h)
         self.gcn2 = GCNConv(dim_h, dim_out)
 
     def forward(self, x, edge_index):
-        x = F.dropout(x, training=self.training, p=0.5)
+        x = F.dropout(x, training=self.training, p=0.0)
         h = self.gcn1(x, edge_index)
         h = F.relu(h)
         h = F.dropout(h, training=self.training, p=0.5)
@@ -39,33 +39,88 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, BatchNorm
 
+
 class GCN_arxiv(torch.nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5):
+    # def __init__(self, nfeat=128, nhid=256, nclass=40, dropout=0.5, NumLayers=3):
+    def __init__(self, input_dim=128, hidden_dim=256, output_dim=40, dropout=0.5, NumLayers=3):
+        """
+        Hard-coded 3-layer GCN for ogbn-arxiv as used in FedGCN.
+        ───────────────────────────────────────────────────────────
+        • Layer 1 : GCNConv 128 → 256  + BatchNorm + ReLU + Dropout(0.5)
+        • Layer 2 : GCNConv 256 → 256  + BatchNorm + ReLU + Dropout(0.5)
+        • Layer 3 : GCNConv 256 → 40   → log-softmax
+        """
+        nfeat = input_dim
+        nhid = hidden_dim
+        nclass = output_dim
+
         super(GCN_arxiv, self).__init__()
-        self.conv1 = GCNConv(input_dim, hidden_dim)
-        self.gn1 = torch.nn.GroupNorm(8, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, hidden_dim)
-        self.gn2 = torch.nn.GroupNorm(8, hidden_dim)
-        self.conv3 = GCNConv(hidden_dim, output_dim)
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(GCNConv(nfeat, nhid))
+        self.bns = torch.nn.ModuleList()
+        self.bns.append(torch.nn.BatchNorm1d(nhid))
+        self.convs.append(GCNConv(nhid, nhid))
+        self.bns.append(torch.nn.BatchNorm1d(nhid))
+        self.convs.append(GCNConv(nhid, nclass))
+
         self.dropout = dropout
+        self.dim_in = input_dim
+        self.dim_h = hidden_dim
+        self.dim_out = output_dim
 
-    def forward(self, x, edge_index):
-        x = self.conv1(x, edge_index)
-        x = self.gn1(x)
+    def reset_parameters(self) -> None:
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+        return None
+
+    def forward(self, x: torch.Tensor, adj_t: torch.Tensor) -> torch.Tensor:
+        x = self.convs[0](x, adj_t)
+        x = self.bns[0](x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         
-        x = self.conv2(x, edge_index)
-        x = self.gn2(x)
+        x = self.convs[1](x, adj_t)
+        x = self.bns[1](x)
         x = F.relu(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         
-        x = self.conv3(x, edge_index)
-        return F.log_softmax(x, dim=1)
+        x = self.convs[2](x, adj_t)
+        return x.log_softmax(dim=-1)
 
-import torch
-import torch.nn.functional as F
-from torch_geometric.nn import SAGEConv, BatchNorm
+
+# class GCN_arxiv(torch.nn.Module):
+#     def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5):
+#         super(GCN_arxiv, self).__init__()
+#         self.conv1 = GCNConv(input_dim, hidden_dim)
+#         self.gn1 = torch.nn.GroupNorm(8, hidden_dim)
+#         self.conv2 = GCNConv(hidden_dim, hidden_dim)
+#         self.gn2 = torch.nn.GroupNorm(8, hidden_dim)
+#         self.conv3 = GCNConv(hidden_dim, output_dim)
+#         self.dropout = dropout
+#         self.dim_in = input_dim
+#         self.dim_h = hidden_dim
+#         self.dim_out = output_dim
+
+#     def forward(self, x, edge_index):
+#         x = self.conv1(x, edge_index)
+#         x = self.gn1(x)
+#         x = F.relu(x)
+#         x = F.dropout(x, p=self.dropout, training=self.training)
+        
+#         x = self.conv2(x, edge_index)
+#         x = self.gn2(x)
+#         x = F.relu(x)
+#         x = F.dropout(x, p=self.dropout, training=self.training)
+        
+#         x = self.conv3(x, edge_index)
+#         return F.log_softmax(x, dim=1)
+
+# import torch
+# import torch.nn.functional as F
+# from torch_geometric.nn import SAGEConv, BatchNorm
 
 class GraphSAGEProducts(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5, num_layers=3):

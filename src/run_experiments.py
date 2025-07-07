@@ -29,6 +29,8 @@ def parse_arguments():
     parser.add_argument('--save_results', action='store_true', help='Save detailed results to files')
     parser.add_argument('--results_dir', type=str, help='Directory to save results')
     parser.add_argument('--fulltraining_flag', action='store_true', help='Use full training flag')
+    parser.add_argument('--optimizer', type=str, help='Optimizer to use')
+    parser.add_argument('--decay', type=float, help='Weight decay') 
     return parser.parse_args()
 
 def load_yaml_config(config_path):
@@ -154,6 +156,8 @@ def run_experiments(args):
         "num_rounds": 10,
         "epochs": 3,
         "lr": 0.5,
+        "optimizer": "SGD",
+        "decay": 0.0005,
         "results_dir": "results/experiments",
         "save_results": False,
         "hop": 1,
@@ -185,6 +189,10 @@ def run_experiments(args):
         cfg["beta"] = args.beta
     if args.lr is not None:
         cfg["lr"] = args.lr
+    if args.optimizer is not None:
+        cfg["optimizer"] = args.optimizer
+    if args.decay is not None:
+        cfg["decay"] = args.decay
     if args.datasets is not None:
         cfg["datasets"] = args.datasets
     if args.data_loading is not None:
@@ -280,6 +288,7 @@ def run_experiments(args):
                         training_cfg["data_loading_option"] = data_loading_option
                         training_cfg["model_type"] = model_type
                         training_cfg["clients_num"] = clients_num
+                       
                         
                         # Start time measurement
                         start_time = time.time()

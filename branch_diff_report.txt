@@ -1,0 +1,44 @@
+Branch Comparison Report (vs 'pubmed_fix')
+Generated on Mon 07 Jul 2025 03:05:00 PM CAT
+==================================================
+
+🔍 Branch: main
+----------------------------------------
+✅ No unique commits in 'main' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: minimal
+----------------------------------------
+✅ No unique commits in 'minimal' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: minimal_backup
+----------------------------------------
+❗ Unique commits in 'minimal_backup' not in 'pubmed_fix':
+   - 04ba3b7 init
+
+🔍 Branch: lean
+----------------------------------------
+✅ No unique commits in 'lean' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: feat/restructure
+----------------------------------------
+✅ No unique commits in 'feat/restructure' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: feat-lean/pe
+----------------------------------------
+✅ No unique commits in 'feat-lean/pe' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: fixes/main_minimal
+----------------------------------------
+❗ Unique commits in 'fixes/main_minimal' not in 'pubmed_fix':
+   - e2b668b tried to make main same as minimal but it failed
+
+🔍 Branch: integrate-minimal
+----------------------------------------
+✅ No unique commits in 'integrate-minimal' (fully merged into pubmed_fix or identical)
+
+🔍 Branch: ref/phase1
+----------------------------------------
+❗ Unique commits in 'ref/phase1' not in 'pubmed_fix':
+   - 65bbe21 conlcuded phase1 updates
+   - 7ae748c phase1 changes completed
+

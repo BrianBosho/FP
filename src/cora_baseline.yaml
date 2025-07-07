@@ -1,16 +1,18 @@
-dataset: Cora
-data_loading: adjacency
-model: GCN
+datasets: Pubmed
+data_loading: 
+models: GCN
 num_clients: 10
-num_rounds: 3
+num_rounds: 100
 epochs: 3
-beta: 1
+optimizer: SGD
+decay: 0.0005
+beta: 2
 lr: 0.5
 results_dir: results/simple_test/cora_baseline
-save_results: true
-hop: 1
+save_results: false
+hop: 0
 fulltraining_flag: false 
-use_pe: true
+use_pe: false
 pe_r: 64
 pe_P: 16
 normalize: qr

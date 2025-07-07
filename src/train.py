@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 
-def train(model, data, epochs, optimizer, criterion, writer, patience=10, model_path='best_model.pth'):
+def train(model, data, epochs, optimizer, criterion, writer):
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
@@ -29,11 +29,6 @@ def train(model, data, epochs, optimizer, criterion, writer, patience=10, model_
         # Ensure x has correct format
         if data.x.dim() != 2:
             raise ValueError(f"Node features have incorrect format: {data.x.shape}")
-    
-    # Early stopping variables
-    best_val_loss = float('inf')
-    counter = 0
-    best_epoch = 0
     
     for epoch in range(epochs):
         # Training phase
@@ -62,7 +57,7 @@ def train(model, data, epochs, optimizer, criterion, writer, patience=10, model_
             writer.add_scalar('Loss/train', loss, epoch)
             writer.add_scalar('Accuracy/train', training_acc, epoch)
         
-        # Validation phase
+        # Validation phase for monitoring only
         val_loss, val_acc = evaluate(model, data, criterion)
         
         if writer is not None:
@@ -70,24 +65,11 @@ def train(model, data, epochs, optimizer, criterion, writer, patience=10, model_
             writer.add_scalar('Accuracy/val', val_acc, epoch)
         
         logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
-        
-        # Early stopping
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            counter = 0
-            best_epoch = epoch
-            # Save the best model
-            torch.save(model.state_dict(), model_path)
-        else:
-            counter += 1
-            if counter >= patience:
-                logging.info(f'Early stopping at epoch {epoch}. Best epoch: {best_epoch}')
-                break
     
-    # Load the best model
-    model.load_state_dict(torch.load(model_path))
+    # Final validation
+    final_val_loss, final_val_acc = evaluate(model, data, criterion)
     
-    return best_val_loss, training_acc, training_losses, training_accuracies
+    return final_val_loss, training_acc, training_losses, training_accuracies
 
 def evaluate(model, data, criterion):
     model.eval()
@@ -178,6 +160,9 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
             # Move batch to device
             batch = batch.to(data.x.device)
             
+            # Debug information - print batch dimensions
+            logging.debug(f"Batch size: {batch.num_nodes}, Features dim: {batch.x.size()}, Edge dim: {batch.edge_index.size()}")
+            
             # Forward pass depending on model type
             if isinstance(model, VanillaGNN):
                 # For vanilla GNN, convert to dense adjacency for the batch
@@ -195,22 +180,38 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
             # Get the original node indices in the batch
             batch_train_mask = batch.train_mask
             
+            # Add safety check for the batch mask
+            if not hasattr(batch, 'train_mask') or batch.train_mask is None:
+                logging.warning("Batch is missing train_mask attribute")
+                continue
+                
+            # Check for indices out of bound
+            if torch.any(batch.train_mask) and batch_train_mask.shape[0] != batch.num_nodes:
+                logging.warning(f"Mask shape mismatch: train_mask: {batch_train_mask.shape[0]}, batch nodes: {batch.num_nodes}")
+                # Correct the shape if possible
+                batch_train_mask = batch_train_mask[:batch.num_nodes]
+            
             # Ensure we're only computing loss on training nodes
             if batch_train_mask.sum() > 0:
-                loss = criterion(output[batch_train_mask], batch.y[batch_train_mask])
-                loss.backward()
-                
-                # Apply gradient clipping
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                
-                optimizer.step()
-                
-                # Calculate training accuracy for this batch
-                train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
-                
-                epoch_loss += loss.item()
-                epoch_acc += train_acc
-                num_batches += 1
+                try:
+                    loss = criterion(output[batch_train_mask], batch.y[batch_train_mask])
+                    loss.backward()
+                    
+                    # Apply gradient clipping
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                    
+                    optimizer.step()
+                    
+                    # Calculate training accuracy for this batch
+                    train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
+                    
+                    epoch_loss += loss.item()
+                    epoch_acc += train_acc
+                    num_batches += 1
+                except RuntimeError as e:
+                    logging.error(f"Error in mini-batch training: {str(e)}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
+                    continue
         
         # Calculate average loss and accuracy for the epoch
         if num_batches > 0:
@@ -269,15 +270,31 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
             # Get validation mask for this batch
             batch_val_mask = batch.val_mask
             
-            if batch_val_mask.sum() > 0:
-                # Compute loss
-                loss = criterion(output[batch_val_mask], batch.y[batch_val_mask])
-                total_loss += loss.item() * batch_val_mask.sum().item()
+            # Add safety check for the batch mask
+            if not hasattr(batch, 'val_mask') or batch.val_mask is None:
+                logging.warning("Batch is missing val_mask attribute")
+                continue
                 
-                # Compute accuracy
-                pred = torch.argmax(output[batch_val_mask], dim=1)
-                correct += (pred == batch.y[batch_val_mask]).sum().item()
-                total += batch_val_mask.sum().item()
+            # Check for indices out of bound
+            if torch.any(batch.val_mask) and batch_val_mask.shape[0] != batch.num_nodes:
+                logging.warning(f"Mask shape mismatch: val_mask: {batch_val_mask.shape[0]}, batch nodes: {batch.num_nodes}")
+                # Correct the shape if possible
+                batch_val_mask = batch_val_mask[:batch.num_nodes]
+            
+            if batch_val_mask.sum() > 0:
+                try:
+                    # Compute loss
+                    loss = criterion(output[batch_val_mask], batch.y[batch_val_mask])
+                    total_loss += loss.item() * batch_val_mask.sum().item()
+                    
+                    # Compute accuracy
+                    pred = torch.argmax(output[batch_val_mask], dim=1)
+                    correct += (pred == batch.y[batch_val_mask]).sum().item()
+                    total += batch_val_mask.sum().item()
+                except RuntimeError as e:
+                    logging.error(f"Error in mini-batch evaluation: {str(e)}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_val_mask.shape}")
+                    continue
     
     # Calculate average loss and accuracy
     avg_loss = total_loss / total if total > 0 else 0
@@ -321,11 +338,27 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
             # Get test mask for this batch
             batch_test_mask = batch.test_mask
             
+            # Add safety check for the batch mask
+            if not hasattr(batch, 'test_mask') or batch.test_mask is None:
+                logging.warning("Batch is missing test_mask attribute")
+                continue
+                
+            # Check for indices out of bound
+            if torch.any(batch.test_mask) and batch_test_mask.shape[0] != batch.num_nodes:
+                logging.warning(f"Mask shape mismatch: test_mask: {batch_test_mask.shape[0]}, batch nodes: {batch.num_nodes}")
+                # Correct the shape if possible
+                batch_test_mask = batch_test_mask[:batch.num_nodes]
+            
             if batch_test_mask.sum() > 0:
-                # Compute accuracy
-                pred = torch.argmax(output[batch_test_mask], dim=1)
-                correct += (pred == batch.y[batch_test_mask]).sum().item()
-                total += batch_test_mask.sum().item()
+                try:
+                    # Compute accuracy
+                    pred = torch.argmax(output[batch_test_mask], dim=1)
+                    correct += (pred == batch.y[batch_test_mask]).sum().item()
+                    total += batch_test_mask.sum().item()
+                except RuntimeError as e:
+                    logging.error(f"Error in mini-batch testing: {str(e)}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_test_mask.shape}")
+                    continue
     
     # Calculate accuracy
     acc = correct / total if total > 0 else 0

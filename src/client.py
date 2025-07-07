@@ -7,8 +7,12 @@ import gc
 
 # Configure batch sizes based on dataset size
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
-DEFAULT_BATCH_SIZE = 1024  # Further reduced to 32 to help with memory constraints
-DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  # Reduced further to sample even fewer neighbors
+DEFAULT_BATCH_SIZE = 1024  # Default batch size for most datasets
+DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  
+
+# Special configurations for specific datasets that need more careful handling
+OGBN_ARXIV_BATCH_SIZE = 256  # Smaller batch size for ogbn-arxiv
+OGBN_ARXIV_NUM_NEIGHBORS = [5, 5, 5]  # Fewer neighbors for ogbn-arxiv
 
 gpu_nums = 1/20
 
@@ -55,15 +59,28 @@ class FLClient:
         # Setup batch configuration from config if available
         self.batch_size = cfg.get("batch_size", DEFAULT_BATCH_SIZE)
         self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
+        
+        # Use specific configurations for certain datasets
+        if self.dataset_name == "ogbn-arxiv":
+            self.batch_size = cfg.get("batch_size", OGBN_ARXIV_BATCH_SIZE)
+            self.num_neighbors = cfg.get("num_neighbors", OGBN_ARXIV_NUM_NEIGHBORS)
+            print(f"Using special config for ogbn-arxiv: batch_size={self.batch_size}, num_neighbors={self.num_neighbors}")
 
-        # self.optimizer = torch.optim.SGD(
-        #     self.model.parameters(), lr=cfg["lr"], weight_decay=5e-4
-        # )
+        optimizer_type = cfg["optimizer"]
+        lr = cfg["lr"]
+        weight_decay = cfg["decay"]
 
-        # optimizer with weight decay
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                    lr=0.01,
-                                    weight_decay=5e-4)
+        if optimizer_type == "Adam":
+            self.optimizer = torch.optim.Adam(
+                self.model.parameters(), lr=lr, weight_decay=weight_decay
+            )
+
+        if optimizer_type == "SGD":
+            self.optimizer = torch.optim.SGD(
+                self.model.parameters(), lr=lr, weight_decay=weight_decay
+            )
+      
+
         self.criterion = torch.nn.CrossEntropyLoss()
         self.writer = None
 

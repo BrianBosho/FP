@@ -132,7 +132,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"\nAll model parameters are identical: {are_params_identical}")
 
         if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
-            test_results = server.test_global_model(clients_data[0])
+            test_results = server.test_global_model(data)
             client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         else:
             test_results = server.test_global_model(data)
@@ -152,6 +152,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # DEVICE = torch.device("cpu")
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
