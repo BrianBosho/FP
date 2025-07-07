@@ -29,6 +29,17 @@ logs/
 training_logs/
 nohup*.out
 old_nohup.out
+*.out
+*.log
+*.json
+*.csv
+*.txt
+*.pdf
+*.docx
+*.doc
+*.xls
+*.xlsx
+*.png
 
 # Python
 __pycache__/
