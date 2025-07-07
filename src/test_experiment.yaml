@@ -6,19 +6,19 @@ beta:
   - 1
   - 10000
 lr: 0.5
-optimizer: Adam
+optimizer: SGD
 decay: 0.0005
 datasets:
-  - Cora
+  - Cora  
 data_loading:
+  - full
   - diffusion
   - adjacency
-  - full
   - zero_hop
 models:
   - GAT
   - GCN
-results_dir: results/test_ablation
+results_dir: results/test_ablation_6
 save_results: true
 hop: 1
 fulltraining_flag: false

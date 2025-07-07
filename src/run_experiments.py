@@ -72,12 +72,12 @@ def format_time(seconds):
     minutes, seconds = divmod(remainder, 60)
     return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
 
-def save_summary_results(summary_rows, all_results, results_dir, config):
+def save_summary_results(summary_rows, all_results, results_dir, summary_dir, config):
     """Save summary results to a file in the parent results directory"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Create summary TXT file
-    summary_txt_path = os.path.join(results_dir, f"summary_results_{timestamp}.txt")
+    # Create summary TXT file in summary directory
+    summary_txt_path = os.path.join(summary_dir, f"summary_results_{timestamp}.txt")
     
     with open(summary_txt_path, 'w') as f:
         # Write experiment configuration
@@ -101,7 +101,7 @@ def save_summary_results(summary_rows, all_results, results_dir, config):
         f.write("EXPERIMENT RESULTS SUMMARY\n")
         f.write("=" * 80 + "\n\n")
         
-        headers = ["Dataset", "Data Loading", "Model", "Beta", "Clients", "Avg Global Result", "Avg Client Result", "Duration"]
+        headers = ["Dataset", "Data Loading", "Model", "Beta", "Clients", "Avg Global Result", "Avg Client Result", "client_std_dev", "global_std_dev", "Duration"]
         f.write(tabulate(summary_rows, headers=headers, tablefmt="grid") + "\n\n")
         
         # Write key results
@@ -114,8 +114,8 @@ def save_summary_results(summary_rows, all_results, results_dir, config):
             f.write(f"  - Experiment Duration: {row[7]}\n")
             f.write("-" * 80 + "\n")
     
-    # Create summary JSON file
-    summary_json_path = os.path.join(results_dir, f"summary_results_{timestamp}.json")
+    # Create summary JSON file in summary directory
+    summary_json_path = os.path.join(summary_dir, f"summary_results_{timestamp}.json")
     
     # Create a structured JSON with all results
     summary_json = {
@@ -130,6 +130,8 @@ def save_summary_results(summary_rows, all_results, results_dir, config):
                 "clients": result["clients"],
                 "avg_global": result["avg_global"],
                 "avg_client": result["avg_client"],
+                "client_std_dev": result["client_std_dev"],
+                "global_std_dev": result["global_std_dev"],
                 "duration": result["duration"]
             }
             for result in all_results
@@ -142,6 +144,7 @@ def save_summary_results(summary_rows, all_results, results_dir, config):
     print(f"\nSummary results saved to:")
     print(f"- Text file: {summary_txt_path}")
     print(f"- JSON file: {summary_json_path}")
+    print(f"- Detailed results saved to: {results_dir}")
     
     return summary_txt_path, summary_json_path
 
@@ -227,6 +230,10 @@ def run_experiments(args):
     
     # Create main results directory
     os.makedirs(results_dir, exist_ok=True)
+    
+    # Create summary results directory
+    summary_dir = results_dir.replace("results/", "results_summary/")
+    os.makedirs(summary_dir, exist_ok=True)
     
     # Store all experiment results
     all_results = []
@@ -319,6 +326,8 @@ def run_experiments(args):
                         # Extract key metrics
                         avg_global = result["summary"]["average_global_result"]
                         avg_client = result["summary"]["average_client_result"]
+                        std_global = result["summary"]["std_global"]
+                        std_client = result["summary"]["std_client"]
                         
                         # Add to summary table - now including beta, clients, and duration
                         summary_rows.append([
@@ -329,6 +338,8 @@ def run_experiments(args):
                             f"{clients_num}",
                             f"{avg_global:.4f}",
                             f"{avg_client:.4f}",
+                            f"{std_client:.4f}",
+                            f"{std_global:.4f}",
                             duration_formatted
                         ])
                         
@@ -361,14 +372,16 @@ def run_experiments(args):
                             "clients": clients_num,
                             "avg_global": avg_global,
                             "avg_client": avg_client,
+                            "client_std_dev": std_client,
+                            "global_std_dev": std_global,
                             "duration": {
                                 "seconds": duration,
                                 "formatted": duration_formatted
                             }
                         })
     
-    # Save summary results to the parent directory
-    save_summary_results(summary_rows, all_results, results_dir, cfg)
+    # Save summary results to the summary directory
+    save_summary_results(summary_rows, all_results, results_dir, summary_dir, cfg)
     
     return summary_rows, all_results
 
