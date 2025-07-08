@@ -22,6 +22,9 @@ result_processing/
 results_archived/
 results_1_client/
 extracted_results.xlsx
+results_summary/
+artifacts/
+data/
 
 # Logs
 logs/
