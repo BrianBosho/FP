@@ -2,8 +2,8 @@ import torch
 import numpy as np
 from torch_geometric.data import Data
 from torch_geometric.utils import k_hop_subgraph
-from dataprocessing.data_utils import propagate_features, compute_dirichlet_energy
-from dataprocessing.positional_encoding import generate_rfp_encoding
+from src.dataprocessing.data_utils import propagate_features, compute_dirichlet_energy
+from src.dataprocessing.positional_encoding import generate_rfp_encoding
 import torch.nn.functional as F
 # from utils import propagate_features
 

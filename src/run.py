@@ -1,20 +1,20 @@
 import torch
 import ray
-from client import FLClient
-from models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
-from server import Server
+from src.client import FLClient
+from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
+from src.server import Server
 import pandas as pd
-from utils.utils import load_config
+from src.utils.utils import load_config
 
 
-from dataprocessing.loaders import (
+from src.dataprocessing.loaders import (
     load_dataset,
     load_and_split,
     load_and_split_with_khop,
     load_and_split_with_feature_prop    
 )
 import numpy as np
-from utils.run_utils import (
+from src.utils.run_utils import (
     setup_logging, 
     log_training_results, 
     log_evaluation_results, 

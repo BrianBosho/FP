@@ -1,7 +1,7 @@
-from dataprocessing.datasets import GraphDataset
-from dataprocessing.partitioning import partition_data
+from src.dataprocessing.datasets import GraphDataset
+from src.dataprocessing.partitioning import partition_data
 from typing import Tuple, List, Optional
-from dataprocessing.positional_encoding import generate_rfp_encoding
+from src.dataprocessing.positional_encoding import generate_rfp_encoding
 import torch
 import torch.nn.functional as F
 

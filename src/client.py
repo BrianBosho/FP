@@ -1,6 +1,6 @@
 import ray
-from train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
-from models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
+from src.train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
+from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
 import torch
 import sys
 import gc
