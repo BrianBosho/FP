@@ -10,7 +10,7 @@ from tabulate import tabulate
 from datetime import datetime
 import time
 import shutil
-from utils import load_config
+from utils.utils import load_config
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run a simple federated GNN experiment from a YAML config')
@@ -138,7 +138,7 @@ def run_simple_experiment(args):
     )
     
     # Create a monkey patch for save_results_to_csv in run_utils
-    from run_utils import save_results_to_csv as original_save_func
+    from utils.run_utils import save_results_to_csv as original_save_func
     
     def patched_save_func(results, filename=None):
         # Use the original function but with our custom filename
@@ -146,7 +146,7 @@ def run_simple_experiment(args):
         return original_save_func(results, csv_filename)
     
     # Apply the monkey patch to the imported function
-    import run_utils
+    import utils.run_utils as run_utils
     run_utils.save_results_to_csv = patched_save_func
     
     # Print experiment header

@@ -4,7 +4,7 @@ from client import FLClient
 from models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
 from server import Server
 import pandas as pd
-from utils import load_config
+from utils.utils import load_config
 
 
 from dataprocessing.loaders import (
@@ -14,7 +14,7 @@ from dataprocessing.loaders import (
     load_and_split_with_feature_prop    
 )
 import numpy as np
-from run_utils import (
+from utils.run_utils import (
     setup_logging, 
     log_training_results, 
     log_evaluation_results, 
