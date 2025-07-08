@@ -14,8 +14,7 @@ data_loading:
   - diffusion
 models:
   - GAT
-  - GCN
-results_dir: results/test_ablation_7
+results_dir: results/test_ablation_8
 save_results: true
 hop: 1
 fulltraining_flag: false
