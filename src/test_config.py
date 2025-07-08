@@ -15,7 +15,7 @@ def test_config_passing():
         "pe_r": 32,  # Different from default 64
         "pe_P": 8,   # Different from default 16
         "normalize": "qr",
-        "results_dir": "results/test_config_passing"
+        "results_dir": "../results/test_config_passing"
     }
     
     # Ensure results directory exists

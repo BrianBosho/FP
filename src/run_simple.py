@@ -85,7 +85,7 @@ def run_simple_experiment(args):
     if isinstance(model_type, list) and len(model_type) > 0:
         model_type = model_type[0]
         
-    results_dir = yaml_config.get("results_dir", "results/simple_experiment")
+    results_dir = yaml_config.get("results_dir", "../results/simple_experiment")
     save_results = yaml_config.get("save_results", False) or args.save_results
     hop = yaml_config.get("hop", 1)
     fulltraining_flag = yaml_config.get("fulltraining_flag", False)
@@ -233,7 +233,7 @@ def create_example_config(output_path="simple_config_example.yaml"):
         "dataset": "Cora",
         "data_loading": "full",
         "model": "GCN",
-        "results_dir": "results/simple_experiment",
+        "results_dir": "../results/simple_experiment",
         "save_results": True,
         "hop": 1,
         "fulltraining_flag": False

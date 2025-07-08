@@ -4,7 +4,6 @@ num_rounds: 2
 epochs: 1
 beta:
   - 1
-  - 10000
 lr: 0.5
 optimizer: SGD
 decay: 0.0005
@@ -13,12 +12,10 @@ datasets:
 data_loading:
   - full
   - diffusion
-  - adjacency
-  - zero_hop
 models:
   - GAT
   - GCN
-results_dir: results/test_ablation_6
+results_dir: results/test_ablation_7
 save_results: true
 hop: 1
 fulltraining_flag: false
