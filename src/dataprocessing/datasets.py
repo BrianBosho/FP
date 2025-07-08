@@ -14,7 +14,8 @@ from pathlib import Path
 def load_config():
     # Get the project root directory (parent of conf/)
     project_root = Path(__file__).parent.parent
-    config_path = project_root / "conf" / "base.yaml"
+    # config_path = project_root / "conf" / "base.yaml"
+    config_path = "/home/brian_bosho/FP/FP/federated-gnn/conf/base.yaml"
     
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)

@@ -29,7 +29,7 @@ import gc
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"DEVICE: {DEVICE}")
 
-def load_configuration(config_path="conf/base.yaml"):
+def load_configuration(config_path="/home/brian_bosho/FP/FP/federated-gnn/conf/base.yaml"):
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 
@@ -151,8 +151,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         gc.collect()
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # DEVICE = torch.device("cpu")
+    # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    DEVICE = torch.device("cpu")
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
