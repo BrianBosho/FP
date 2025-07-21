@@ -8,6 +8,7 @@ from torch_geometric.loader import NeighborLoader, DataLoader
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+import wandb
 
 
 def train(model, data, epochs, optimizer, criterion, writer):
@@ -65,6 +66,19 @@ def train(model, data, epochs, optimizer, criterion, writer):
             writer.add_scalar('Accuracy/val', val_acc, epoch)
         
         logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
+       
+        wandb.init(
+        project="FGL",
+        # config=vars(args),  # This converts the Namespace to a dict for wandb
+        name="fgl_test"
+    )
+        wandb.log({
+            "epoch": epoch,
+            "train_loss": loss.item(),
+            "train_acc": training_acc,
+            "val_loss": val_loss,
+            "val_acc": val_acc
+        })
     
     # Final validation
     final_val_loss, final_val_acc = evaluate(model, data, criterion)

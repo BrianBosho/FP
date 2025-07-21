@@ -1,7 +1,7 @@
 import torch
 import ray
 from src.client import FLClient
-from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts
+from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT
 from src.server import Server
 import pandas as pd
 from src.utils.utils import load_config
@@ -33,8 +33,11 @@ def load_configuration(config_path="/home/brian_bosho/FP/FP/federated-gnn/conf/b
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 
-def instantiate_model(model_type,  num_features, num_classes, device, dataset_name="Cora"):
+def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora", cfg=None):
     DEVICE = device
+    model_params = {}
+    if cfg is not None and "model_params" in cfg and model_type in cfg["model_params"]:
+        model_params = cfg["model_params"][model_type]
     if model_type == "GCN":
         if dataset_name == "ogbn-arxiv": # 
             model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
@@ -47,7 +50,16 @@ def instantiate_model(model_type,  num_features, num_classes, device, dataset_na
         else:
             return GCN(num_features, 16, num_classes).to(DEVICE)
     elif model_type == "GAT":
-        return GAT(num_features, 16, num_classes).to(DEVICE)
+        hidden_dim = model_params.get("hidden_dim", 16)
+        num_heads = model_params.get("num_heads", 8)
+        dropout = model_params.get("dropout", 0.0)
+        return GAT(num_features, hidden_dim, num_classes, heads=num_heads, dropout=dropout).to(DEVICE)
+        # if dataset_name == "Pubmed":
+        #     model = PubmedGAT(num_features, 16, num_classes).to(DEVICE)
+        #     print(f"Model is {model}")
+        #     return model.to(DEVICE)
+        # else:
+            
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -114,7 +126,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     input_dim = clients_data[0].x.size(1)
     
     rounds = cfg['num_rounds']
-    model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name)
+    model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name, cfg)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device)
 
@@ -151,8 +163,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         gc.collect()
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    DEVICE = torch.device("cpu")
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # DEVICE = torch.device("cpu")
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
@@ -192,7 +204,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(5):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()

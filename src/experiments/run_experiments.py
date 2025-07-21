@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 import shutil
 from src.utils.utils import load_config
+import wandb
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run federated GNN experiments and print results')
@@ -438,6 +439,13 @@ if __name__ == "__main__":
     if args.config == "generate_example":
         create_example_config()
         exit(0)
-    
+    os.environ["WANDB_API_KEY"] = "cc9ab7ea3aa14a1453c34900d3a632c453611894"
+    wandb.init(
+        project="FGL",
+        config=vars(args),  # This converts the Namespace to a dict for wandb
+        name="fgl_test"
+    )
+
     summary_rows, all_results = run_experiments(args)
     print_summary(summary_rows)
+    wandb.finish()

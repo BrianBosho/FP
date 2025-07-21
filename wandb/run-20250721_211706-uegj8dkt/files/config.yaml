@@ -1,0 +1,77 @@
+_wandb:
+    value:
+        cli_version: 0.21.0
+        e:
+            yji7xg2uwbqeir7rijjzspujx0n1aqeh:
+                args:
+                    - --node-ip-address=172.29.98.248
+                    - --node-manager-port=36589
+                    - --object-store-name=/tmp/ray/session_2025-07-21_21-16-36_668379_3549827/sockets/plasma_store
+                    - --raylet-name=/tmp/ray/session_2025-07-21_21-16-36_668379_3549827/sockets/raylet
+                    - --redis-address=None
+                    - --metrics-agent-port=63365
+                    - --runtime-env-agent-port=62121
+                    - --logging-rotate-bytes=536870912
+                    - --logging-rotate-backup-count=5
+                    - --runtime-env-agent-port=62121
+                    - --gcs-address=172.29.98.248:63904
+                    - --session-name=session_2025-07-21_21-16-36_668379_3549827
+                    - --temp-dir=/tmp/ray
+                    - --webui=127.0.0.1:8265
+                    - --cluster-id=5d1c4160df6e98f3e8c7cf2814f113be52667832cfa46fb461bb6832
+                    - --startup-token=29
+                    - --worker-launch-time-ms=1753125420413
+                    - --node-id=f90ba009a812e03de55e6e68169324677afd6447a3ebc851a4b328b2
+                    - --runtime-env-hash=0
+                cpu_count: 24
+                cpu_count_logical: 24
+                cudaVersion: "12.4"
+                disk:
+                    /:
+                        total: "1622224654336"
+                        used: "1496779251712"
+                email: kipbrio@gmail.com
+                executable: /home/brian_bosho/miniconda3/bin/python
+                git:
+                    commit: e89285b522ee8a9d1bee592f41dd86d76741cd3e
+                    remote: https://github.com/BrianBosho/FP.git
+                gpu: NVIDIA L40-48Q
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ada
+                      cudaCores: 18176
+                      memoryTotal: "51539607552"
+                      name: NVIDIA L40-48Q
+                      uuid: GPU-9111db93-1dd2-11b2-825e-3bd30d3a2412
+                host: MobilityEdgeAI
+                memory:
+                    total: "67419688960"
+                os: Linux-5.15.0-1077-aws-x86_64-with-glibc2.31
+                program: /home/brian_bosho/miniconda3/lib/python3.12/site-packages/ray/_private/workers/default_worker.py
+                python: CPython 3.12.2
+                root: /home/brian_bosho/FP/FP/federated-gnn
+                startedAt: "2025-07-21T19:17:06.769871Z"
+                writerId: yji7xg2uwbqeir7rijjzspujx0n1aqeh
+        m: []
+        python_version: 3.12.2
+        t:
+            "1":
+                - 1
+                - 11
+                - 30
+                - 49
+                - 77
+            "2":
+                - 1
+                - 11
+                - 30
+                - 49
+                - 77
+            "3":
+                - 13
+                - 24
+            "4": 3.12.2
+            "5": 0.21.0
+            "6": 4.46.3
+            "12": 0.21.0
+            "13": linux-x86_64

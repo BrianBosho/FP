@@ -1,0 +1,25 @@
+num_clients:
+  - 10
+num_rounds: 600
+epochs: 3
+beta:
+  - 1
+  - 10
+  - 10000
+lr: 0.01
+optimizer: Adam
+decay: 0.0005
+datasets:
+   - ogbn-arxiv
+data_loading:
+  - full
+models:
+  - GCN
+results_dir: results/ogbn_arxiv_test_600
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe: false
+pe_r: 64
+pe_P: 16
+normalize: qr

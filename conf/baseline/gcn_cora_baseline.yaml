@@ -1,0 +1,26 @@
+num_clients: 10
+num_rounds: 2
+epochs: 3
+beta: 1
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+datasets:
+  - Cora
+data_loading:
+  - full
+  - adjacency
+models:
+  - GCN
+hidden_dim:
+  - 16
+  - 32
+  - 64
+results_dir: results/gcn_cora_hidden_dim_ablation_pe
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe: true
+pe_r: 64
+pe_P: 16
+normalize: qr

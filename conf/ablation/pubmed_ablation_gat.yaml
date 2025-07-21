@@ -1,0 +1,28 @@
+num_clients:
+  - 10
+num_rounds: 200
+epochs: 3
+beta:
+  - 1
+  - 10
+  - 10000
+lr: 0.005
+optimizer: Adam
+decay: 0.0005
+datasets:
+   - Pubmed
+data_loading:
+  - zero_hop
+  - adjacency
+  - diffusion
+  - full
+models:
+  - GAT
+results_dir: results/pubmed_gat_kipf_no_pe_200_rounds_Adam_XXX
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe: false
+pe_r: 64
+pe_P: 16
+normalize: qr
