@@ -211,6 +211,10 @@ def run_experiments(args):
         cfg["results_dir"] = args.results_dir
     if args.fulltraining_flag:
         cfg["fulltraining_flag"] = args.fulltraining_flag
+
+    if wandb.run is not None:
+        for key in wandb.config:
+            cfg[key] = wandb.config[key]
     
     # Extract values for iteration
     client_nums = cfg["num_clients"]

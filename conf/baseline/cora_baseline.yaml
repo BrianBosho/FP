@@ -1,8 +1,8 @@
-datasets: Pubmed
-data_loading: 
+datasets: Cora
+data_loading: full
 models: GCN
-num_clients: 10
-num_rounds: 100
+num_clients: 5
+num_rounds: 10
 epochs: 3
 optimizer: SGD
 decay: 0.0005

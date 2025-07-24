@@ -214,7 +214,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                run_name = f"{model_type}_{dataset_name}_{data_loading_option}_pe_{cfg.get("use_pe")}_beta{cfg.get("beta")}_run{i+1}"
+                
                 run_config = {
                     "dataset": dataset_name,
                     "model": model_type,
@@ -237,9 +237,15 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 initialize_wandb(
                     project="FGL",
                     config=run_config,
-                    name=run_name,
                     group=f"{model_type}_{dataset_name}_{data_loading_option}"
                 )
+                current_cfg = cfg.copy()
+                print(f"Wandb config is set to: {wandb.config}")
+                print(wandb.config)
+                for key in wandb.config:
+                    current_cfg[key] = wandb.config[key]
+                run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_{current_cfg.get('lr')}_beta{current_cfg.get('beta')}_run{i+1}"
+                wandb.run.name = run_name
 
                 global_results, client_results = run_with_server(
                     dataset_name, 
@@ -247,7 +253,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     beta, 
                     data_loading_option, 
                     model_type, 
-                    cfg, 
+                    current_cfg,  # Use current_cfg with sweep values
                     DEVICE, 
                     hop=hop, 
                     fulltraining_flag=fulltraining_flag

@@ -1,0 +1,13 @@
+method: grid
+parameters:
+  lr:
+    values: [0.01, 0.05, 0.1]
+  optimizer:
+    values: ["SGD", "Adam"]
+command:
+  - ${env}
+  - python
+  - -m
+  - src.experiments.run_experiments
+  - --config
+  - conf/baseline/cora_baseline.yaml
