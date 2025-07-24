@@ -5,6 +5,10 @@ from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT
 from src.server import Server
 import pandas as pd
 from src.utils.utils import load_config
+from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics
+from dotenv import load_dotenv
+load_dotenv()
+import wandb
 
 
 from src.dataprocessing.loaders import (
@@ -204,12 +208,39 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(5):  # Change 1 to the desired number of repetitions
+        for i in range(2):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
                 gc.collect()
-                
+
+                run_name = f"{model_type}_{dataset_name}_{data_loading_option}_pe_{cfg.get("use_pe")}_beta{cfg.get("beta")}_run{i+1}"
+                run_config = {
+                    "dataset": dataset_name,
+                    "model": model_type,
+                    "data_loading": data_loading_option,
+                    "num_clients": cfg.get("num_clients"),
+                    "num_rounds": cfg.get("num_rounds"),
+                    "epochs": cfg.get("epochs"),
+                    "beta": cfg.get("beta"),
+                    "lr": cfg.get("lr"),
+                    "optimizer": cfg.get("optimizer"),
+                    "decay": cfg.get("decay"),
+                    "hop": cfg.get("hop"),
+                    "fulltraining_flag": cfg.get("fulltraining_flag"),
+                    "use_pe": cfg.get("use_pe"),
+                    "pe_r": cfg.get("pe_r"),
+                    "pe_P": cfg.get("pe_P"),
+                    "normalize": cfg.get("normalize"),
+                    "run_index": i+1
+                }
+                initialize_wandb(
+                    project="FGL",
+                    config=run_config,
+                    name=run_name,
+                    group=f"{model_type}_{dataset_name}_{data_loading_option}"
+                )
+
                 global_results, client_results = run_with_server(
                     dataset_name, 
                     clients_num, 
@@ -230,6 +261,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "global_result": float(global_results),
                     "client_result": float(client_results)
                 })
+                wandb.finish()
             except Exception as e:
                 print(f"Error in round {i+1}: {e}")
                 # Clear resources even if there's an error

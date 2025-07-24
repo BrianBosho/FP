@@ -25,6 +25,8 @@ extracted_results.xlsx
 results_summary/
 artifacts/
 data/
+./env
+wandb/
 
 # Logs
 logs/

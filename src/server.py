@@ -1,11 +1,18 @@
 import ray
 import torch
 from src.train import evaluate, test, evaluate_with_minibatch, test_with_minibatch
+from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics, log_client_validation_metrics, log_final_validation_metrics
 import gc
+import numpy as np
+from dotenv import load_dotenv
+load_dotenv()
+import wandb
+
 
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
 DEFAULT_BATCH_SIZE = 1024  # Further reduced to 32 to help with memory constraints
 DEFAULT_NUM_NEIGHBORS = [10, 10, 10] 
+
 
 class Server():
     def __init__(self, clients, model, device) -> None:
@@ -42,6 +49,11 @@ class Server():
         for p in self.model.parameters():
              p.data /= self.num_of_trainers
         self.broadcast_params(current_global_epoch)
+
+        log_client_training_metrics(train_results, current_global_epoch)
+        # lets run evaluation after training
+        eval_results = self.evaluate_clients()
+        log_client_validation_metrics(eval_results, current_global_epoch)
         
         return train_results
 
@@ -50,6 +62,7 @@ class Server():
         criterion = torch.nn.CrossEntropyLoss()
         eval_futures = [client.evaluate.remote(criterion) for client in clients]
         results = ray.get(eval_futures)
+        # log_final_validation_metrics(results, -1)  # -1 for global evaluation
         return results
     
     def broadcast_params(self, current_global_epoch: int) -> None:
@@ -116,11 +129,3 @@ class Server():
             # Only for small datasets, move to device
             data = data.to(self.device)
             return test(self.model, data)
-
-    # def test_global_model(self, data):
-    #     self.model.to(self.device)
-    #     data = data.to(self.device)
-    #     test_result = test(self.model, data)
-    #     # Convert parameters to a list of numpy arrays
-    #     params = [p.detach().cpu().numpy() for p in self.model.parameters()]
-    #     return test_result, params
