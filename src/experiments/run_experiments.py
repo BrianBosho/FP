@@ -31,7 +31,8 @@ def parse_arguments():
     parser.add_argument('--results_dir', type=str, help='Directory to save results')
     parser.add_argument('--fulltraining_flag', action='store_true', help='Use full training flag')
     parser.add_argument('--optimizer', type=str, help='Optimizer to use')
-    parser.add_argument('--decay', type=float, help='Weight decay') 
+    parser.add_argument('--decay', type=float, help='Weight decay')
+    parser.add_argument('--repetitions', type=int, help='Number of repetitions for each experiment')
     return parser.parse_args()
 
 def load_yaml_config(config_path):
@@ -211,6 +212,10 @@ def run_experiments(args):
         cfg["results_dir"] = args.results_dir
     if args.fulltraining_flag:
         cfg["fulltraining_flag"] = args.fulltraining_flag
+    if args.repetitions is not None:
+        cfg["repetitions"] = args.repetitions
+
+
 
     if wandb.run is not None:
         for key in wandb.config:
@@ -226,6 +231,7 @@ def run_experiments(args):
     save_results = cfg["save_results"]
     hop = cfg["hop"]
     fulltraining_flag = cfg["fulltraining_flag"]
+    use_pe_values = cfg["use_pe"]  # Default to no PE if not specified
     
     # Ensure Ray is shut down before starting
     try:
@@ -264,129 +270,132 @@ def run_experiments(args):
     print(f"- Full Training Flag: {fulltraining_flag}")
     
     # Run experiments for each combination
-    for dataset_name in datasets:
-        for data_loading_option in data_loading_options:
-            for model_type in model_types:
-                for beta in beta_values:
-                    for clients_num in client_nums:
-                        # Generate timestamp for this experiment
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        
-                        # Setup environment for this experiment
-                        exp_dir, experiment_name = setup_environment_for_experiment(
-                            dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp
-                        )
-                        
-                        # Create a monkey patch for save_results_to_csv in run_utils
-                        from src.utils.run_utils import save_results_to_csv as original_save_func
-                        
-                        def patched_save_func(results, filename=None):
-                            # Use the original function but with our custom filename
-                            csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
-                            return original_save_func(results, csv_filename)
-                        
-                        # Apply the monkey patch to the imported function
-                        import src.utils.run_utils as run_utils
-                        run_utils.save_results_to_csv = patched_save_func
-                        
-                        # Print experiment header
-                        print(f"\n{'='*80}")
-                        print(f"Running experiment: {experiment_name}")
-                        print(f"{'='*80}")
-                        
-                        # Create a training configuration for the experiment
-                        training_cfg = cfg.copy()  # Pass all parameters through
-                        training_cfg["beta"] = beta
-                        # also overwrite dataset_name, data_loading_option, model_type, clients_num
-                        training_cfg["dataset_name"] = dataset_name
-                        training_cfg["data_loading_option"] = data_loading_option
-                        training_cfg["model_type"] = model_type
-                        training_cfg["clients_num"] = clients_num
-                       
-                        
-                        # Start time measurement
-                        start_time = time.time()
-                        
-                        # Run the experiment
-                        result, output = main_experiment(
-                            clients_num, 
-                            beta, 
-                            data_loading_option, 
-                            model_type, 
-                            training_cfg, 
-                            dataset_name=dataset_name, 
-                            hop=hop,
-                            fulltraining_flag=fulltraining_flag
-                        )
-                        
-                        # Calculate experiment duration
-                        end_time = time.time()
-                        duration = end_time - start_time
-                        duration_formatted = format_time(duration)
-                        
-                        # Add duration to the result
-                        result["duration"] = {
-                            "seconds": duration,
-                            "formatted": duration_formatted
-                        }
-                        
-                        # Extract key metrics
-                        avg_global = result["summary"]["average_global_result"]
-                        avg_client = result["summary"]["average_client_result"]
-                        std_global = result["summary"]["std_global"]
-                        std_client = result["summary"]["std_client"]
-                        
-                        # Add to summary table - now including beta, clients, and duration
-                        summary_rows.append([
-                            dataset_name, 
-                            data_loading_option, 
-                            model_type,
-                            f"{beta:.2f}",
-                            f"{clients_num}",
-                            f"{avg_global:.4f}",
-                            f"{avg_client:.4f}",
-                            f"{std_client:.4f}",
-                            f"{std_global:.4f}",
-                            duration_formatted
-                        ])
-                        
-                        # Save results if requested
-                        if save_results:
-                            # Save detailed results
-                            filename = f"results_{experiment_name}_{timestamp}.json"
-                            filepath = os.path.join(exp_dir, filename)
+    for use_pe in use_pe_values:
+        for dataset_name in datasets:
+            for data_loading_option in data_loading_options:
+                for model_type in model_types:
+                    for beta in beta_values:
+                        for clients_num in client_nums:
+                            # Generate timestamp for this experiment
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                             
-                            with open(filepath, 'w') as f:
-                                json.dump(result, f, indent=2)
+                            # Setup environment for this experiment
+                            exp_dir, experiment_name = setup_environment_for_experiment(
+                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp
+                            )
                             
-                            # Also save readable output with duration information
-                            txt_filepath = os.path.join(exp_dir, f"results_{experiment_name}_{timestamp}.txt")
-                            with open(txt_filepath, 'w') as f:
-                                f.write(output)
-                                f.write(f"\n\nExperiment Duration: {duration_formatted} (HH:MM:SS)\n")
+                            # Create a monkey patch for save_results_to_csv in run_utils
+                            from src.utils.run_utils import save_results_to_csv as original_save_func
                             
-                            print(f"Results saved to {filepath}")
+                            def patched_save_func(results, filename=None):
+                                # Use the original function but with our custom filename
+                                csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+                                return original_save_func(results, csv_filename)
+                            
+                            # Apply the monkey patch to the imported function
+                            import src.utils.run_utils as run_utils
+                            run_utils.save_results_to_csv = patched_save_func
+                            
+                            # Print experiment header
+                            print(f"\n{'='*80}")
+                            print(f"Running experiment: {experiment_name}")
+                            print(f"{'='*80}")
+                            
+                            # Create a training configuration for the experiment
+                            training_cfg = cfg.copy()  # Pass all parameters through
+                            training_cfg["beta"] = beta
+                            # also overwrite dataset_name, data_loading_option, model_type, clients_num
+                            training_cfg["dataset_name"] = dataset_name
+                            training_cfg["data_loading_option"] = data_loading_option
+                            training_cfg["model_type"] = model_type
+                            training_cfg["clients_num"] = clients_num
+                            training_cfg["use_pe"] = use_pe
+                            training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
                         
-                        # Make sure the training CSV was copied to experiment directory
-                        copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp)
-                        
-                        # Store results for final summary
-                        all_results.append({
-                            "dataset": dataset_name,
-                            "data_loading": data_loading_option,
-                            "model": model_type,
-                            "beta": beta,
-                            "clients": clients_num,
-                            "avg_global": avg_global,
-                            "avg_client": avg_client,
-                            "client_std_dev": std_client,
-                            "global_std_dev": std_global,
-                            "duration": {
+                            
+                            # Start time measurement
+                            start_time = time.time()
+                            
+                            # Run the experiment
+                            result, output = main_experiment(
+                                clients_num, 
+                                beta, 
+                                data_loading_option, 
+                                model_type, 
+                                training_cfg, 
+                                dataset_name=dataset_name, 
+                                hop=hop,
+                                fulltraining_flag=fulltraining_flag
+                            )
+                            
+                            # Calculate experiment duration
+                            end_time = time.time()
+                            duration = end_time - start_time
+                            duration_formatted = format_time(duration)
+                            
+                            # Add duration to the result
+                            result["duration"] = {
                                 "seconds": duration,
                                 "formatted": duration_formatted
                             }
-                        })
-    
+                            
+                            # Extract key metrics
+                            avg_global = result["summary"]["average_global_result"]
+                            avg_client = result["summary"]["average_client_result"]
+                            std_global = result["summary"]["std_global"]
+                            std_client = result["summary"]["std_client"]
+                            
+                            # Add to summary table - now including beta, clients, and duration
+                            summary_rows.append([
+                                dataset_name, 
+                                data_loading_option, 
+                                model_type,
+                                f"{beta:.2f}",
+                                f"{clients_num}",
+                                f"{avg_global:.4f}",
+                                f"{avg_client:.4f}",
+                                f"{std_client:.4f}",
+                                f"{std_global:.4f}",
+                                duration_formatted
+                            ])
+                            
+                            # Save results if requested
+                            if save_results:
+                                # Save detailed results
+                                filename = f"results_{experiment_name}_{timestamp}.json"
+                                filepath = os.path.join(exp_dir, filename)
+                                
+                                with open(filepath, 'w') as f:
+                                    json.dump(result, f, indent=2)
+                                
+                                # Also save readable output with duration information
+                                txt_filepath = os.path.join(exp_dir, f"results_{experiment_name}_{timestamp}.txt")
+                                with open(txt_filepath, 'w') as f:
+                                    f.write(output)
+                                    f.write(f"\n\nExperiment Duration: {duration_formatted} (HH:MM:SS)\n")
+                                
+                                print(f"Results saved to {filepath}")
+                            
+                            # Make sure the training CSV was copied to experiment directory
+                            copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp)
+                            
+                            # Store results for final summary
+                            all_results.append({
+                                "dataset": dataset_name,
+                                "data_loading": data_loading_option,
+                                "model": model_type,
+                                "beta": beta,
+                                "clients": clients_num,
+                                "avg_global": avg_global,
+                                "avg_client": avg_client,
+                                "client_std_dev": std_client,
+                                "global_std_dev": std_global,
+                                "duration": {
+                                    "seconds": duration,
+                                    "formatted": duration_formatted
+                                }
+                            })
+        
     # Save summary results to the summary directory
     save_summary_results(summary_rows, all_results, results_dir, summary_dir, cfg)
     

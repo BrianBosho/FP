@@ -5,7 +5,7 @@ from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT
 from src.server import Server
 import pandas as pd
 from src.utils.utils import load_config
-from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics
+from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics, log_test_metrics
 from dotenv import load_dotenv
 load_dotenv()
 import wandb
@@ -154,6 +154,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             test_results = server.test_global_model(data)
             client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         
+        # Log test results to wandb
+        log_test_metrics(test_results, client_test_results, current_global_epoch=-1)
+        
         average_results = sum(client_test_results) / len(client_test_results)
         print(f"The average client test results: {average_results}")
         print(f"The final global test results: {test_results}")
@@ -172,6 +175,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
+    repetitions = cfg.get("repetitions", 1)
     
     # Adjust clients_num based on dataset to avoid OOM
     adjusted_clients = clients_num
@@ -208,7 +212,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(1):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
@@ -244,7 +248,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 print(wandb.config)
                 for key in wandb.config:
                     current_cfg[key] = wandb.config[key]
-                run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_{current_cfg.get('lr')}_beta{current_cfg.get('beta')}_run{i+1}"
+                run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_lr{current_cfg.get('lr')}_decay{current_cfg.get('decay')}_beta{current_cfg.get('beta')}_run{i+1}"
                 wandb.run.name = run_name
 
                 global_results, client_results = run_with_server(

@@ -1,13 +1,15 @@
 method: grid
 parameters:
   lr:
-    values: [0.01, 0.05, 0.1]
+    values: [1, 0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005]
+  decay:
+    values: [0.05, 0.001, 0.0005, 0.0001, 0.00005]
   optimizer:
-    values: ["SGD", "Adam"]
+    values: ["Adam", "SGD"]
 command:
   - ${env}
   - python
   - -m
   - src.experiments.run_experiments
   - --config
-  - conf/baseline/cora_baseline.yaml
+  - conf/baseline/citeseer_baseline_wandb.yaml

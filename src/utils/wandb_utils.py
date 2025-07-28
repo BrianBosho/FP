@@ -72,5 +72,33 @@ def log_final_validation_metrics(val_results: list, current_global_epoch: int) -
         # "federation/client_val_loss_std": std_val_loss,
         # "federation/client_val_acc_std": std_val_acc,
     }, step=current_global_epoch)
+
+def log_test_metrics(global_test_acc: float, client_test_accs: list, current_global_epoch: int = -1) -> None:
+    """
+    Log test metrics for both global model and individual clients
+    
+    Args:
+        global_test_acc (float): Global model test accuracy
+        client_test_accs (list): List of client test accuracies
+        current_global_epoch (int): Current global epoch (-1 for final test results)
+    """
+    # Convert to CPU scalars if needed
+    global_test_acc = to_cpu_scalar(global_test_acc)
+    client_test_accs = [to_cpu_scalar(acc) for acc in client_test_accs]
+    
+    # Calculate client test statistics
+    mean_client_test_acc = np.mean(client_test_accs)
+    std_client_test_acc = np.std(client_test_accs)
+    
+    # Log to wandb
+    wandb.log({
+        "round": current_global_epoch,
+        "test/global_test_acc": global_test_acc,
+        "test/avg_client_test_acc": mean_client_test_acc,
+        "test/client_test_acc_std": std_client_test_acc,
+        "test/num_clients": len(client_test_accs),
+        # Additional metrics
+        "test/global_vs_avg_client_diff": global_test_acc - mean_client_test_acc,
+    }, step=current_global_epoch)
     
     
