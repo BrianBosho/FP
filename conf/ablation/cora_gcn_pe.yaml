@@ -1,0 +1,35 @@
+num_clients:
+  - 10
+num_rounds: 450
+epochs: 3
+beta:
+  - 1
+  - 10000
+lr: 0.1
+optimizer: SGD
+decay: 0.001
+datasets:
+   - Cora
+data_loading:
+  - zero_hop
+  - adjacency
+  - diffusion
+  - full
+models:
+  - GCN
+results_dir: results/cora_gcn_final
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe:
+  - true
+pe_r: 64
+pe_P: 16
+normalize: qr
+repetitions: 10
+
+# nohup python -m src.experiments.run_experiments --config conf/ablation/cora_gcn._peyaml
+
+# nohup python -m src.experiments.run_experiments --config conf/ablation/cora_gcn_no_pe._peyaml
+
+# I need to run both of these give me the command for that

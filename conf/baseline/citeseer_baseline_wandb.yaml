@@ -7,9 +7,9 @@ epochs: 3
 optimizer: SGD
 decay: 0.0005
 beta: 
-  - 10000
+  - 1
 lr: 0.5
-results_dir: results/wandb_sweep/citeseer_baseline
+results_dir: results/wandb_sweep/citeseer_baseline_beta_1
 save_results: false
 hop: 1
 fulltraining_flag: false 

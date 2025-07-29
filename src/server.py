@@ -1,7 +1,7 @@
 import ray
 import torch
 from src.train import evaluate, test, evaluate_with_minibatch, test_with_minibatch
-from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics, log_client_validation_metrics, log_final_validation_metrics
+from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics, log_client_validation_metrics, log_final_validation_metrics, log_test_metrics
 import gc
 import numpy as np
 from dotenv import load_dotenv

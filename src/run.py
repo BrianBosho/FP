@@ -154,8 +154,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             test_results = server.test_global_model(data)
             client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         
-        # Log test results to wandb
-        log_test_metrics(test_results, client_test_results, current_global_epoch=-1)
+        # Log test results to wandb - use proper step value instead of -1
+        final_round = rounds  # Use the total number of rounds as the step
+        log_test_metrics(test_results, client_test_results, current_global_epoch=final_round)
         
         average_results = sum(client_test_results) / len(client_test_results)
         print(f"The average client test results: {average_results}")
@@ -271,6 +272,13 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "global_result": float(global_results),
                     "client_result": float(client_results)
                 })
+                
+                # Log individual run results before finishing
+                wandb.log({
+                    "run_global_test_result": global_results,
+                    "run_client_test_result": client_results
+                })
+                
                 wandb.finish()
             except Exception as e:
                 print(f"Error in round {i+1}: {e}")
@@ -292,6 +300,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         print(f"The average client test results: {average_client_results}")
         print(f"The standard deviation global is: {std_global}")
         print(f"The standard deviation client is: {std_client}")
+
+        # Note: Final summary logging moved to before wandb.finish() in the loop above
+        # This prevents logging after the wandb run has already been finished
+        
+        
+
 
         results_data["summary"] = {
             "global_results": [float(x) for x in test_results],
