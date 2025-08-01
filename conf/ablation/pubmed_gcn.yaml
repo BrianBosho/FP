@@ -1,6 +1,6 @@
 num_clients:
   - 10
-num_rounds: 2
+num_rounds: 450
 epochs: 3
 beta:
   - 1
@@ -18,7 +18,7 @@ data_loading:
   - full
 models:
   - GCN
-results_dir: results/pubmed_gcn_beta_test
+results_dir: results/pubmed_gcn_final
 save_results: true
 hop: 1
 fulltraining_flag: false 
@@ -28,4 +28,3 @@ use_pe:
 pe_r: 64
 pe_P: 16
 normalize: qr
-repetitions: 2

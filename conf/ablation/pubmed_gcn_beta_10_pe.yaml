@@ -16,12 +16,12 @@ data_loading:
   - full
 models:
   - GCN
-results_dir: results/pubmed_gcn_final_beta_10_nope
+results_dir: results/pubmed_gcn_final_beta_10_with_pe2
 save_results: true
 hop: 1
 fulltraining_flag: false 
 use_pe:
-  - false
+  - true
 pe_r: 64
 pe_P: 16
 normalize: qr

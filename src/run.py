@@ -135,7 +135,28 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     server = Server(clients, model, device)
 
     try:
-        train_results = [server.train_clients(i) for i in range(rounds)]
+        train_results = []
+        best_eval_acc = 0
+        patience = 0
+        patience_threshold = 10
+        best_eval_loss = float('inf')
+        
+        for i in range(rounds):
+            results = server.train_clients(i)
+            train_results.append(results[0])
+            avg_eval_acc = results[1]
+            avg_eval_loss = results[2]
+            if avg_eval_acc > best_eval_acc:
+                best_eval_acc = avg_eval_acc
+                patience = 0
+            elif avg_eval_loss < best_eval_loss:
+                best_eval_loss = avg_eval_loss
+                patience = 0
+            else:
+                patience += 1
+            if patience >= patience_threshold:
+                print(f"Early stopping triggered at round {i}")
+                break
         log_training_results(train_results)
         
         eval_results = server.evaluate_clients()
@@ -240,7 +261,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "run_index": i+1
                 }
                 initialize_wandb(
-                    project="FGL",
+                    project="FGL2",
                     config=run_config,
                     group=f"{model_type}_{dataset_name}_{data_loading_option}"
                 )

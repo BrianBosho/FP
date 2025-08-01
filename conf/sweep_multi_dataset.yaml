@@ -1,0 +1,23 @@
+method: grid
+name: multi_dataset_sgd_focused_sweep
+parameters:
+  dataset_config:
+    values: 
+      - "conf/baseline/cora_baseline_wandb.yaml"
+      - "conf/baseline/citeseer_baseline_wandb.yaml" 
+      - "conf/baseline/pubmed_baseline_wandb.yaml"
+  lr:
+    values: [0.05, 0.01, 0.1, 0.5, 1.0]
+  decay:
+    values: [0.00005, 0.0001, 0.0005, 0.001, 0.05]
+  optimizer:
+    values: ["SGD"]
+  beta:
+    values: [1, 10, 10000]
+command:
+  - ${env}
+  - python
+  - -m
+  - src.experiments.run_experiments
+  - --config
+  - ${dataset_config}

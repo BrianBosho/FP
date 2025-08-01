@@ -1,5 +1,5 @@
 method: grid
-name: cora_sgd_focused_sweep
+name: citeseer_focused_sweep
 parameters:
   lr:
     values: [0.001, 0.005, 0.01, 0.1, 0.5]
@@ -15,8 +15,4 @@ command:
   - -m
   - src.experiments.run_experiments
   - --config
-  - conf/baseline/cora_baseline_wandb.yaml
-
-
-  # run wandb sweep as:
-  # wandb sweep conf/sweep.yaml
+  - conf/baseline/citeseer_baseline_wandb.yaml

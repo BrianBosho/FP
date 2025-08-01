@@ -1,6 +1,6 @@
 datasets: Citeseer
 data_loading: full
-models: GCN
+models: GAT
 num_clients: 10
 num_rounds: 200
 epochs: 3

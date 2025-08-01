@@ -54,8 +54,17 @@ class Server():
         # lets run evaluation after training
         eval_results = self.evaluate_clients()
         log_client_validation_metrics(eval_results, current_global_epoch)
-        
-        return train_results
+
+        def to_cpu_scalar(x):
+            if hasattr(x, "detach") and hasattr(x, "cpu"):
+                return x.detach().cpu().item()
+            return x
+        client_val_losses = [to_cpu_scalar(result[0]) for result in eval_results]
+        client_val_accuracies = [to_cpu_scalar(result[1]) for result in eval_results]
+        avg_eval_loss = np.mean(client_val_losses)
+        avg_eval_acc = np.mean(client_val_accuracies)
+
+        return train_results, avg_eval_acc, avg_eval_loss
 
     def evaluate_clients(self):
         clients = self.clients
