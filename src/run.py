@@ -54,14 +54,16 @@ def instantiate_model(model_type, num_features, num_classes, device, dataset_nam
         else:
             return GCN(num_features, 16, num_classes).to(DEVICE)
     elif model_type == "GAT":
-        hidden_dim = model_params.get("hidden_dim", 16)
-        num_heads = model_params.get("num_heads", 8)
-        dropout = model_params.get("dropout", 0.0)
-        return GAT(num_features, hidden_dim, num_classes, heads=num_heads, dropout=dropout).to(DEVICE)
-        # if dataset_name == "Pubmed":
-        #     model = PubmedGAT(num_features, 16, num_classes).to(DEVICE)
-        #     print(f"Model is {model}")
-        #     return model.to(DEVICE)
+        if dataset_name == "Pubmed":
+            model = PubmedGAT(num_features, 8, num_classes, heads=8).to(DEVICE)
+            print(f"Model is {model}")
+            return model.to(DEVICE)
+        else:
+            hidden_dim = model_params.get("hidden_dim", 8)
+            num_heads = model_params.get("num_heads", 8)
+            dropout = model_params.get("dropout", 0.6)
+            return GAT(num_features, hidden_dim, num_classes, heads=num_heads, dropout=dropout).to(DEVICE)
+            
         # else:
             
     else:
@@ -234,7 +236,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(1):  # Change 1 to the desired number of repetitions
+        for i in range(10):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()

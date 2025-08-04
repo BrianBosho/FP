@@ -164,7 +164,7 @@ class GraphSAGEProducts(torch.nn.Module):
 
 
 class GAT(torch.nn.Module):
-    def __init__(self, dim_in, dim_h, dim_out, heads=8, dropout=0.0):
+    def __init__(self, dim_in, dim_h, dim_out, heads=8, dropout=0.6):
         super().__init__()
         self.dim_in = dim_in
         self.dim_h = dim_h
@@ -184,32 +184,29 @@ class GAT(torch.nn.Module):
 
 
 class PubmedGAT(torch.nn.Module):
-    def __init__(self, dim_in, dim_h, dim_out, heads=16):
+    def __init__(self, dim_in, dim_h, dim_out, heads=8):
         super().__init__()
         self.dim_in = dim_in
         self.dim_h = dim_h
         self.dim_out = dim_out
         self.heads = heads
+
+        dim_h = 8
         
-        # Three GAT layers with 16 attention heads
+        # Two GAT layers: Layer 1 (8 heads) -> Output Layer (8 heads)
         self.gat1 = GATv2Conv(dim_in, dim_h, heads=heads)
-        self.gat2 = GATv2Conv(dim_h*heads, dim_h, heads=heads)
-        self.gat3 = GATv2Conv(dim_h*heads, dim_out, heads=1)
+        self.gat2 = GATv2Conv(dim_h*heads, dim_out, heads=8)
+        # self.gat3 = GATv2Conv(dim_h*heads, dim_out, heads=1)
 
     def forward(self, x, edge_index):
         # First layer
-        h = F.dropout(x, p=0.0, training=self.training)
+        h = F.dropout(x, p=0.6, training=self.training)
         h = self.gat1(h, edge_index)
         h = F.elu(h)
         
-        # Second layer
-        h = F.dropout(h, p=0.0, training=self.training)
+        # Second layer (Output layer)
+        h = F.dropout(h, p=0.6, training=self.training)
         h = self.gat2(h, edge_index)
-        h = F.elu(h)
-        
-        # Third layer
-        h = F.dropout(h, p=0.0, training=self.training)
-        h = self.gat3(h, edge_index)
         
         return F.log_softmax(h, dim=1)
 

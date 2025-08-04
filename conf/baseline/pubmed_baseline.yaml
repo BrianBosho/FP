@@ -1,23 +1,24 @@
 num_clients:
-  - 10
+  - 1
 num_rounds: 600
 epochs: 3
 beta:
-  - 10
-lr: 0.5
-optimizer: SGD
+  - 10000
+lr: 0.01
+optimizer: Adam
 decay: 0.0005
 datasets:
-  - ogbn-arxiv
+   - Pubmed
 data_loading:
   - full
 models:
   - GCN
-results_dir: results/fedgcn_basline_ogbn_arxiv_100_no_pe
+results_dir: results/centralized/pubmed
 save_results: true
 hop: 1
-fulltraining_flag: false
-use_pe: false
+fulltraining_flag: false 
+use_pe:
+  - false
 pe_r: 64
 pe_P: 16
 normalize: qr

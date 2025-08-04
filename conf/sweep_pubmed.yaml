@@ -6,7 +6,7 @@ parameters:
   decay:
     values: [0.00005, 0.0001, 0.0005, 0.001, 0.05]
   optimizer:
-    values: ["SGD"]
+    values: ["SGD", "Adam"]
   beta:
     values: [1, 10, 10000]
 command:

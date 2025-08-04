@@ -1,6 +1,6 @@
 import ray
 from src.train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
-from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts
+from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts, PubmedGAT
 import torch
 import sys
 import gc
@@ -52,7 +52,18 @@ class FLClient:
             else:
                 self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.device)
         elif model_type == "GAT":
-            self.model = GAT(dataset.num_features, 16, dataset.num_classes).to(self.device)
+            # Use same configuration logic as server for consistency
+            model_params = {}
+            if cfg is not None and "model_params" in cfg and model_type in cfg["model_params"]:
+                model_params = cfg["model_params"][model_type]
+            
+            if self.dataset_name == "Pubmed":
+                self.model = PubmedGAT(dataset.num_features, 8, dataset.num_classes, heads=8).to(self.device)
+            else:
+                hidden_dim = model_params.get("hidden_dim", 8)  # FedGAT default: 8
+                num_heads = model_params.get("num_heads", 8)    # FedGAT default: 8
+                dropout = model_params.get("dropout", 0.6)      # FedGAT default: 0.6
+                self.model = GAT(dataset.num_features, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.device)
 
         self.epochs = cfg["epochs"]
         

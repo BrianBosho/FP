@@ -7,15 +7,15 @@ beta:
   - 10000
 lr: 0.5
 optimizer: SGD
-decay: 0.05
+decay: 0.0005
 datasets:
    - Citeseer
 data_loading:
   - diffusion
-  - full
+  - adjacency
 models:
   - GCN
-results_dir: results/citeseer_ablation_final_pe
+results_dir: results/citeseer_ablation_final_pe_redo
 save_results: true
 hop: 1
 fulltraining_flag: false 
@@ -24,4 +24,5 @@ use_pe:
 pe_r: 64
 pe_P: 16
 normalize: qr
-repetitions: 10
+
+# nohup python -m src.experiments.run_experiments --config conf/ablation/citeseer_ablation_gcn_pe.yaml > nohup_citeseer_ablation_gcn_pe.log 2>&1 &

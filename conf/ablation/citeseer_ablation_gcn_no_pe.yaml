@@ -23,4 +23,3 @@ use_pe:
 pe_r: 64
 pe_P: 16
 normalize: qr
-repetitions: 10
