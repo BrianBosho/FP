@@ -168,8 +168,10 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         pe_r = config.get("pe_r", pe_r)
         pe_P = config.get("pe_P", pe_P)
         normalize = config.get("normalize", "qr")  # Get normalization method
+        num_iterations = config.get("num_iterations", 50)
     else:
         normalize = "qr"
+        num_iterations = 50
     
     labels = data.y.cpu().numpy()
     N = len(labels)
@@ -238,6 +240,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 clients_data[i].edge_index, 
                 original_nodes_mask,
                 DEVICE, 
+                num_iterations=num_iterations,
                 mode=mode,
                 client_id=i,
                 log_file=json_file

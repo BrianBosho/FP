@@ -1,31 +1,27 @@
 num_clients:
   - 10
-num_rounds: 450
+num_rounds: 20
 epochs: 3
 beta:
-  - 10000
   - 1
 lr: 0.05
 optimizer: Adam
 decay: 0.0005
 datasets:
    - Cora
-data_loading:
-  - zero_hop
+data_loading: 
   - adjacency
-  - diffusion
-  - full
 models:
   - GAT
-results_dir: results/gat/cora
-save_results: true
+results_dir: results/review/gat/cora
+save_results: false
 hop: 1
 fulltraining_flag: false 
 use_pe:
-  - false
   - true
 pe_r: 64
 pe_P: 16
 normalize: qr
+num_iterations: 20
 
 # python -m src.experiments.run_experiments --config conf/ablation/cora_gat.yaml

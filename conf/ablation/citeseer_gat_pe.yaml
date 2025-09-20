@@ -1,0 +1,30 @@
+num_clients:
+  - 10
+num_rounds: 450
+epochs: 3
+beta:
+  - 10000
+  - 1
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+datasets:
+   - Citeseer
+data_loading:
+  - zero_hop
+  - adjacency
+  - diffusion
+  - full
+models:
+  - GAT
+results_dir: results/gat/citeseer_no_pe_sgd
+save_results: true
+hop: 1
+fulltraining_flag: false 
+use_pe:
+  - false
+pe_r: 64
+pe_P: 16
+normalize: qr
+
+# python -m src.experiments.run_experiments --config conf/ablation/citeseer_gat.yaml > nohup_gat_pe.out 2>&1 &

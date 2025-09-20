@@ -165,6 +165,7 @@ def load_and_split_with_feature_prop(name: str, device, num_clients: int = 10, b
         use_feature_prop=use_feature_prop, 
         full_data=full_data, 
         fulltraining_flag=fulltraining_flag,
-        config=config
+        config=config,
+        num_iterations=num_iterations
     )
     return data, dataset, clients_data, test_data

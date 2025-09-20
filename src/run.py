@@ -101,8 +101,7 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
             hop=hop, 
             imputation_method=data_loading_option, 
             fulltraining_flag=fulltraining_flag, 
-            config=config
-        )
+            config=config        )
  
 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
@@ -118,7 +117,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         device=DEVICE, 
         hop=hop, 
         fulltraining_flag=fulltraining_flag,
-        config=cfg
+        config=cfg,
     )
     test_data = clients_data
     print("Data loaded")
@@ -199,7 +198,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     test_results = []
     client_test_results = []
     print(f"DEVICE: {DEVICE}")
-    repetitions = cfg.get("repetitions", 1)
+    repetitions = cfg.get("repetitions", 1),
+    num_iterations = cfg.get("num_iterations", 50)
     
     # Adjust clients_num based on dataset to avoid OOM
     adjusted_clients = clients_num
@@ -216,7 +216,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             "num_clients": clients_num,
             "beta": beta,
             "hop": hop,
-            "fulltraining_flag": fulltraining_flag
+            "fulltraining_flag": fulltraining_flag,
         },
         "rounds": []
     }
@@ -260,7 +260,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "pe_r": cfg.get("pe_r"),
                     "pe_P": cfg.get("pe_P"),
                     "normalize": cfg.get("normalize"),
-                    "run_index": i+1
+                    "run_index": i+1,
+                    "num_iterations": cfg.get("num_iterations")
                 }
                 initialize_wandb(
                     project="FGL2",
@@ -284,7 +285,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     current_cfg,  # Use current_cfg with sweep values
                     DEVICE, 
                     hop=hop, 
-                    fulltraining_flag=fulltraining_flag
+                    fulltraining_flag=fulltraining_flag,
+                
                 )
                 test_results.append(global_results)
                 client_test_results.append(client_results)
@@ -293,14 +295,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 results_data["rounds"].append({
                     "round": i+1,
                     "global_result": float(global_results),
-                    "client_result": float(client_results)
-                })
+                    "client_result": float(client_results)                })
                 
                 # Log individual run results before finishing
                 wandb.log({
                     "run_global_test_result": global_results,
-                    "run_client_test_result": client_results
-                })
+                    "run_client_test_result": client_results                })
                 
                 wandb.finish()
             except Exception as e:
@@ -336,8 +336,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             "average_global_result": float(average_global_results),
             "average_client_result": float(average_client_results),
             "std_global": float(std_global),
-            "std_client": float(std_client)
-        }
+            "std_client": float(std_client)        }
 
         output = f"DEVICE: {DEVICE}\n"
         output += f"Data loading option is {data_loading_option}\n"
@@ -350,7 +349,6 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         output += f"The average client test results: {average_client_results}\n"
         output += f"The standard deviation global is: {std_global}\n"
         output += f"The standard deviation client is: {std_client}\n"
-        
     finally:
         # Make sure Ray is always shut down
         ray.shutdown()
