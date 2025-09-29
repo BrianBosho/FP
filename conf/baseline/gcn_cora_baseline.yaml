@@ -1,5 +1,5 @@
-num_clients: 1
-num_rounds: 600
+num_clients: 10
+num_rounds: 20
 epochs: 3
 beta: 1
 lr: 0.5
@@ -9,11 +9,14 @@ datasets:
   - Cora
 data_loading:
   - full
+  - zero_hop
+  - adjacency
+  - diffusion
 models:
-  - GCN
+  - GAT
 hidden_dim:
   - 16
-results_dir: results/centralized/cora
+results_dir: results/review/centralized/cora
 save_results: true
 hop: 1
 fulltraining_flag: false 
@@ -23,3 +26,4 @@ pe_r: 64
 pe_P: 16
 normalize: qr
 
+# run python -m src.experiments.run_experiments --config conf/baseline/gcn_cora_baseline.yaml

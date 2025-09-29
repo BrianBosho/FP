@@ -68,7 +68,7 @@ class Server():
 
     def evaluate_clients(self):
         clients = self.clients
-        criterion = torch.nn.CrossEntropyLoss()
+        criterion = torch.nn.NLLLoss()
         eval_futures = [client.evaluate.remote(criterion) for client in clients]
         results = ray.get(eval_futures)
         # log_final_validation_metrics(results, -1)  # -1 for global evaluation

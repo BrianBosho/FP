@@ -11,10 +11,10 @@ DEFAULT_BATCH_SIZE = 1024  # Default batch size for most datasets
 DEFAULT_NUM_NEIGHBORS = [10, 10, 10]  
 
 # Special configurations for specific datasets that need more careful handling
-OGBN_ARXIV_BATCH_SIZE = 256  # Smaller batch size for ogbn-arxiv
-OGBN_ARXIV_NUM_NEIGHBORS = [5, 5, 5]  # Fewer neighbors for ogbn-arxiv
+OGBN_ARXIV_BATCH_SIZE = 2048 # Smaller batch size for ogbn-arxiv
+OGBN_ARXIV_NUM_NEIGHBORS = [10, 10, 10]  # Number of neighbors for ogbn-arxiv. -1 means all neighbors.
 
-gpu_nums = 1/20
+gpu_nums = 1/10
 
 @ray.remote(num_gpus=gpu_nums)
 # @ray.remote(num_cpus=0.25)
@@ -92,7 +92,7 @@ class FLClient:
             )
       
 
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = torch.nn.NLLLoss()
         self.writer = None
 
         # list of training losses & accuracies

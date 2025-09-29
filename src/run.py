@@ -236,7 +236,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(10):  # Change 1 to the desired number of repetitions
+        for i in range(2):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
