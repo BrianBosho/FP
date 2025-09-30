@@ -69,9 +69,31 @@ def instantiate_model(model_type, num_features, num_classes, device, dataset_nam
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
-def initialize_clients(data, dataset, clients_data, model_type, cfg, device):
+def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device):
+    """
+    Initialize FL clients with their respective subgraphs.
+    
+    Args:
+        full_data: Full graph (used for global evaluation, stays on CPU)
+        dataset: Dataset object
+        clients_data: List of subgraphs, one per client
+        model_type: Type of model to use
+        cfg: Configuration
+        device: Device to use
+    """
     DEVICE = device
-    return [FLClient.remote(data.to(DEVICE), dataset, i, cfg, device, model_type) for i, data in enumerate(clients_data)]
+    
+    # Log what we're actually passing to clients
+    print(f"\n=== CLIENT DATA LOADING ===")
+    print(f"Full graph size: {full_data.num_nodes} nodes")
+    print(f"Number of clients: {len(clients_data)}")
+    for i, client_subgraph in enumerate(clients_data):
+        print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
+    print(f"===========================\n")
+    
+    # IMPORTANT: Pass the SUBGRAPH to each client, not the full graph
+    return [FLClient.remote(client_subgraph, dataset, i, cfg, device, model_type) 
+            for i, client_subgraph in enumerate(clients_data)]
 
 def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False, config = None):
     """
@@ -120,14 +142,20 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         config=cfg,
     )
     test_data = clients_data
-    print("Data loaded")
-    data = data.to(DEVICE)
-    print(f"Device is {DEVICE}")
+    print("\n=== DATA LOADING SUMMARY ===")
+    print(f"Full graph: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges")
+    print(f"Number of client subgraphs: {len(clients_data)}")
+    print(f"First client subgraph shape: {clients_data[0].x.shape}")
+    print(f"Dataset: {dataset}")
+    print(f"Device: {DEVICE}")
     
-    print(dataset)
-    print(len(clients_data))
-
-    print(f"Shape of clients_data: {clients_data[0].x.shape}")
+    # IMPORTANT: Keep full graph on CPU for now - only used for global testing
+    # Each client already receives their subgraph
+    print(f"\nFull graph device (before): {data.x.device}")
+    # NOTE: Commenting this out to save GPU memory - full graph only needed for global testing
+    # data = data.to(DEVICE)
+    print(f"Full graph staying on CPU to save GPU memory")
+    print("===========================\n")
     input_dim = clients_data[0].x.size(1)
     
     rounds = cfg['num_rounds']

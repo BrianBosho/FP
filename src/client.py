@@ -26,18 +26,28 @@ class FLClient:
 
         self.DEVICE = device
         self.device = self.DEVICE
+        
+        # LOG: What data did this client receive?
+        print(f"\n[Client {client_id}] Initializing with:")
+        print(f"  - Input data nodes: {data.num_nodes}")
+        print(f"  - Input data edges: {data.edge_index.shape[1] if hasattr(data, 'edge_index') else 'N/A'}")
+        print(f"  - Feature shape: {data.x.shape}")
+        print(f"  - Data device (before moving): {data.x.device}")
+        
         self.data = data.to(self.device)
         self.dataset = dataset
         self.dataset_name = dataset.name if hasattr(dataset, 'name') else "unknown"
 
         # get input dim from data
         self.input_dim = data.x.shape[1]
-        print(f"Input dim: {self.input_dim}")
+        print(f"  - Input dim: {self.input_dim}")
+        print(f"  - Data device (after moving): {self.data.x.device}")
+        
         # Determine if this is a large dataset that requires mini-batching
         self.use_minibatch = False
         if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
             self.use_minibatch = True
-            print(f"Client {client_id}: Using mini-batch training for large dataset with {data.x.shape[0]} nodes")
+            print(f"  - Using mini-batch (subgraph has {data.x.shape[0]} nodes > {LARGE_DATASET_THRESHOLD})")
         
         # For ogbn-arxiv, always use mini-batching
         if self.dataset_name == "ogbn-arxiv" or self.dataset_name == "ogbn-products":
