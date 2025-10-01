@@ -264,7 +264,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             }
         )
         
-        for i in range(2):  # Change 1 to the desired number of repetitions
+        for i in range(5):  # Change 1 to the desired number of repetitions
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
@@ -292,7 +292,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "num_iterations": cfg.get("num_iterations")
                 }
                 initialize_wandb(
-                    project="FGL2",
+                    project="FGL3",
                     config=run_config,
                     group=f"{model_type}_{dataset_name}_{data_loading_option}"
                 )

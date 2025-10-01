@@ -10,8 +10,8 @@ import wandb
 
 
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
-DEFAULT_BATCH_SIZE = 1024  # Further reduced to 32 to help with memory constraints
-DEFAULT_NUM_NEIGHBORS = [10, 10, 10] 
+DEFAULT_BATCH_SIZE = 2048  # Batch size for large datasets
+DEFAULT_NUM_NEIGHBORS = [25, 25]  # Increased from 10 to reduce variance while avoiding OOM 
 
 
 class Server():

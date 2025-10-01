@@ -1,31 +1,31 @@
 num_clients:
   - 10
-num_rounds: 200
+num_rounds: 20
 epochs: 3
 beta:
-  - 1
+  - 10000
 lr: 0.5
 optimizer: SGD
 decay: 0.0005
 datasets:
    - Cora
-   - Citeseer
 data_loading:
   - full
   - zero
-  - adjacency
-  - diffusion
+  # - adjacency
+  # - diffusion
 models:
   - GAT
-results_dir: results/review/ablation/ogbn-arxiv
+results_dir: results/review/cora_iid_2_hop
 save_results: False
 hop: 2
 fulltraining_flag: false 
 use_pe:
   - true
+  # - false
 pe_r: 64
 pe_P: 16
 normalize: qr
 num_iterations: 50
 
-# nohup python -m src.experiments.run_experiments --config conf/ablation/ogbn-arxiv_config.yaml
+# nohup python -m src.experiments.run_experiments --config conf/review/cora_iid.yaml

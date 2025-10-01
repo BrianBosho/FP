@@ -3,12 +3,24 @@ import torch.nn.functional as F
 from src.models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv, GraphSAGEProducts, PubmedGAT
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
+import random
+import numpy as np
 
 # loga data instead of printing it
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # import wandb
+
+def set_seed(seed=42):
+    """Set random seeds for reproducibility"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def train(model, data, epochs, optimizer, criterion, writer):
@@ -132,6 +144,9 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         loss_list: List of training losses
         acc_list: List of training accuracies
     """
+    # Set seed for deterministic neighbor sampling
+    set_seed(42)
+    
     training_losses = []
     training_accuracies = []
     
@@ -147,7 +162,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         num_neighbors=num_neighbors,
         batch_size=batch_size,
         input_nodes=train_idx,
-        shuffle=True
+        shuffle=False
     )
     
     model.train()
@@ -155,6 +170,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         epoch_loss = 0.0
         epoch_acc = 0.0
         num_batches = 0
+        total_train_nodes = 0
         
         # Process mini-batches
         for batch in train_loader:
@@ -208,18 +224,21 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                     # Calculate training accuracy for this batch
                     train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
                     
-                    epoch_loss += loss.item()
-                    epoch_acc += train_acc
+                    # Weight loss and accuracy by number of nodes in batch
+                    batch_node_count = batch_train_mask.sum().item()
+                    epoch_loss += loss.item() * batch_node_count
+                    epoch_acc += train_acc * batch_node_count
                     num_batches += 1
+                    total_train_nodes += batch_node_count
                 except RuntimeError as e:
                     logging.error(f"Error in mini-batch training: {str(e)}")
                     logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
                     continue
         
-        # Calculate average loss and accuracy for the epoch
-        if num_batches > 0:
-            avg_loss = epoch_loss / num_batches
-            avg_acc = epoch_acc / num_batches
+        # Calculate average loss and accuracy for the epoch (weighted by number of nodes)
+        if total_train_nodes > 0:
+            avg_loss = epoch_loss / total_train_nodes
+            avg_acc = epoch_acc / total_train_nodes
             
             training_losses.append(avg_loss)
             training_accuracies.append(avg_acc)
@@ -238,6 +257,9 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
 
 def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbors=[10, 10, 10]):
     """Evaluate the model using mini-batches"""
+    # Set seed for deterministic neighbor sampling
+    set_seed(42)
+    
     model.eval()
     
     # Create validation loader
@@ -307,6 +329,9 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
 
 def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]):
     """Test the model using mini-batches"""
+    # Set seed for deterministic neighbor sampling
+    set_seed(42)
+    
     model.eval()
     
     # Create test loader

@@ -12,7 +12,7 @@ DEFAULT_NUM_NEIGHBORS = [10, 10, 10]
 
 # Special configurations for specific datasets that need more careful handling
 OGBN_ARXIV_BATCH_SIZE = 2048 # Smaller batch size for ogbn-arxiv
-OGBN_ARXIV_NUM_NEIGHBORS = [10, 10, 10]  # Number of neighbors for ogbn-arxiv. -1 means all neighbors.
+OGBN_ARXIV_NUM_NEIGHBORS = [25, 25]  # Increased from 10 to reduce variance while avoiding OOM
 
 gpu_nums = 1/10
 
