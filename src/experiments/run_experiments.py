@@ -96,6 +96,7 @@ def save_summary_results(summary_rows, all_results, results_dir, summary_dir, co
         f.write(f"- Results Directory: {config['results_dir']}\n")
         f.write(f"- Save Detailed Results: {config['save_results']}\n")
         f.write(f"- Hop: {config['hop']}\n")
+        f.write(f"- Use PE values: {config.get('use_pe')}\n")
         f.write(f"- Full Training Flag: {config['fulltraining_flag']}\n\n")
         
         # Write summary table
@@ -103,17 +104,32 @@ def save_summary_results(summary_rows, all_results, results_dir, summary_dir, co
         f.write("EXPERIMENT RESULTS SUMMARY\n")
         f.write("=" * 80 + "\n\n")
         
-        headers = ["Dataset", "Data Loading", "Model", "Beta", "Clients", "Avg Global Result", "Avg Client Result", "client_std_dev", "global_std_dev", "Duration"]
+        headers = [
+            "Dataset",
+            "Data Loading",
+            "Model",
+            "Beta",
+            "Clients",
+            "Avg Global Result",
+            "Avg Client Result",
+            "client_std_dev",
+            "global_std_dev",
+            "Duration",
+            "Hop",
+            "Use PE",
+        ]
         f.write(tabulate(summary_rows, headers=headers, tablefmt="grid") + "\n\n")
         
         # Write key results
         f.write("KEY RESULTS:\n")
         f.write("-" * 80 + "\n")
         for row in summary_rows:
-            f.write(f"{row[0]} with {row[1]} using {row[2]} (beta={row[3]}, clients={row[4]}):\n")
+            f.write(f"{row[0]} with {row[1]} using {row[2]} (beta={row[3]}, clients={row[4]}, hop={row[10]}, use_pe={row[11]}):\n")
             f.write(f"  - Average Global Result: {row[5]}\n")
             f.write(f"  - Average Client Result: {row[6]}\n")
-            f.write(f"  - Experiment Duration: {row[7]}\n")
+            f.write(f"  - Client StdDev: {row[7]}\n")
+            f.write(f"  - Global StdDev: {row[8]}\n")
+            f.write(f"  - Experiment Duration: {row[9]}\n")
             f.write("-" * 80 + "\n")
     
     # Create summary JSON file in summary directory
@@ -134,7 +150,9 @@ def save_summary_results(summary_rows, all_results, results_dir, summary_dir, co
                 "avg_client": result["avg_client"],
                 "client_std_dev": result["client_std_dev"],
                 "global_std_dev": result["global_std_dev"],
-                "duration": result["duration"]
+                "duration": result["duration"],
+                "hop": result.get("hop"),
+                "use_pe": result.get("use_pe"),
             }
             for result in all_results
         ]
@@ -347,8 +365,8 @@ def run_experiments(args):
                             
                             # Add to summary table - now including beta, clients, and duration
                             summary_rows.append([
-                                dataset_name, 
-                                data_loading_option, 
+                                dataset_name,
+                                data_loading_option,
                                 model_type,
                                 f"{beta:.2f}",
                                 f"{clients_num}",
@@ -356,7 +374,9 @@ def run_experiments(args):
                                 f"{avg_client:.4f}",
                                 f"{std_client:.4f}",
                                 f"{std_global:.4f}",
-                                duration_formatted
+                                duration_formatted,
+                                hop,
+                                use_pe,
                             ])
                             
                             # Save results if requested
@@ -393,7 +413,9 @@ def run_experiments(args):
                                 "duration": {
                                     "seconds": duration,
                                     "formatted": duration_formatted
-                                }
+                                },
+                                "hop": hop,
+                                "use_pe": use_pe,
                             })
         
     # Save summary results to the summary directory
@@ -408,7 +430,20 @@ def print_summary(summary_rows):
     print("EXPERIMENT RESULTS SUMMARY")
     print("=" * 80)
     
-    headers = ["Dataset", "Data Loading", "Model", "Beta", "Clients", "Avg Global Result", "Avg Client Result", "Duration"]
+    headers = [
+        "Dataset",
+        "Data Loading",
+        "Model",
+        "Beta",
+        "Clients",
+        "Avg Global Result",
+        "Avg Client Result",
+        "client_std_dev",
+        "global_std_dev",
+        "Duration",
+        "Hop",
+        "Use PE",
+    ]
     print(tabulate(summary_rows, headers=headers, tablefmt="grid"))
     
     print("\n")
@@ -417,10 +452,12 @@ def print_summary(summary_rows):
     print("KEY RESULTS:")
     print("-" * 80)
     for row in summary_rows:
-        print(f"{row[0]} with {row[1]} using {row[2]} (beta={row[3]}, clients={row[4]}):")
+        print(f"{row[0]} with {row[1]} using {row[2]} (beta={row[3]}, clients={row[4]}, hop={row[10]}, use_pe={row[11]}):")
         print(f"  - Average Global Result: {row[5]}")
         print(f"  - Average Client Result: {row[6]}")
-        print(f"  - Experiment Duration: {row[7]}")
+        print(f"  - Client StdDev: {row[7]}")
+        print(f"  - Global StdDev: {row[8]}")
+        print(f"  - Experiment Duration: {row[9]}")
         print("-" * 80)
 
 def create_example_config(output_path="experiment_config_example.yaml"):

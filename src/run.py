@@ -245,6 +245,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
             "beta": beta,
             "hop": hop,
             "fulltraining_flag": fulltraining_flag,
+            "use_pe": cfg.get("use_pe"),
         },
         "rounds": []
     }
