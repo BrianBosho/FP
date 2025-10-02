@@ -19,7 +19,7 @@ models:
   - GAT
   - GCN
 results_dir: results/review/cora_iid_2_hop
-save_results: False
+save_results: True
 hop: 2
 fulltraining_flag: false 
 use_pe:
@@ -30,4 +30,4 @@ pe_P: 16
 normalize: qr
 num_iterations: 50
 
-# nohup python -m src.experiments.run_experiments --config conf/review/cora_iid.yaml
+# nohup python -m src.experiments.run_experiments --config conf/review/cora_iid.yaml > logs/nohup_cora_iid.log 2>&1 &

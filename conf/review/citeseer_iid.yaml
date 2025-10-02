@@ -1,0 +1,33 @@
+num_clients:
+  - 10
+num_rounds: 200
+epochs: 3
+beta:
+  - 10000
+  - 1
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+datasets:
+   - Citeseer
+data_loading:
+  - full
+  - zero
+  - adjacency
+  - diffusion
+models:
+  - GAT
+  - GCN
+results_dir: results/review/citeseer_iid_2_hop
+save_results: True
+hop: 2
+fulltraining_flag: false 
+use_pe:
+  - true
+  - false
+pe_r: 64
+pe_P: 16
+normalize: qr
+num_iterations: 50
+
+# nohup python -m src.experiments.run_experiments --config conf/review/citeseer_iid.yaml > logs/nohup_citeseer_iid.log 2>&1 &

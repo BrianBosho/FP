@@ -1,6 +1,6 @@
 num_clients:
   - 10
-num_rounds: 200
+num_rounds: 10
 epochs: 3
 beta:
   - 1
@@ -9,7 +9,6 @@ optimizer: SGD
 decay: 0.0005
 datasets:
    - Cora
-   - Citeseer
 data_loading:
   - full
   - zero
