@@ -12,3 +12,6 @@ paths:
     pubmed: "datasets/pubmed"
   ogbn:
     arxiv: "datasets/ogbn_arxiv"
+  amazon:
+    computers: "datasets/amazon/computers"
+    photo: "datasets/amazon/photo"

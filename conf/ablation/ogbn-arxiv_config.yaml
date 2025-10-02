@@ -8,23 +8,20 @@ lr: 0.5
 optimizer: SGD
 decay: 0.0005
 datasets:
-   - Cora
+   - FacebookPagePage
 data_loading:
   - full
-  - zero
-  - adjacency
-  - diffusion
 models:
-  - GAT
+  - GCN
 results_dir: results/review/ablation/ogbn-arxiv
 save_results: False
-hop: 2
+hop: 1
 fulltraining_flag: false 
 use_pe:
-  - true
+  - false
 pe_r: 64
 pe_P: 16
 normalize: qr
-num_iterations: 50
+num_iterations: 10
 
 # nohup python -m src.experiments.run_experiments --config conf/ablation/ogbn-arxiv_config.yaml

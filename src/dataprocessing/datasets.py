@@ -1,4 +1,4 @@
-from torch_geometric.datasets import Planetoid, FacebookPagePage
+from torch_geometric.datasets import Planetoid, FacebookPagePage, Amazon
 from ogb.nodeproppred import PygNodePropPredDataset
 import torch_geometric.transforms as transforms
 from torch_geometric.utils import to_undirected, add_remaining_self_loops
@@ -21,7 +21,7 @@ def load_config():
         config = yaml.safe_load(f)
     
     # Make all paths absolute by joining with project root
-    for category in ['planetoid', 'ogbn']:
+    for category in ['planetoid', 'ogbn', 'amazon']:
         for dataset, path in config['paths'][category].items():
             config['paths'][category][dataset] = str(project_root / path)
     
@@ -34,7 +34,8 @@ class GraphDataset:
     SUPPORTED_DATASETS = {
         "planetoid": ["Cora", "Citeseer", "Pubmed"],
         "facebook": ["FacebookPagePage"],
-        "ogb": ["ogbn-arxiv", "ogbn-products"]
+        "ogb": ["ogbn-arxiv", "ogbn-products"],
+        "amazon": ["Computers", "Photo"]
     }
 
     def __init__(self, device = "cuda"):
@@ -50,7 +51,9 @@ class GraphDataset:
             self.config['paths']['planetoid']['cora'],
             self.config['paths']['planetoid']['citeseer'],
             self.config['paths']['planetoid']['pubmed'],
-            self.config['paths']['ogbn']['arxiv']
+            self.config['paths']['ogbn']['arxiv'],
+            self.config['paths']['amazon']['computers'],
+            self.config['paths']['amazon']['photo']
         ]:
             Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -72,6 +75,11 @@ class GraphDataset:
             return os.path.join(self.config['paths']['datasets_dir'], 'facebook')
         elif name in self.SUPPORTED_DATASETS["ogb"]:
             return self.config['paths']['ogbn']['arxiv']
+        elif name in self.SUPPORTED_DATASETS["amazon"]:
+            if name == "Computers":
+                return self.config['paths']['amazon']['computers']
+            else:
+                return self.config['paths']['amazon']['photo']
         else:
             raise ValueError(f"Dataset {name} not supported")
 
@@ -94,6 +102,8 @@ class GraphDataset:
             return self._load_facebook(device)
         elif name in self.SUPPORTED_DATASETS["ogb"]:
             return self._load_ogb(name, device)
+        elif name in self.SUPPORTED_DATASETS["amazon"]:
+            return self._load_amazon(name, device)
         else:
             raise ValueError(f"Dataset {name} not supported. Available datasets: {self.get_available_datasets()}")
 
@@ -115,6 +125,48 @@ class GraphDataset:
         data.train_mask = range(18000)
         data.val_mask = range(18001, 20000)
         data.test_mask = range(20001, 22470)
+        return data.to(DEVICE), dataset
+
+    def _load_amazon(self, name: str, device = "cuda"):
+        """Load and process Amazon Computers/Photo datasets.
+        Ensures masks exist, edges are undirected with self-loops, and labels are 1-D.
+        """
+        DEVICE = device
+        dataset_path = self._get_dataset_path(name)
+
+        # Prefer adding masks via AddTrainValTestMask if available; fallback to RandomNodeSplit
+        try:
+            add_mask_transform = transforms.AddTrainValTestMask(split='train_rest', num_val=500, num_test=1000)
+        except AttributeError:
+            add_mask_transform = transforms.RandomNodeSplit(split='train_rest', num_val=500, num_test=1000)
+
+        dataset = Amazon(root=dataset_path, name=name)
+        data = dataset[0]
+
+        # Apply mask transform on the in-memory data object if masks missing
+        if not (hasattr(data, 'train_mask') and hasattr(data, 'val_mask') and hasattr(data, 'test_mask')):
+            data = add_mask_transform(data)
+
+        # Ensure boolean masks
+        if hasattr(data, 'train_mask') and data.train_mask.dtype != torch.bool:
+            data.train_mask = data.train_mask.bool()
+        if hasattr(data, 'val_mask') and data.val_mask.dtype != torch.bool:
+            data.val_mask = data.val_mask.bool()
+        if hasattr(data, 'test_mask') and data.test_mask.dtype != torch.bool:
+            data.test_mask = data.test_mask.bool()
+
+        # Process edges
+        if hasattr(data, 'edge_index'):
+            data.edge_index = to_undirected(data.edge_index)
+            data.edge_index, _ = add_remaining_self_loops(
+                data.edge_index,
+                num_nodes=data.x.shape[0]
+            )
+
+        # Standardize label format
+        if hasattr(data, 'y') and len(data.y.shape) > 1 and data.y.shape[1] == 1:
+            data.y = data.y.squeeze(1)
+
         return data.to(DEVICE), dataset
 
     def _load_ogb(self, name: str, device = "cuda"):
