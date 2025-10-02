@@ -110,7 +110,7 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
 
     kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full"]
     if data_loading_option == "full_dataset":
-        return load_dataset(dataset_name)
+        return load_dataset(dataset_name, device)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta, config=config)
 

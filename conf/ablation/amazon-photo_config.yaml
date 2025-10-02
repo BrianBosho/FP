@@ -1,0 +1,27 @@
+# Experiment config for Amazon Photo dataset
+num_clients: [10]
+num_rounds: 10
+epochs: 3
+beta: [1.0]
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+hop: 1
+fulltraining_flag: false
+use_pe: [false]
+
+# Datasets and loading options
+# data_loading must match options handled in src/run.py: full_dataset, zero_hop, adjacency, diffusion
+# You can provide multiple to run them all sequentially
+
+datasets: ["Photo"]
+data_loading: ["full_dataset", "zero_hop", "adjacency", "diffusion"]
+
+# Models to try
+models: ["GCN"]
+
+# Results directory
+results_dir: "../results/experiments/amazon_photo"
+
+# Save detailed results (CSV/JSON/TXT)
+save_results: true
