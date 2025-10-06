@@ -203,7 +203,7 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
     taylor_term = SparseTensor.eye(num_nodes).to(device)
     
     # Compute exp(-tL) ≈ I - tL + (t²/2)L² - (t³/6)L³ + ... (using 5 terms)
-    for i in range(1, 6):
+    for i in range(1, 3):
         coef = ((-t) ** i) / math.factorial(i)
         taylor_term = taylor_term @ laplacian
         # Use the helper to multiply taylor_term by coef before adding

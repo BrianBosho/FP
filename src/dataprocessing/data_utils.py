@@ -158,7 +158,11 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         adj = beta * adj_sparse + alpha * identity
     elif mode == "diffusion":
         # Diffusion returns SparseTensor, convert to torch.sparse_coo_tensor
-        sparse_tensor = diffusion_kernel(edge_index, n_nodes, device)
+        # Use t=1.0 by default (original Taylor series behavior)
+        if config is None:
+            config = {}
+        t_diffusion = config.get("diffusion_t", 0.1)
+        sparse_tensor = diffusion_kernel(edge_index, n_nodes, device, t=t_diffusion)
         row, col = sparse_tensor.storage.row(), sparse_tensor.storage.col()
         values = sparse_tensor.storage.value()
         indices = torch.stack([row, col], dim=0)

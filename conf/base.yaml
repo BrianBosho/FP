@@ -4,6 +4,11 @@ epochs: 3
 beta: 1 # high beta means
 lr: 0.5
 fulltraining_flag: False
+
+# Diffusion hyperparameters
+diffusion_t: 1.0        # Taylor series diffusion time
+chebyshev_k: 5          # Chebyshev polynomial order
+chebyshev_t: 0.1        # Chebyshev diffusion time (reduced for gentler smoothing)
 paths:
   datasets_dir: "datasets"
   planetoid:
