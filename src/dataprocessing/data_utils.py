@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 from torch_geometric.data import Data
-from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, propagate_features_efficient
+from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, chebyshev_expmL_operator
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -65,7 +65,7 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
 def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, 
                        num_iterations: int = 50, mode: str = "adjacency", 
                        alpha: float = 0.5, client_id=None, log_file=None,
-                       tol: float = 1e-3) -> Tensor:
+                       tol: float = 1e-3, config: dict | None = None) -> Tensor:
     """
     Improved feature propagation with logging capabilities.
     
@@ -79,12 +79,17 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             - "adjacency": Standard GCN-like propagation
             - "page_rank": PageRank-based propagation
             - "random_walk": Random walk with restarts
-            - "diffusion": Heat kernel diffusion
+            - "diffusion": Heat kernel diffusion (Taylor approximation)
             - "efficient": Efficient propagation (returns directly)
             - "propagation": Custom propagation matrix
+            - "chebyshev_diffusion": Chebyshev approximation (matrix-free, RECOMMENDED)
+            - "chebyshev_diffusion_operator": Chebyshev approximation (matrix-based)
         alpha: Weight for diffused features (higher means more weight to diffused features)
         client_id: Optional client ID for logging
         log_file: Optional path to JSON log file
+        tol: Convergence tolerance
+        config: Optional configuration dict; if provided and mode is chebyshev_*,
+            reads 'chebyshev_t' and 'chebyshev_k'
     """
     DEVICE = device
     x = x.to(DEVICE)
@@ -158,9 +163,21 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         values = sparse_tensor.storage.value()
         indices = torch.stack([row, col], dim=0)
         adj = torch.sparse_coo_tensor(indices, values, size=(n_nodes, n_nodes)).to(DEVICE)
-    elif mode == "efficient":
-        # This function directly returns propagated features, not a matrix
-        return propagate_features_efficient(x, edge_index, mask, device, alpha=alpha, propagation_type="normalized_adjacency")
+    # Remove/disable the 'efficient' shortcut to ensure all modes iterate consistently
+    # elif mode == "efficient":
+    #     return propagate_features_efficient(x, edge_index, mask, device, alpha=alpha, propagation_type="normalized_adjacency")
+    elif mode == "chebyshev_diffusion" or mode == "chebyshev_diffusion_operator":
+        # Build Chebyshev diffusion operator once (like diffusion/adja implementations)
+        # Use smaller t per-iteration for gentler smoothing
+        if config is None:
+            config = {}
+        t = config.get("chebyshev_t", 1)
+        K = config.get("chebyshev_k", 5)
+        sparse_tensor = chebyshev_expmL_operator(edge_index, n_nodes, t=t, K=K, device=str(DEVICE))
+        row, col = sparse_tensor.storage.row(), sparse_tensor.storage.col()
+        values = sparse_tensor.storage.value()
+        indices = torch.stack([row, col], dim=0)
+        adj = torch.sparse_coo_tensor(indices, values, size=(n_nodes, n_nodes)).to(DEVICE)
     elif mode == "adjacency":
         # This returns a tuple of (edge_index, edge_weight), convert to sparse tensor
         edge_index_with_loops, edge_weight = get_symmetrically_normalized_adjacency(edge_index, n_nodes)
@@ -176,8 +193,11 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
 
     # Track previous iteration for convergence
     prev_out = None
+    iter_count = 0
+    did_converge = False
     
     for i in range(num_iterations):
+        iter_count += 1
         # Diffuse features
         new_out = torch.sparse.mm(adj, out)
         
@@ -200,21 +220,20 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             if delta < tol:
                 if logging_enabled:
                     metrics["converged"] = True
+                did_converge = True
                 break
             # Fallback strict check (rarely needed)
             if torch.allclose(out, prev_out, rtol=1e-5):
                 if logging_enabled:
                     metrics["converged"] = True
+                did_converge = True
                 break
-            if logging_enabled:
-                metrics["converged"] = True
-            break
             
         prev_out = out.clone()
     
     # Record final metrics if logging is enabled
     if logging_enabled:
-        metrics["iterations"] = i + 1
+        metrics["iterations"] = iter_count
         metrics["runtime"] = time.time() - start_time
         metrics["final_zeros"] = (out == 0).all(dim=1).sum().item()
         
@@ -231,6 +250,12 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         # Write back the updated experiment data
         with open(log_file, 'w') as f:
             json.dump(experiment_data, f, indent=2)
+    
+    # Console summary for quick visibility
+    try:
+        print(f"feature_propagation: steps={iter_count}, converged={did_converge}, mode={mode}, tol={tol}")
+    except Exception:
+        pass
     
     return out
 

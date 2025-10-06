@@ -170,13 +170,25 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         normalize = config.get("normalize", "qr")
         num_iterations = config.get("num_iterations", 50)
         fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
+        print(f"Tolerance: {fp_tolerance}")
 
         # If keys exist but are None (e.g., from wandb config), fallback to defaults
         if normalize is None:
             normalize = "qr"
-        if num_iterations is None:
+        # Robust casting from YAML (strings) to numeric types
+        try:
+            if num_iterations is None:
+                num_iterations = 50
+            elif isinstance(num_iterations, str):
+                num_iterations = int(num_iterations)
+        except Exception:
             num_iterations = 50
-        if fp_tolerance is None:
+        try:
+            if fp_tolerance is None:
+                fp_tolerance = 1e-3
+            elif isinstance(fp_tolerance, str):
+                fp_tolerance = float(fp_tolerance)
+        except Exception:
             fp_tolerance = 1e-3
     else:
         normalize = "qr"
@@ -265,7 +277,8 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 mode=mode,
                 client_id=i,
                 log_file=json_file,
-                tol=fp_tolerance
+                tol=fp_tolerance,
+                config=config
             )
 
             # Move features back to original DEVICE for training/PE
