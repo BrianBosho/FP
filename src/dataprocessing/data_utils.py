@@ -64,7 +64,8 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
 
 def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device, 
                        num_iterations: int = 50, mode: str = "adjacency", 
-                       alpha: float = 0.5, client_id=None, log_file=None) -> Tensor:
+                       alpha: float = 0.5, client_id=None, log_file=None,
+                       tol: float = 1e-3) -> Tensor:
     """
     Improved feature propagation with logging capabilities.
     
@@ -194,7 +195,17 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             metrics["energies"].append(energy)
         
         # Check for convergence
-        if prev_out is not None and torch.allclose(out, prev_out, rtol=1e-5):
+        if prev_out is not None:
+            # Early stopping based on absolute L2 delta threshold
+            if delta < tol:
+                if logging_enabled:
+                    metrics["converged"] = True
+                break
+            # Fallback strict check (rarely needed)
+            if torch.allclose(out, prev_out, rtol=1e-5):
+                if logging_enabled:
+                    metrics["converged"] = True
+                break
             if logging_enabled:
                 metrics["converged"] = True
             break

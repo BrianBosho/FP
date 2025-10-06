@@ -1,5 +1,5 @@
 # Experiment config for Amazon Computers dataset
-num_clients: [10]
+num_clients: [3]
 num_rounds: 5
 epochs: 3
 beta: [1.0]
@@ -15,7 +15,7 @@ use_pe: [false]
 # You can provide multiple to run them all sequentially
 
 datasets: ["Computers"]
-data_loading: ["diffusion"]
+data_loading: ["adjacency", "full", "zero_hop"]
 
 # Models to try
 models: ["GCN"]
@@ -27,3 +27,4 @@ results_dir: "../results/experiments/amazon_computers"
 save_results: true
 
 # nohup python -m src.experiments.run_experiments --config conf/ablation/amazon-computers_config.yaml
+feature_prop_device: "cpu"

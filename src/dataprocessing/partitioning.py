@@ -162,16 +162,26 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     import time, os, json
     DEVICE = device
     
-    # Update parameters from config if provided
+    # Update parameters from config if provided (coalesce None to defaults)
     if config is not None:
         use_pe = config.get("use_pe", use_pe)
         pe_r = config.get("pe_r", pe_r)
         pe_P = config.get("pe_P", pe_P)
-        normalize = config.get("normalize", "qr")  # Get normalization method
+        normalize = config.get("normalize", "qr")
         num_iterations = config.get("num_iterations", 50)
+        fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
+
+        # If keys exist but are None (e.g., from wandb config), fallback to defaults
+        if normalize is None:
+            normalize = "qr"
+        if num_iterations is None:
+            num_iterations = 50
+        if fp_tolerance is None:
+            fp_tolerance = 1e-3
     else:
         normalize = "qr"
         num_iterations = 50
+        fp_tolerance = 1e-3
     
     labels = data.y.cpu().numpy()
     N = len(labels)
@@ -235,16 +245,31 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
         # Step 1: Feature Propagation comes first
         if use_feature_prop:
-            clients_data[i].x = propagate_features(
-                clients_data[i].x, 
-                clients_data[i].edge_index, 
-                original_nodes_mask,
-                DEVICE, 
+            # Decide FP device (default CPU; overridable by config)
+            fp_device = torch.device(
+                config.get("feature_prop_device", "cuda") if config is not None else "cuda"
+            )
+
+            # Move necessary tensors for FP to fp_device
+            x_fp = clients_data[i].x.to(fp_device)
+            edge_index_fp = clients_data[i].edge_index.to(fp_device)
+            original_nodes_mask_fp = original_nodes_mask.to(fp_device)
+
+            # Run FP on fp_device
+            x_fp = propagate_features(
+                x_fp,
+                edge_index_fp,
+                original_nodes_mask_fp,
+                fp_device,
                 num_iterations=num_iterations,
                 mode=mode,
                 client_id=i,
-                log_file=json_file
+                log_file=json_file,
+                tol=fp_tolerance
             )
+
+            # Move features back to original DEVICE for training/PE
+            clients_data[i].x = x_fp.to(DEVICE)
 
         # Step 2: Then Positional Encoding (if requested)
         if use_pe:

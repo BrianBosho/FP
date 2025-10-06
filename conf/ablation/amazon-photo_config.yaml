@@ -15,7 +15,7 @@ use_pe: [false]
 # You can provide multiple to run them all sequentially
 
 datasets: ["Photo"]
-data_loading: ["full_dataset", "zero_hop", "adjacency", "diffusion"]
+data_loading: ["full", "zero_hop", "adjacency", "diffusion"]
 
 # Models to try
 models: ["GCN"]
@@ -25,3 +25,9 @@ results_dir: "../results/experiments/amazon_photo"
 
 # Save detailed results (CSV/JSON/TXT)
 save_results: true
+
+# nohup python -m src.experiments.run_experiments --config conf/ablation/amazon-photo_config.yaml
+feature_prop_device: "cuda"
+
+# nohup python -m src.experiments.run_experiments --config conf/ablation/amazon-photo_config.yaml --config feature_prop_device=cpu
+
