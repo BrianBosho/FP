@@ -1,5 +1,5 @@
 num_clients:
-  - 1
+  - 5
 num_rounds: 10
 epochs: 3
 beta:
@@ -15,7 +15,7 @@ models:
   - GCN
 results_dir: results/review/ablation/ogbn-arxiv
 save_results: False
-hop: 1
+hop: 2
 fulltraining_flag: false 
 use_minibatch: false
 auto_minibatch_if_large: false

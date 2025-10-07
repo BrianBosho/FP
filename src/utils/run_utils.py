@@ -99,8 +99,11 @@ def compare_model_parameters(server_model, clients):
     # Get server parameters
     server_params = list(server_model.parameters())
     
-    # Collect client parameters
-    client_params_list = ray.get([client.get_params.remote() for client in clients])
+    # Collect client parameters (now returns dict with 'params' and 'buffers')
+    client_params_dicts = ray.get([client.get_params.remote() for client in clients])
+    
+    # Extract just the parameters from the dictionaries
+    client_params_list = [params_dict['params'] for params_dict in client_params_dicts]
     
     print("\n--- Model Parameter Comparison ---")
     for layer_idx, (server_param, client_params) in enumerate(zip(server_params, zip(*client_params_list))):
