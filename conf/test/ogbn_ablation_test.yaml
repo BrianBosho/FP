@@ -22,6 +22,7 @@ auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
 use_amp: true  # Enable mixed precision training for memory savings
+max_concurrent_clients: null  # Train all clients in parallel (use 2-5 for memory-constrained scenarios)
 use_pe: false
 pe_r: 64
 pe_P: 16

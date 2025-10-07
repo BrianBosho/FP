@@ -28,18 +28,55 @@ class Server():
         self.auto_minibatch_if_large = bool(self.cfg.get("auto_minibatch_if_large", False))
         self.batch_size = self.cfg.get("batch_size", DEFAULT_BATCH_SIZE)
         self.num_neighbors = self.cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
+        
+        # Bounded concurrency: train K clients at a time to limit peak GPU memory
+        # If None or 0, train all clients in parallel (original behavior)
+        self.max_concurrent_clients = self.cfg.get("max_concurrent_clients", None)
+        if self.max_concurrent_clients == 0:
+            self.max_concurrent_clients = None
 
         # print input dim of the model
         print(f"Input dim of the model in server: {self.model.dim_in}")
 
         # update the client params
         self.broadcast_params(-1)
+    
+    def _train_clients_batched(self, clients, batch_size):
+        """Train clients in batches to limit peak GPU memory usage"""
+        import math
+        all_results = []
+        num_batches = math.ceil(len(clients) / batch_size)
+        
+        for batch_idx in range(num_batches):
+            start_idx = batch_idx * batch_size
+            end_idx = min((batch_idx + 1) * batch_size, len(clients))
+            batch_clients = clients[start_idx:end_idx]
+            
+            print(f"  Batch {batch_idx + 1}/{num_batches}: Training clients {start_idx} to {end_idx - 1}")
+            
+            # Train this batch of clients
+            batch_futures = [client.train_client.remote() for client in batch_clients]
+            batch_results = ray.get(batch_futures)
+            all_results.extend(batch_results)
+            
+            # Clear CUDA cache between batches
+            torch.cuda.empty_cache()
+            gc.collect()
+        
+        return all_results
         
     @torch.no_grad()
     def train_clients(self, current_global_epoch: int) -> list:
         clients = self.clients
-        train_futures = [client.train_client.remote() for client in clients]
-        train_results = ray.get(train_futures)
+        
+        # Bounded concurrency: train K clients at a time
+        if self.max_concurrent_clients and self.max_concurrent_clients < len(clients):
+            print(f"Training clients in batches of {self.max_concurrent_clients} (total: {len(clients)})")
+            train_results = self._train_clients_batched(clients, self.max_concurrent_clients)
+        else:
+            # Original behavior: train all clients in parallel
+            train_futures = [client.train_client.remote() for client in clients]
+            train_results = ray.get(train_futures)
 
         params = [client.get_params.remote() for client in clients]
         self.zero_params()
