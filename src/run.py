@@ -173,7 +173,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     rounds = cfg['num_rounds']
     model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name, cfg)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
-    server = Server(clients, model, device)
+    server = Server(clients, model, device, cfg)
 
     try:
         train_results = []
@@ -212,13 +212,34 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         are_params_identical = compare_model_parameters(server.model, server.clients)
         print(f"\nAll model parameters are identical: {are_params_identical}")
 
-        if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
+        # Evaluate: ensure consistency for single-client runs by testing both on the same global graph
+        if len(server.clients) == 1:
             test_results = server.test_global_model(data)
-            client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+            client_test_results = ray.get([client.test.remote(data) for client in server.clients])
         else:
             test_results = server.test_global_model(data)
             client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         
+        # Debug: verify masks and cross-accuracy when single client
+        try:
+            if len(server.clients) == 1:
+                print("\n=== DEBUG: Single-client cross-check ===")
+                try:
+                    print("Global test nodes:", int(data.test_mask.sum()))
+                    print("Client0 test nodes:", int(test_data[0].test_mask.sum()))
+                except Exception as _dbg_e0:
+                    print("debug_mask_error:", _dbg_e0)
+                try:
+                    server_on_client = server.test_global_model(test_data[0])
+                    client_on_global = ray.get([server.clients[0].test.remote(data)])[0]
+                    print(f"Server model on client graph acc: {server_on_client}")
+                    print(f"Client model on global graph acc: {client_on_global}")
+                except Exception as _dbg_e1:
+                    print("debug_cross_eval_error:", _dbg_e1)
+                print("=== END DEBUG ===\n")
+        except Exception as _dbg_e2:
+            print("debug_section_error:", _dbg_e2)
+
         # Log test results to wandb - use proper step value instead of -1
         final_round = rounds  # Use the total number of rounds as the step
         log_test_metrics(test_results, client_test_results, current_global_epoch=final_round)

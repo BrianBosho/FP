@@ -15,12 +15,19 @@ DEFAULT_NUM_NEIGHBORS = [25, 25]  # Increased from 10 to reduce variance while a
 
 
 class Server():
-    def __init__(self, clients, model, device) -> None:
+    def __init__(self, clients, model, device, cfg=None) -> None:
         self.DEVICE = device
         self.device = self.DEVICE
         self.clients = clients
         self.model = model.to(self.device)
         self.num_of_trainers = len(clients)
+        self.cfg = cfg or {}
+
+        # Config-driven minibatch settings
+        self.use_minibatch = bool(self.cfg.get("use_minibatch", False))
+        self.auto_minibatch_if_large = bool(self.cfg.get("auto_minibatch_if_large", False))
+        self.batch_size = self.cfg.get("batch_size", DEFAULT_BATCH_SIZE)
+        self.num_neighbors = self.cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
 
         # print input dim of the model
         print(f"Input dim of the model in server: {self.model.dim_in}")
@@ -89,18 +96,14 @@ class Server():
         self.model.to(self.device)
         data = data.to(self.device)
         
-        # Check if this is a large dataset that requires mini-batching
-        use_minibatch = False
-        if hasattr(data, 'x') and data.x.shape[0] > 100000:  # LARGE_DATASET_THRESHOLD from client.py
-            use_minibatch = True
-        
-        # Always use mini-batching for ogbn datasets
-        dataset_name = data.name if hasattr(data, 'name') else "unknown"
-        if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
-            use_minibatch = True
+        # Determine minibatch usage from config with optional auto fallback
+        use_minibatch = self.use_minibatch
+        if not use_minibatch and self.auto_minibatch_if_large:
+            if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
+                use_minibatch = True
         
         if use_minibatch:
-            return evaluate_with_minibatch(self.model, data, criterion, batch_size=DEFAULT_BATCH_SIZE, num_neighbors=DEFAULT_NUM_NEIGHBORS)
+            return evaluate_with_minibatch(self.model, data, criterion, batch_size=self.batch_size, num_neighbors=self.num_neighbors)
         else:
             return evaluate(self.model, data, criterion)
     
@@ -120,20 +123,15 @@ class Server():
         # data = data.to(self.device)
         # return 0
         
-        # Check if this is a large dataset that requires mini-batching
-        use_minibatch = False
-        if hasattr(data, 'x') and data.x.shape[0] > 100000:  # LARGE_DATASET_THRESHOLD from client.py
-            use_minibatch = True
-            print(f"Server: Using mini-batch testing for large dataset with {data.x.shape[0]} nodes")
-        
-        # Always use mini-batching for ogbn datasets
-        dataset_name = data.name if hasattr(data, 'name') else "unknown"
-        if dataset_name == "ogbn-arxiv" or dataset_name == "ogbn-products":
-            use_minibatch = True
-            print(f"Server: Using mini-batch testing for {dataset_name} dataset")
+        # Determine minibatch usage from config with optional auto fallback
+        use_minibatch = self.use_minibatch
+        if not use_minibatch and self.auto_minibatch_if_large:
+            if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
+                use_minibatch = True
+                print(f"Server: Using mini-batch testing for large dataset with {data.x.shape[0]} nodes")
         
         if use_minibatch:
-            return test_with_minibatch(self.model, data, batch_size=DEFAULT_BATCH_SIZE, num_neighbors=DEFAULT_NUM_NEIGHBORS)
+            return test_with_minibatch(self.model, data, batch_size=self.batch_size, num_neighbors=self.num_neighbors)
         else:
             # Only for small datasets, move to device
             data = data.to(self.device)

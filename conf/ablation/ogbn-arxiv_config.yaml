@@ -1,6 +1,6 @@
 num_clients:
   - 1
-num_rounds: 100
+num_rounds: 10
 epochs: 3
 beta:
   - 1
@@ -8,10 +8,9 @@ lr: 0.5
 optimizer: SGD
 decay: 0.0005
 datasets:
-   - Cora
+   - ogbn-arxiv
 data_loading:
-  - adjacency
-  - chebyshev-diffusion
+  - full
 models:
   - GCN
 results_dir: results/review/ablation/ogbn-arxiv
