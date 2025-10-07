@@ -72,6 +72,9 @@ class Server():
         # Bounded concurrency: train K clients at a time
         if self.max_concurrent_clients and self.max_concurrent_clients < len(clients):
             print(f"Training clients in batches of {self.max_concurrent_clients} (total: {len(clients)})")
+            # CRITICAL: Ensure all clients have received broadcast params before batched training
+            # In parallel mode, Ray handles this automatically, but in batched mode we need explicit sync
+            torch.cuda.synchronize() if torch.cuda.is_available() else None
             train_results = self._train_clients_batched(clients, self.max_concurrent_clients)
         else:
             # Original behavior: train all clients in parallel
@@ -112,7 +115,9 @@ class Server():
             if b.dtype.is_floating_point:
                 b.data /= self.num_of_trainers
         
-        self.broadcast_params(current_global_epoch)
+        # Broadcast params with sync=True when using batched training to ensure consistency
+        use_sync = self.max_concurrent_clients and self.max_concurrent_clients < len(clients)
+        self.broadcast_params(current_global_epoch, sync=use_sync)
 
         log_client_training_metrics(train_results, current_global_epoch)
         # lets run evaluation after training
@@ -138,13 +143,20 @@ class Server():
         # log_final_validation_metrics(results, -1)  # -1 for global evaluation
         return results
     
-    def broadcast_params(self, current_global_epoch: int) -> None:
+    def broadcast_params(self, current_global_epoch: int, sync=False) -> None:
         params_dict = {
             'params': tuple(self.model.parameters()),
             'buffers': tuple(self.model.buffers())
         }
+        futures = []
         for trainer in self.clients:
-            trainer.update_params.remote(params_dict, current_global_epoch)
+            future = trainer.update_params.remote(params_dict, current_global_epoch)
+            if sync:
+                futures.append(future)
+        
+        # If sync=True, wait for all updates to complete before returning
+        if sync:
+            ray.get(futures)
 
     @torch.no_grad()
     def zero_params(self) -> None:
