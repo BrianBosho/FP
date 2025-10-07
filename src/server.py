@@ -54,8 +54,14 @@ class Server():
                     for p, mp in zip(params_dict['params'], self.model.parameters()):
                         mp.data += p.to(self.device)
                     # Aggregate buffers (e.g., BatchNorm running stats)
+                    # Only aggregate floating point buffers (skip num_batches_tracked, etc.)
                     for b, mb in zip(params_dict['buffers'], self.model.buffers()):
-                        mb.data += b.to(self.device)
+                        if b.dtype.is_floating_point:
+                            mb.data += b.to(self.device)
+                        else:
+                            # For non-float buffers (like num_batches_tracked), just copy from first client
+                            if self.num_of_trainers == 1 or mb.sum() == 0:
+                                mb.data = b.to(self.device)
             params = left
             if not params:
                 break
@@ -64,9 +70,10 @@ class Server():
         for p in self.model.parameters():
              p.data /= self.num_of_trainers
         
-        # Average buffers
+        # Average buffers (only floating point ones)
         for b in self.model.buffers():
-             b.data /= self.num_of_trainers
+            if b.dtype.is_floating_point:
+                b.data /= self.num_of_trainers
         
         self.broadcast_params(current_global_epoch)
 
@@ -110,7 +117,8 @@ class Server():
     @torch.no_grad()
     def zero_buffers(self) -> None:
         for b in self.model.buffers():
-            b.zero_()
+            if b.dtype.is_floating_point:
+                b.zero_()
 
     def evaluate_global_model(self, data, criterion):
         self.model.to(self.device)
