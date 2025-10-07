@@ -82,6 +82,9 @@ class FLClient:
         # Setup batch configuration from config (used only if use_minibatch=True)
         self.batch_size = cfg.get("batch_size", DEFAULT_BATCH_SIZE)
         self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
+        
+        # Setup mixed precision training
+        self.use_amp = cfg.get("use_amp", False)
 
         optimizer_type = cfg["optimizer"]
         lr = cfg["lr"]
@@ -128,7 +131,8 @@ class FLClient:
                     self.criterion, 
                     self.writer, 
                     batch_size=self.batch_size,
-                    num_neighbors=self.num_neighbors
+                    num_neighbors=self.num_neighbors,
+                    use_amp=self.use_amp
                 )
             else:
                 loss, acc, loss_list, acc_list = train(
@@ -137,7 +141,8 @@ class FLClient:
                     self.epochs, 
                     self.optimizer, 
                     self.criterion, 
-                    self.writer
+                    self.writer,
+                    use_amp=self.use_amp
                 )
             
             for loss_item in loss_list:

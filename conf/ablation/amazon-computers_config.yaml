@@ -12,6 +12,7 @@ use_minibatch: false
 auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
+use_amp: false  # Smaller dataset, full precision is fine
 use_pe: [false]
 
 # Datasets and loading options

@@ -21,6 +21,7 @@ use_minibatch: false
 auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
+use_amp: true  # Enable mixed precision training for memory savings
 use_pe:
   - false
 pe_r: 64
@@ -28,6 +29,7 @@ pe_P: 16
 normalize: qr
 num_iterations: 80
 feature_prop_tolerance: 1e-6
+feature_prop_device: "cpu"
 
 # Diffusion-specific hyperparameters
 # diffusion_t: 1.0        # Taylor series diffusion time (default 1.0, original behavior)

@@ -23,7 +23,7 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-def train(model, data, epochs, optimizer, criterion, writer):
+def train(model, data, epochs, optimizer, criterion, writer, use_amp=False):
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
@@ -33,6 +33,9 @@ def train(model, data, epochs, optimizer, criterion, writer):
     training_losses = []
     training_accuracies = []
     torch.cuda.empty_cache()
+
+    # Initialize GradScaler for mixed precision training
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
     # Add this check before using the model
     if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
@@ -47,20 +50,27 @@ def train(model, data, epochs, optimizer, criterion, writer):
         # Training phase
         model.train()
         optimizer.zero_grad()
-        if isinstance(model, VanillaGNN):
-            output = model(data.x, adjacency)
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT):
-            output = model(data.x, data.edge_index)
-        elif isinstance(model, MLP):
-            output = model(data.x)
-        else:
-            raise ValueError("Unknown model")
         
-        out = output
-        loss = criterion(out[data.train_mask], data.y[data.train_mask])
-        loss.backward()
+        # Use autocast for mixed precision
+        with torch.cuda.amp.autocast(enabled=use_amp):
+            if isinstance(model, VanillaGNN):
+                output = model(data.x, adjacency)
+            elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT):
+                output = model(data.x, data.edge_index)
+            elif isinstance(model, MLP):
+                output = model(data.x)
+            else:
+                raise ValueError("Unknown model")
+            
+            out = output
+            loss = criterion(out[data.train_mask], data.y[data.train_mask])
+        
+        # Backward pass with gradient scaling
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
+        scaler.step(optimizer)
+        scaler.update()
 
         training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / data.train_mask.sum().item()
         training_losses.append(loss.item())
@@ -124,7 +134,7 @@ def test(model, data):
         acc = int(correct) / int(data.test_mask.sum())
     return acc
 
-def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10]):
+def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False):
     """
     Train the model using mini-batches to reduce memory consumption
     
@@ -137,6 +147,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         writer: SummaryWriter for logging
         batch_size: Size of mini-batches
         num_neighbors: Number of neighbors to sample at each layer
+        use_amp: Whether to use automatic mixed precision
     
     Returns:
         loss: Final validation loss
@@ -152,6 +163,9 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
     
     # Clear CUDA cache before training
     torch.cuda.empty_cache()
+    
+    # Initialize GradScaler for mixed precision training
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     
     # Create data loader with neighborhood sampling
     train_idx = data.train_mask.nonzero(as_tuple=True)[0]
@@ -182,44 +196,56 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
             # Debug information - print batch dimensions
             logging.debug(f"Batch size: {batch.num_nodes}, Features dim: {batch.x.size()}, Edge dim: {batch.edge_index.size()}")
             
-            # Forward pass depending on model type
-            if isinstance(model, VanillaGNN):
-                # For vanilla GNN, convert to dense adjacency for the batch
-                adj = to_dense_adj(batch.edge_index)[0]
-                adj = adj + torch.eye(len(adj), device=adj.device)
-                output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT)):
-                output = model(batch.x, batch.edge_index)
-            elif isinstance(model, MLP):
-                output = model(batch.x)
-            else:
-                raise ValueError("Unknown model")
-            
-            # Compute loss on the batch
-            # Get the original node indices in the batch
-            batch_train_mask = batch.train_mask
-            
-            # Add safety check for the batch mask
-            if not hasattr(batch, 'train_mask') or batch.train_mask is None:
-                logging.warning("Batch is missing train_mask attribute")
-                continue
+            # Use autocast for mixed precision
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                # Forward pass depending on model type
+                if isinstance(model, VanillaGNN):
+                    # For vanilla GNN, convert to dense adjacency for the batch
+                    adj = to_dense_adj(batch.edge_index)[0]
+                    adj = adj + torch.eye(len(adj), device=adj.device)
+                    output = model(batch.x, adj)
+                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT)):
+                    output = model(batch.x, batch.edge_index)
+                elif isinstance(model, MLP):
+                    output = model(batch.x)
+                else:
+                    raise ValueError("Unknown model")
                 
-            # Check for indices out of bound
-            if torch.any(batch.train_mask) and batch_train_mask.shape[0] != batch.num_nodes:
-                logging.warning(f"Mask shape mismatch: train_mask: {batch_train_mask.shape[0]}, batch nodes: {batch.num_nodes}")
-                # Correct the shape if possible
-                batch_train_mask = batch_train_mask[:batch.num_nodes]
+                # Compute loss on the batch
+                # Get the original node indices in the batch
+                batch_train_mask = batch.train_mask
+                
+                # Add safety check for the batch mask
+                if not hasattr(batch, 'train_mask') or batch.train_mask is None:
+                    logging.warning("Batch is missing train_mask attribute")
+                    continue
+                    
+                # Check for indices out of bound
+                if torch.any(batch.train_mask) and batch_train_mask.shape[0] != batch.num_nodes:
+                    logging.warning(f"Mask shape mismatch: train_mask: {batch_train_mask.shape[0]}, batch nodes: {batch.num_nodes}")
+                    # Correct the shape if possible
+                    batch_train_mask = batch_train_mask[:batch.num_nodes]
+                
+                # Ensure we're only computing loss on training nodes
+                if batch_train_mask.sum() > 0:
+                    try:
+                        loss = criterion(output[batch_train_mask], batch.y[batch_train_mask])
+                    except RuntimeError as e:
+                        logging.error(f"Error in mini-batch training: {str(e)}")
+                        logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
+                        continue
             
-            # Ensure we're only computing loss on training nodes
+            # Backward pass with gradient scaling (outside autocast)
             if batch_train_mask.sum() > 0:
                 try:
-                    loss = criterion(output[batch_train_mask], batch.y[batch_train_mask])
-                    loss.backward()
+                    scaler.scale(loss).backward()
+                    scaler.unscale_(optimizer)
                     
                     # Apply gradient clipping
                     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                     
-                    optimizer.step()
+                    scaler.step(optimizer)
+                    scaler.update()
                     
                     # Calculate training accuracy for this batch
                     train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
