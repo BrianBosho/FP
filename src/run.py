@@ -108,7 +108,7 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         config: Configuration dictionary from YAML file (optional)
     """
 
-    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev_diffusion_operator"]
+    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev-diffusion", "chebyshev_diffusion_operator", "chebyshev-diffusion-operator"]
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name, device)
     elif data_loading_option == "zero_hop":

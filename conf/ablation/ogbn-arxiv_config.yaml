@@ -1,6 +1,6 @@
 num_clients:
-  - 10
-num_rounds: 20
+  - 1
+num_rounds: 100
 epochs: 3
 beta:
   - 1
@@ -9,13 +9,9 @@ optimizer: SGD
 decay: 0.0005
 datasets:
    - Cora
-   - Photo
-   - Computers
 data_loading:
-  - full
-  - diffusion
-  - zero_hop
   - adjacency
+  - chebyshev-diffusion
 models:
   - GCN
 results_dir: results/review/ablation/ogbn-arxiv
@@ -35,6 +31,6 @@ feature_prop_tolerance: 1e-6
 
 # Chebyshev-specific hyperparameters (tunable)
 chebyshev_k: 5          # Chebyshev polynomial order (3-15, higher=more accurate)
-chebyshev_t: 0.1        # Diffusion time (0.01-0.5, smaller=gentler per iteration) - reduced from 1.0
+chebyshev_t: 1        # Diffusion time (0.01-0.5, smaller=gentler per iteration) - reduced from 1.0
 
 # nohup python -m src.experiments.run_experiments --config conf/ablation/ogbn-arxiv_config.yaml
