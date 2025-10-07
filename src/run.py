@@ -108,9 +108,9 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         config: Configuration dictionary from YAML file (optional)
     """
 
-    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full"]
+    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev-diffusion", "chebyshev_diffusion_operator", "chebyshev-diffusion-operator"]
     if data_loading_option == "full_dataset":
-        return load_dataset(dataset_name)
+        return load_dataset(dataset_name, device)
     elif data_loading_option == "zero_hop":
         return load_and_split(dataset_name, device, num_clients, beta, config=config)
 
@@ -131,6 +131,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     
     print(f"data_loading_option: {data_loading_option}")
 
+    import time
+    _t_partition_start = time.time()
     data, dataset, clients_data, test_data = load_data(
         data_loading_option, 
         num_clients, 
@@ -141,6 +143,16 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         fulltraining_flag=fulltraining_flag,
         config=cfg,
     )
+    _partition_secs = time.time() - _t_partition_start
+    print(f"partition_time_s: {round(_partition_secs, 2)}")
+    # Debug: device and feature dims to ensure tensors are on the expected device
+    try:
+        print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
+        print("client[0] feature_dim:", clients_data[0].x.size(1))
+        print("config.use_pe:", cfg.get("use_pe"), "num_iterations:", cfg.get("num_iterations"), "feature_prop_device:", cfg.get("feature_prop_device"))
+        print("data_loading_option:", data_loading_option, "hop:", hop, "num_clients:", num_clients)
+    except Exception as _dbg_e:
+        print("debug_print_error:", _dbg_e)
     test_data = clients_data
     print("\n=== DATA LOADING SUMMARY ===")
     print(f"Full graph: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges")
@@ -170,6 +182,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         patience_threshold = 10
         best_eval_loss = float('inf')
         
+        _t_train_start = time.time()
         for i in range(rounds):
             results = server.train_clients(i)
             train_results.append(results[0])
@@ -186,6 +199,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             if patience >= patience_threshold:
                 print(f"Early stopping triggered at round {i}")
                 break
+        _train_secs = time.time() - _t_train_start
+        print(f"training_time_s: {round(_train_secs, 2)}")
         log_training_results(train_results)
         
         eval_results = server.evaluate_clients()

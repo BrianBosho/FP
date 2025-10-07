@@ -85,6 +85,14 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         use_feature_prop = True
         full_data = False
         propagation_mode = "propagation"
+    elif imputation_method == "chebyshev_diffusion" or imputation_method == "chebyshev-diffusion":
+        use_feature_prop = True
+        full_data = False
+        propagation_mode = "chebyshev_diffusion"
+    elif imputation_method == "chebyshev_diffusion_operator" or imputation_method == "chebyshev-diffusion-operator":
+        use_feature_prop = True
+        full_data = False
+        propagation_mode = "chebyshev_diffusion_operator"
     else:
         # Default case to handle any unrecognized imputation method
         use_feature_prop = False
