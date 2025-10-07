@@ -43,18 +43,31 @@ class Server():
 
         params = [client.get_params.remote() for client in clients]
         self.zero_params()
+        self.zero_buffers()
+        
         while True:
             ready, left = ray.wait(params, num_returns=1, timeout=None)
             if ready:
                 for t in ready:
-                    for p, mp in zip(ray.get(t), self.model.parameters()):
+                    params_dict = ray.get(t)
+                    # Aggregate parameters
+                    for p, mp in zip(params_dict['params'], self.model.parameters()):
                         mp.data += p.to(self.device)
+                    # Aggregate buffers (e.g., BatchNorm running stats)
+                    for b, mb in zip(params_dict['buffers'], self.model.buffers()):
+                        mb.data += b.to(self.device)
             params = left
             if not params:
                 break
 
+        # Average parameters
         for p in self.model.parameters():
              p.data /= self.num_of_trainers
+        
+        # Average buffers
+        for b in self.model.buffers():
+             b.data /= self.num_of_trainers
+        
         self.broadcast_params(current_global_epoch)
 
         log_client_training_metrics(train_results, current_global_epoch)
@@ -82,15 +95,22 @@ class Server():
         return results
     
     def broadcast_params(self, current_global_epoch: int) -> None:
+        params_dict = {
+            'params': tuple(self.model.parameters()),
+            'buffers': tuple(self.model.buffers())
+        }
         for trainer in self.clients:
-            trainer.update_params.remote(
-                tuple(self.model.parameters()), current_global_epoch
-            )  # run in submit order
+            trainer.update_params.remote(params_dict, current_global_epoch)
 
     @torch.no_grad()
     def zero_params(self) -> None:
         for p in self.model.parameters():
             p.zero_()
+    
+    @torch.no_grad()
+    def zero_buffers(self) -> None:
+        for b in self.model.buffers():
+            b.zero_()
 
     def evaluate_global_model(self, data, criterion):
         self.model.to(self.device)

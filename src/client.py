@@ -224,16 +224,26 @@ class FLClient:
             self._clear_memory()
             return 0.0  # or appropriate default value
 
-    def get_params(self) -> tuple:
+    def get_params(self) -> dict:
         self.optimizer.zero_grad(set_to_none=True)
-        return tuple(self.model.parameters())
+        return {
+            'params': tuple(self.model.parameters()),
+            'buffers': tuple(self.model.buffers())
+        }
 
     @torch.no_grad()
-    def update_params(self, params: tuple, current_global_epoch: int) -> None:
+    def update_params(self, params_dict: dict, current_global_epoch: int) -> None:
         # load global parameter from global server
         self.model.to("cpu")
-        for (p, mp) in zip(params, self.model.parameters()):
+        
+        # Update parameters (weights and biases)
+        for (p, mp) in zip(params_dict['params'], self.model.parameters()):
             mp.data = p
+        
+        # Update buffers (BatchNorm running stats, etc.)
+        for (b, mb) in zip(params_dict['buffers'], self.model.buffers()):
+            mb.data = b
+        
         self.model.to(self.device)
 
     def get_loss_acc(self):

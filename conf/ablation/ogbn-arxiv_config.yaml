@@ -8,7 +8,7 @@ lr: 0.5
 optimizer: SGD
 decay: 0.0005
 datasets:
-   - ogbn-arxiv
+   - Cora
 data_loading:
   - full
 models:
