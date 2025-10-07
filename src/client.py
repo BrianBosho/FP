@@ -43,16 +43,18 @@ class FLClient:
         print(f"  - Input dim: {self.input_dim}")
         print(f"  - Data device (after moving): {self.data.x.device}")
         
-        # Determine if this is a large dataset that requires mini-batching
-        self.use_minibatch = False
-        if hasattr(data, 'x') and data.x.shape[0] > LARGE_DATASET_THRESHOLD:
-            self.use_minibatch = True
-            print(f"  - Using mini-batch (subgraph has {data.x.shape[0]} nodes > {LARGE_DATASET_THRESHOLD})")
-        
-        # For ogbn-arxiv, always use mini-batching
-        if self.dataset_name == "ogbn-arxiv" or self.dataset_name == "ogbn-products":
-            self.use_minibatch = True
-            print(f"Client {client_id}: Using mini-batch training for {self.dataset_name} dataset")
+        # Determine training mode from config (preferred) or fallback
+        if "use_minibatch" in cfg:
+            self.use_minibatch = bool(cfg.get("use_minibatch"))
+        else:
+            self.use_minibatch = False
+
+        # Optional: auto-enable mini-batch for very large graphs if requested
+        if not self.use_minibatch and bool(cfg.get("auto_minibatch_if_large", False)):
+            if hasattr(self.data, 'x') and self.data.x.shape[0] > LARGE_DATASET_THRESHOLD:
+                self.use_minibatch = True
+
+        print(f"Client {client_id}: Using {'mini-batch' if self.use_minibatch else 'full-batch'} training for {self.dataset_name} dataset")
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
@@ -77,15 +79,9 @@ class FLClient:
 
         self.epochs = cfg["epochs"]
         
-        # Setup batch configuration from config if available
+        # Setup batch configuration from config (used only if use_minibatch=True)
         self.batch_size = cfg.get("batch_size", DEFAULT_BATCH_SIZE)
         self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
-        
-        # Use specific configurations for certain datasets
-        if self.dataset_name == "ogbn-arxiv":
-            self.batch_size = cfg.get("batch_size", OGBN_ARXIV_BATCH_SIZE)
-            self.num_neighbors = cfg.get("num_neighbors", OGBN_ARXIV_NUM_NEIGHBORS)
-            print(f"Using special config for ogbn-arxiv: batch_size={self.batch_size}, num_neighbors={self.num_neighbors}")
 
         optimizer_type = cfg["optimizer"]
         lr = cfg["lr"]

@@ -1,6 +1,6 @@
 num_clients:
   - 10
-num_rounds: 600
+num_rounds: 100
 epochs: 3
 beta:
   - 10000
@@ -16,7 +16,7 @@ data_loading:
 models:
   - GCN
 results_dir: results/cora_gcn_beta10000_no_pe_nzh
-save_results: true
+save_results: false
 hop: 1
 fulltraining_flag: false 
 use_pe:
@@ -24,3 +24,5 @@ use_pe:
 pe_r: 64
 pe_P: 16
 normalize: qr
+
+# python -m src.experiments.run_experiments --config conf/ablation/cora_gcn_no_pe.yaml

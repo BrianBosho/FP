@@ -18,6 +18,10 @@ results_dir: results/review/ablation/ogbn-arxiv
 save_results: False
 hop: 1
 fulltraining_flag: false 
+use_minibatch: false
+auto_minibatch_if_large: false
+batch_size: 1024
+num_neighbors: [10, 10, 10]
 use_pe:
   - false
 pe_r: 64
