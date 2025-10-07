@@ -1,6 +1,6 @@
 num_clients:
-  - 10
-num_rounds: 50
+  - 5
+num_rounds: 20
 epochs: 3
 beta:
   - 1
@@ -22,7 +22,7 @@ auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
 use_amp: true  # Enable mixed precision training for memory savings
-max_concurrent_clients: 0  # Train 2 clients at a time to limit peak GPU memory (None or 0 = all parallel)
+max_concurrent_clients: 3  # Train 2 clients at a time to limit peak GPU memory (None or 0 = all parallel)
 use_pe:
   - false
 pe_r: 64
@@ -31,6 +31,7 @@ normalize: qr
 num_iterations: 80
 feature_prop_tolerance: 1e-6
 feature_prop_device: "cpu"
+repetitions: 10
 
 # Diffusion-specific hyperparameters
 # diffusion_t: 1.0        # Taylor series diffusion time (default 1.0, original behavior)
