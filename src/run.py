@@ -365,6 +365,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     fulltraining_flag=fulltraining_flag,
                 
                 )
+                
+                # Check if results are valid
+                if global_results is None or client_results is None:
+                    print(f"Warning: Round {i+1} returned None results, skipping...")
+                    continue
+                
                 test_results.append(global_results)
                 client_test_results.append(client_results)
                 print(f"Round {i+1} is complete")
@@ -384,6 +390,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     wandb.finish()
             except Exception as e:
                 print(f"Error in round {i+1}: {e}")
+                import traceback
+                traceback.print_exc()
                 # Clear resources even if there's an error
                 torch.cuda.empty_cache()
                 gc.collect()
