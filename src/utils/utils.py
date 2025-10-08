@@ -1,7 +1,31 @@
 from omegaconf import OmegaConf, DictConfig
 
 def load_config(config_path: str) -> DictConfig:
-    return OmegaConf.load(config_path)
+    """
+    Load configuration with base.yaml merging support.
+    
+    Args:
+        config_path: Path to the specific config file
+        
+    Returns:
+        Merged configuration (base.yaml + specific config)
+    """
+    import os
+    
+    # Get the directory containing the config file
+    config_dir = os.path.dirname(config_path)
+    base_config_path = os.path.join(config_dir, "base.yaml")
+    
+    # Load base configuration
+    base_config = OmegaConf.load(base_config_path)
+    
+    # Load specific configuration
+    specific_config = OmegaConf.load(config_path)
+    
+    # Merge configurations (specific config overrides base)
+    merged_config = OmegaConf.merge(base_config, specific_config)
+    
+    return merged_config
 import torch_geometric.utils as utils
 from torch import Tensor
 # from torch_scatter import scatter_add

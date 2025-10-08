@@ -1,49 +1,18 @@
-num_clients:
-  - 5
-num_rounds: 20
-epochs: 3
-beta:
-  - 1
-lr: 0.5
-optimizer: SGD
-decay: 0.0005
+# ogbn-arxiv Dataset Configuration
+# Only dataset-specific settings - everything else inherited from base.yaml
+
 datasets:
-   - Cora
-data_loading:
-  - full
-models:
-  - GCN
+   - Cora  # Note: This config is for ogbn-arxiv but uses Cora for testing
 results_dir: results/review/ablation/ogbn-arxiv
-save_results: False
+wandb_project: "FGL3"  # Dataset-specific wandb project
+
+# ogbn-arxiv-specific experiment parameters
+num_clients: [5]
+num_rounds: 20
+beta: [1]
+lr: 0.5
 hop: 2
-fulltraining_flag: false 
-use_minibatch: false
-auto_minibatch_if_large: false
-batch_size: 1024
-num_neighbors: [10, 10, 10]
-use_amp: true  # Enable mixed precision training for memory savings
-max_concurrent_clients: 0  # Train 2 clients at a time to limit peak GPU memory (None or 0 = all parallel)
-use_pe:
-  - false
-pe_r: 64
-pe_P: 16
-normalize: qr
-num_iterations: 80
-feature_prop_tolerance: 1e-6
-feature_prop_device: "cpu"
-repetitions: 1
-
-# Wandb configuration
-use_wandb: true  # Set to true to enable wandb logging
-wandb_project: "FGL3"  # Project name for wandb
-wandb_entity: null  # Set to your wandb entity/team name (optional)
-wandb_mode: "online"  # "online", "offline", or "disabled"
-
-# Diffusion-specific hyperparameters
-# diffusion_t: 1.0        # Taylor series diffusion time (default 1.0, original behavior)
-
-# Chebyshev-specific hyperparameters (tunable)
-chebyshev_k: 5          # Chebyshev polynomial order (3-15, higher=more accurate)
-chebyshev_t: 1        # Diffusion time (0.01-0.5, smaller=gentler per iteration) - reduced from 1.0
-
-# nohup python -m src.experiments.run_experiments --config conf/ablation/ogbn-arxiv_config.yaml
+save_results: False
+use_wandb: true  # Enable wandb for this experiment
+data_loading: [full]
+models: [GCN]
