@@ -134,9 +134,13 @@ def save_summary_results(summary_rows, all_results, results_dir, summary_dir, co
     summary_json_path = os.path.join(summary_dir, f"summary_results_{timestamp}.json")
     
     # Create a structured JSON with all results
+    # Convert DictConfig to regular dict for JSON serialization
+    from omegaconf import OmegaConf
+    config_dict = OmegaConf.to_container(config, resolve=True)
+    
     summary_json = {
         "timestamp": timestamp,
-        "configuration": config,
+        "configuration": config_dict,
         "results": [
             {
                 "dataset": result["dataset"],
@@ -192,9 +196,10 @@ def run_experiments(args):
         # Replace the default config with the YAML config
         cfg = yaml_config
         
-        # Ensure iteration parameters are lists
+        # Ensure iteration parameters are lists (check for both list and ListConfig)
+        from omegaconf import ListConfig
         for param in ["num_clients", "beta", "datasets", "data_loading", "models"]:
-            if param in cfg and not isinstance(cfg[param], list):
+            if param in cfg and not isinstance(cfg[param], (list, ListConfig)):
                 # lets print param and cfg[param]
                 print(f"param: {param}, cfg[param]: {cfg[param]}")
                 cfg[param] = [cfg[param]]
@@ -239,17 +244,18 @@ def run_experiments(args):
         for key in wandb.config:
             cfg[key] = wandb.config[key]
     
-    # Extract values for iteration
-    client_nums = cfg["num_clients"]
-    beta_values = cfg["beta"]
-    datasets = cfg["datasets"]
-    data_loading_options = cfg["data_loading"]
-    model_types = cfg["models"]
+    # Extract values for iteration and convert ListConfig to regular Python types
+    from omegaconf import OmegaConf
+    client_nums = OmegaConf.to_container(cfg["num_clients"], resolve=True)
+    beta_values = OmegaConf.to_container(cfg["beta"], resolve=True)
+    datasets = OmegaConf.to_container(cfg["datasets"], resolve=True)
+    data_loading_options = OmegaConf.to_container(cfg["data_loading"], resolve=True)
+    model_types = OmegaConf.to_container(cfg["models"], resolve=True)
     results_dir = cfg["results_dir"]
     save_results = cfg["save_results"]
     hop = cfg["hop"]
     fulltraining_flag = cfg["fulltraining_flag"]
-    use_pe_values = cfg["use_pe"]  # Default to no PE if not specified
+    use_pe_values = OmegaConf.to_container(cfg["use_pe"], resolve=True)  # Default to no PE if not specified
     
     # Ensure Ray is shut down before starting
     try:
