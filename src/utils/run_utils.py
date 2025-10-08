@@ -34,26 +34,32 @@ def setup_logging(log_dir="logs"):
     
     return logging.getLogger(__name__)
 
-def log_training_results(train_results):
+def log_training_results(train_results, debug=False):
     """
     Log training results for each round
     
     Args:
         train_results (list): List of training results from each round
+        debug (bool): Whether to print detailed training logs
     """
-    print("Training done")
+    if not debug:
+        return
+    # Removed "Training done" print - not informative
     for i, results in enumerate(train_results):
         print(f"Round {i+1}")
         for loss, acc in results:
             print(f"Train Loss: {loss:.3f}, Train Accuracy: {acc:.3f}")
 
-def log_evaluation_results(eval_results):
+def log_evaluation_results(eval_results, debug=False):
     """
     Log evaluation results
     
     Args:
         eval_results (list): List of evaluation results
+        debug (bool): Whether to print detailed evaluation logs
     """
+    if not debug:
+        return
     for loss, acc in eval_results:
         print(f"Validation Loss: {loss:.3f}, Validation Accuracy: {acc:.3f}")
 

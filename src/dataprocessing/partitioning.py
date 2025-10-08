@@ -170,7 +170,8 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         normalize = config.get("normalize", "qr")
         num_iterations = config.get("num_iterations", 50)
         fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
-        print(f"Tolerance: {fp_tolerance}")
+        if config.get("debug", False):
+            print(f"Tolerance: {fp_tolerance}")
 
         # If keys exist but are None (e.g., from wandb config), fallback to defaults
         if normalize is None:
@@ -304,7 +305,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
         final_subgraphs.append(clients_data[i])
 
-    if use_feature_prop:
+    if use_feature_prop and config and config.get("debug", False):
         print(f"Feature propagation logs saved to: {json_file}")
 
     return final_subgraphs, initial_subgraphs, split_data_indexes

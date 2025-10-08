@@ -11,7 +11,7 @@ def initialize_wandb(project="FGL", entity=None, config=None, name=None, dir=Non
     
     # Check if wandb should be used
     if not use_wandb:
-        print(f"[WANDB DEBUG] Wandb logging disabled by configuration")
+        # Silently skip wandb initialization when disabled
         return
     
     # Check if there's already an active run and finish it
@@ -111,8 +111,8 @@ def log_test_metrics(global_test_acc: float, client_test_accs: list, current_glo
         client_test_accs (list): List of client test accuracies
         current_global_epoch (int): Current global epoch (-1 for final test results)
     """
-    # Debug information
-    print(f"[WANDB DEBUG] Logging test metrics - Global: {global_test_acc}, Clients: {client_test_accs}, Epoch: {current_global_epoch}")
+    # Debug information - commented out to reduce verbosity
+    # print(f"[WANDB DEBUG] Logging test metrics - Global: {global_test_acc}, Clients: {client_test_accs}, Epoch: {current_global_epoch}")
     
     # Convert to CPU scalars if needed
     global_test_acc = to_cpu_scalar(global_test_acc)
@@ -141,7 +141,7 @@ def log_test_metrics(global_test_acc: float, client_test_accs: list, current_glo
         "test/global_vs_avg_client_diff": global_test_acc - mean_client_test_acc,
     }
     
-    print(f"[WANDB DEBUG] Logging metrics: {metrics} with step: {step_value}")
+    # print(f"[WANDB DEBUG] Logging metrics: {metrics} with step: {step_value}")
     
     # Check if wandb is initialized
     if wandb.run is None:
@@ -150,7 +150,7 @@ def log_test_metrics(global_test_acc: float, client_test_accs: list, current_glo
     
     try:
         wandb.log(metrics, step=step_value)
-        print(f"[WANDB DEBUG] Successfully logged test metrics")
+        # print(f"[WANDB DEBUG] Successfully logged test metrics")
     except Exception as e:
         print(f"[WANDB ERROR] Failed to log test metrics: {e}")
         import traceback

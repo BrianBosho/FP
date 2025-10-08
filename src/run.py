@@ -209,11 +209,12 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                 print(f"Early stopping triggered at round {i}")
                 break
         _train_secs = time.time() - _t_train_start
-        print(f"training_time_s: {round(_train_secs, 2)}")
-        log_training_results(train_results)
+        if debug:
+            print(f"training_time_s: {round(_train_secs, 2)}")
+        log_training_results(train_results, debug=debug)
         
         eval_results = server.evaluate_clients()
-        log_evaluation_results(eval_results)
+        log_evaluation_results(eval_results, debug=debug)
         
         training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
         save_results_to_csv(training_results)
@@ -272,7 +273,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     # DEVICE = torch.device("cpu")
     test_results = []
     client_test_results = []
-    print(f"DEVICE: {DEVICE}")
+    
+    # Get debug flag from config
+    debug = cfg.get("debug", False)
+    
+    if debug:
+        print(f"DEVICE: {DEVICE}")
     repetitions = cfg.get("repetitions", 1),
     num_iterations = cfg.get("num_iterations", 50)
     
@@ -297,8 +303,9 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         "rounds": []
     }
     
-    print(f"Data loading option is {data_loading_option}")
-    print(f"Model type is {model_type}")
+    if debug:
+        print(f"Data loading option is {data_loading_option}")
+        print(f"Model type is {model_type}")
 
     try:
         # Initialize Ray with memory management settings
@@ -384,7 +391,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 
                 test_results.append(global_results)
                 client_test_results.append(client_results)
-                print(f"Round {i+1} is complete")
+                if debug:
+                    print(f"Round {i+1} is complete")
                 
                 results_data["rounds"].append({
                     "round": i+1,
