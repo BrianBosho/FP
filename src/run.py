@@ -84,7 +84,7 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
     DEVICE = device
     
     # Log what we're actually passing to clients (only in debug mode)
-    debug = config.get("debug", False) if config else False
+    debug = cfg.get("debug", False) if cfg else False
     if debug:
         print(f"\n=== CLIENT DATA LOADING ===")
         print(f"Full graph size: {full_data.num_nodes} nodes")
