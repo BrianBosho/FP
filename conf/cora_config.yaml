@@ -13,3 +13,6 @@ beta: [1]
 lr: 0.5
 data_loading: [adjacency]
 models: [GCN]
+
+# nohup command to run the experiment
+# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora_config.out 2>&1 &
