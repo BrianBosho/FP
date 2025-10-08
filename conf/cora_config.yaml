@@ -38,7 +38,7 @@ normalize: qr
 num_iterations: 80
 feature_prop_tolerance: 1e-6
 feature_prop_device: "cuda"
-repetitions: 5
+repetitions: 1
 
 # Wandb configuration
 use_wandb: false  # Set to true to enable wandb logging

@@ -33,84 +33,54 @@ pip install -r requirements.txt
 
 ## Running Experiments
 
-The repository provides two main scripts for running experiments:
+The repository provides organized configuration files for different datasets:
 
-1. **run_simple.py**: For running single experiments with a specific configuration
-2. **run_experiments.py**: For running ablation studies with multiple parameters
+### Dataset-Specific Configurations
 
-### Simple Experiments
-
-To run a basic experiment with a single configuration:
+Run experiments with pre-configured settings for each dataset:
 
 ```bash
-cd src
-python run_simple.py --config your_config.yaml
+# Cora dataset experiments
+python -m src.experiments.run_experiments --config conf/cora_config.yaml
+
+# Citeseer dataset experiments  
+python -m src.experiments.run_experiments --config conf/citeseer_config.yaml
+
+# Pubmed dataset experiments
+python -m src.experiments.run_experiments --config conf/pubmed_config.yaml
+
+# ogbn-arxiv dataset experiments
+python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml
 ```
 
-You can generate an example configuration file:
+### Configuration Structure
 
-```bash
-python run_simple.py --config generate_example
+The `conf/` folder contains clean, organized configuration files:
+
+```
+conf/
+├── base.yaml              # Base configuration with common settings
+├── cora_config.yaml       # Cora dataset configuration
+├── citeseer_config.yaml   # Citeseer dataset configuration  
+├── pubmed_config.yaml     # Pubmed dataset configuration
+└── ogbn-arxiv_config.yaml # ogbn-arxiv dataset configuration
 ```
 
-Example configuration file (simple_config_example.yaml):
+Each dataset config includes optimized settings for that specific dataset:
+
 ```yaml
-beta: 1.0
-data_loading: full
-dataset: Cora
-epochs: 3
-fulltraining_flag: false
-hop: 1
-lr: 0.5
-model: GCN
-num_clients: 10
-num_rounds: 10
-results_dir: results/simple_experiment
-save_results: true
-```
-
-### Ablation Studies
-
-For comprehensive ablation studies across multiple parameters:
-
-```bash
-cd src
-python run_experiments.py --config your_ablation_config.yaml
-```
-
-Generate an example ablation configuration:
-
-```bash
-python run_experiments.py --config generate_example
-```
-
-Example ablation configuration (testing multiple beta values and client counts):
-```yaml
-num_clients:
-  - 5
-  - 10
-  - 20
+# Example: cora_config.yaml
+num_clients: [10]
 num_rounds: 10
 epochs: 3
-beta:
-  - 0.1
-  - 0.5
-  - 1.0
-  - 5.0
+beta: [1, 10, 10000]
 lr: 0.5
-datasets:
-  - Cora
-  - Citeseer
-data_loading:
-  - full
-  - adjacency
-  - zero_hop
-models:
-  - GCN
-results_dir: results/ablation_study
-save_results: true
-hop: 1
-fulltraining_flag: false
+optimizer: SGD
+datasets: [Cora]
+data_loading: [full, adjacency, zero_hop]
+models: [GCN, GAT]
+use_wandb: false  # Wandb logging control
+wandb_project: "FGL3-Cora"
 ```
 
 ## Configuration Parameters
@@ -131,6 +101,38 @@ Key parameters for experiment configuration:
 | `save_results` | Whether to save detailed results |
 | `hop` | Number of hops for graph propagation |
 | `fulltraining_flag` | Whether to use full training flag |
+
+### Wandb Integration
+
+The experiments support configurable wandb logging through YAML configuration files:
+
+```yaml
+# Wandb configuration
+use_wandb: false          # Set to true to enable wandb logging
+wandb_project: "FGL3"     # Project name for wandb
+wandb_entity: null        # Set to your wandb entity/team name (optional)
+wandb_mode: "online"      # "online", "offline", or "disabled"
+```
+
+**Usage Examples:**
+
+- **Disable wandb completely** (faster local testing):
+  ```yaml
+  use_wandb: false
+  ```
+
+- **Enable wandb with custom project**:
+  ```yaml
+  use_wandb: true
+  wandb_project: "my-federated-experiments"
+  wandb_mode: "online"
+  ```
+
+- **Offline mode** (for air-gapped environments):
+  ```yaml
+  use_wandb: true
+  wandb_mode: "offline"
+  ```
 
 ## Finding and Analyzing Results
 
