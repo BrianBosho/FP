@@ -34,7 +34,7 @@ feature_prop_device: "cpu"
 repetitions: 1
 
 # Wandb configuration
-use_wandb: false  # Set to true to enable wandb logging
+use_wandb: true  # Set to true to enable wandb logging
 wandb_project: "FGL3"  # Project name for wandb
 wandb_entity: null  # Set to your wandb entity/team name (optional)
 wandb_mode: "online"  # "online", "offline", or "disabled"
