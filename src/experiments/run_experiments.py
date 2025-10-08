@@ -36,10 +36,8 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_yaml_config(config_path):
-    """Load experiment configuration from YAML file"""
-    with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
-    return config
+    """Load experiment configuration from YAML file with base.yaml merging"""
+    return load_config(config_path)
 
 def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, pe_info=None):
     """Setup environment variables to redirect CSV output to experiment directory"""
