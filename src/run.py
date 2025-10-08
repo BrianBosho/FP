@@ -83,13 +83,15 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
     """
     DEVICE = device
     
-    # Log what we're actually passing to clients
-    print(f"\n=== CLIENT DATA LOADING ===")
-    print(f"Full graph size: {full_data.num_nodes} nodes")
-    print(f"Number of clients: {len(clients_data)}")
-    for i, client_subgraph in enumerate(clients_data):
-        print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
-    print(f"===========================\n")
+    # Log what we're actually passing to clients (only in debug mode)
+    debug = config.get("debug", False) if config else False
+    if debug:
+        print(f"\n=== CLIENT DATA LOADING ===")
+        print(f"Full graph size: {full_data.num_nodes} nodes")
+        print(f"Number of clients: {len(clients_data)}")
+        for i, client_subgraph in enumerate(clients_data):
+            print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
+        print(f"===========================\n")
     
     # IMPORTANT: Pass the SUBGRAPH to each client, not the full graph
     return [FLClient.remote(client_subgraph, dataset, i, cfg, device, model_type) 
@@ -129,7 +131,11 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
     DEVICE = device
     
-    print(f"data_loading_option: {data_loading_option}")
+    # Get debug flag from config
+    debug = cfg.get("debug", False)
+    
+    if debug:
+        print(f"data_loading_option: {data_loading_option}")
 
     import time
     _t_partition_start = time.time()
@@ -144,30 +150,33 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         config=cfg,
     )
     _partition_secs = time.time() - _t_partition_start
-    print(f"partition_time_s: {round(_partition_secs, 2)}")
-    # Debug: device and feature dims to ensure tensors are on the expected device
-    try:
-        print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
-        print("client[0] feature_dim:", clients_data[0].x.size(1))
-        print("config.use_pe:", cfg.get("use_pe"), "num_iterations:", cfg.get("num_iterations"), "feature_prop_device:", cfg.get("feature_prop_device"))
-        print("data_loading_option:", data_loading_option, "hop:", hop, "num_clients:", num_clients)
-    except Exception as _dbg_e:
-        print("debug_print_error:", _dbg_e)
+    if debug:
+        print(f"partition_time_s: {round(_partition_secs, 2)}")
+        # Debug: device and feature dims to ensure tensors are on the expected device
+        try:
+            print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
+            print("client[0] feature_dim:", clients_data[0].x.size(1))
+            print("config.use_pe:", cfg.get("use_pe"), "num_iterations:", cfg.get("num_iterations"), "feature_prop_device:", cfg.get("feature_prop_device"))
+            print("data_loading_option:", data_loading_option, "hop:", hop, "num_clients:", num_clients)
+        except Exception as _dbg_e:
+            print("debug_print_error:", _dbg_e)
     test_data = clients_data
-    print("\n=== DATA LOADING SUMMARY ===")
-    print(f"Full graph: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges")
-    print(f"Number of client subgraphs: {len(clients_data)}")
-    print(f"First client subgraph shape: {clients_data[0].x.shape}")
-    print(f"Dataset: {dataset}")
-    print(f"Device: {DEVICE}")
     
-    # IMPORTANT: Keep full graph on CPU for now - only used for global testing
-    # Each client already receives their subgraph
-    print(f"\nFull graph device (before): {data.x.device}")
-    # NOTE: Commenting this out to save GPU memory - full graph only needed for global testing
-    # data = data.to(DEVICE)
-    print(f"Full graph staying on CPU to save GPU memory")
-    print("===========================\n")
+    if debug:
+        print("\n=== DATA LOADING SUMMARY ===")
+        print(f"Full graph: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges")
+        print(f"Number of client subgraphs: {len(clients_data)}")
+        print(f"First client subgraph shape: {clients_data[0].x.shape}")
+        print(f"Dataset: {dataset}")
+        print(f"Device: {DEVICE}")
+        
+        # IMPORTANT: Keep full graph on CPU for now - only used for global testing
+        # Each client already receives their subgraph
+        print(f"\nFull graph device (before): {data.x.device}")
+        # NOTE: Commenting this out to save GPU memory - full graph only needed for global testing
+        # data = data.to(DEVICE)
+        print(f"Full graph staying on CPU to save GPU memory")
+        print("===========================\n")
     input_dim = clients_data[0].x.size(1)
     
     rounds = cfg['num_rounds']
@@ -221,24 +230,25 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         
         # Debug: verify masks and cross-accuracy when single client
-        try:
-            if len(server.clients) == 1:
-                print("\n=== DEBUG: Single-client cross-check ===")
-                try:
-                    print("Global test nodes:", int(data.test_mask.sum()))
-                    print("Client0 test nodes:", int(test_data[0].test_mask.sum()))
-                except Exception as _dbg_e0:
-                    print("debug_mask_error:", _dbg_e0)
-                try:
-                    server_on_client = server.test_global_model(test_data[0])
-                    client_on_global = ray.get([server.clients[0].test.remote(data)])[0]
-                    print(f"Server model on client graph acc: {server_on_client}")
-                    print(f"Client model on global graph acc: {client_on_global}")
-                except Exception as _dbg_e1:
-                    print("debug_cross_eval_error:", _dbg_e1)
-                print("=== END DEBUG ===\n")
-        except Exception as _dbg_e2:
-            print("debug_section_error:", _dbg_e2)
+        if debug:
+            try:
+                if len(server.clients) == 1:
+                    print("\n=== DEBUG: Single-client cross-check ===")
+                    try:
+                        print("Global test nodes:", int(data.test_mask.sum()))
+                        print("Client0 test nodes:", int(test_data[0].test_mask.sum()))
+                    except Exception as _dbg_e0:
+                        print("debug_mask_error:", _dbg_e0)
+                    try:
+                        server_on_client = server.test_global_model(test_data[0])
+                        client_on_global = ray.get([server.clients[0].test.remote(data)])[0]
+                        print(f"Server model on client graph acc: {server_on_client}")
+                        print(f"Client model on global graph acc: {client_on_global}")
+                    except Exception as _dbg_e1:
+                        print("debug_cross_eval_error:", _dbg_e1)
+                    print("=== END DEBUG ===\n")
+            except Exception as _dbg_e2:
+                print("debug_section_error:", _dbg_e2)
 
         # Log test results to wandb - use proper step value instead of -1
         final_round = rounds  # Use the total number of rounds as the step

@@ -257,7 +257,9 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     
     # Console summary for quick visibility
     try:
-        print(f"feature_propagation: steps={iter_count}, converged={did_converge}, mode={mode}, tol={tol}")
+        # Only print in debug mode - this is controlled by the calling function
+        # For now, disable this verbose output by default
+        # print(f"feature_propagation: steps={iter_count}, converged={did_converge}, mode={mode}, tol={tol}")
     except Exception:
         pass
     

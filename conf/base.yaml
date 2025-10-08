@@ -11,6 +11,9 @@ fulltraining_flag: false
 save_results: true
 repetitions: 1
 
+# Debug configuration
+debug: false  # Set to true to enable verbose debug output
+
 # Wandb configuration
 use_wandb: false  # Set to true to enable wandb logging
 wandb_project: "FGL3"  # Project name for wandb

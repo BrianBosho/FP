@@ -36,7 +36,8 @@ class Server():
             self.max_concurrent_clients = None
 
         # print input dim of the model
-        print(f"Input dim of the model in server: {self.model.dim_in}")
+        if hasattr(self, 'cfg') and self.cfg.get("debug", False):
+            print(f"Input dim of the model in server: {self.model.dim_in}")
 
         # update the client params
         self.broadcast_params(-1)
@@ -190,9 +191,10 @@ class Server():
         gc.collect()
 
         # check the input dim of the model being tested
-        print(f"Input dim of the model in server: {self.model.dim_in}")
-        # check the input dim of the data
-        print(f"Input dim of the test data in server: {data.x.shape[1]}")
+        if hasattr(self, 'cfg') and self.cfg.get("debug", False):
+            print(f"Input dim of the model in server: {self.model.dim_in}")
+            # check the input dim of the data
+            print(f"Input dim of the test data in server: {data.x.shape[1]}")
         
         self.model.to(self.device)
         

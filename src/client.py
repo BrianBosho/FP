@@ -27,12 +27,16 @@ class FLClient:
         self.DEVICE = device
         self.device = self.DEVICE
         
+        # Get debug flag from config
+        debug = cfg.get("debug", False)
+        
         # LOG: What data did this client receive?
-        print(f"\n[Client {client_id}] Initializing with:")
-        print(f"  - Input data nodes: {data.num_nodes}")
-        print(f"  - Input data edges: {data.edge_index.shape[1] if hasattr(data, 'edge_index') else 'N/A'}")
-        print(f"  - Feature shape: {data.x.shape}")
-        print(f"  - Data device (before moving): {data.x.device}")
+        if debug:
+            print(f"\n[Client {client_id}] Initializing with:")
+            print(f"  - Input data nodes: {data.num_nodes}")
+            print(f"  - Input data edges: {data.edge_index.shape[1] if hasattr(data, 'edge_index') else 'N/A'}")
+            print(f"  - Feature shape: {data.x.shape}")
+            print(f"  - Data device (before moving): {data.x.device}")
         
         self.data = data.to(self.device)
         self.dataset = dataset
@@ -40,8 +44,9 @@ class FLClient:
 
         # get input dim from data
         self.input_dim = data.x.shape[1]
-        print(f"  - Input dim: {self.input_dim}")
-        print(f"  - Data device (after moving): {self.data.x.device}")
+        if debug:
+            print(f"  - Input dim: {self.input_dim}")
+            print(f"  - Data device (after moving): {self.data.x.device}")
         
         # Determine training mode from config (preferred) or fallback
         if "use_minibatch" in cfg:
@@ -197,9 +202,10 @@ class FLClient:
         # Ensure model is on the correct device
         self.model.to(self.device)
         # check input dimenoso of the model itself
-        print(f"Input dim of the model: {self.model.dim_in}")
-        # print input dim of the data
-        print(f"Input dim of the data: {self.data.x.shape[1]}")
+        if self.cfg.get("debug", False):
+            print(f"Input dim of the model: {self.model.dim_in}")
+            # print input dim of the data
+            print(f"Input dim of the data: {self.data.x.shape[1]}")
         if data is None:
             data = self.data
         else:
