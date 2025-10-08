@@ -1,7 +1,7 @@
 # Core experiment defaults (can be overridden in dataset configs)
 num_clients: 10
 num_rounds: 10
-epochs: 3
+epochs: 1
 beta: 1
 lr: 0.5
 optimizer: SGD
@@ -26,7 +26,7 @@ use_amp: true
 max_concurrent_clients: 0
 
 # Positional encoding settings
-use_pe: [false, true]
+use_pe: [false]
 pe_r: 64
 pe_P: 16
 normalize: qr
