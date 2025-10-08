@@ -8,7 +8,7 @@ wandb_project: "FGL3-Cora"  # Dataset-specific wandb project
 
 # Cora-specific experiment parameters
 num_clients: [10]
-num_rounds: 1
+num_rounds: 100
 beta: [1]
 lr: 0.5
 data_loading: [adjacency]

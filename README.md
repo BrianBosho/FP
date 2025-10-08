@@ -2,6 +2,20 @@
 
 This repository contains code for running Federated Learning experiments with Graph Neural Networks (GNNs). It allows you to train GNN models in a federated setting across multiple clients and evaluate their performance.
 
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Run experiment with Cora dataset
+python -m src.experiments.run_experiments --config conf/cora_config.yaml
+
+# 3. View results in results/cora/ directory
+```
+
+That's it! The experiment will train a federated GNN model and save results automatically.
+
 ## Overview
 
 Federated Learning enables training machine learning models across multiple decentralized clients without sharing raw data. This implementation focuses on federated training of Graph Neural Networks on graph-structured data.
@@ -12,6 +26,8 @@ Features:
 - Different data loading and partitioning strategies
 - Control over client heterogeneity (via Dirichlet distribution parameter beta)
 - Comprehensive experiment configuration and results logging
+- Configurable Weights & Biases integration
+- Debug mode for detailed logging
 
 ## Installation
 
@@ -153,6 +169,22 @@ For ablation studies, a summary file is also created in the parent directory tha
 The key metrics reported are:
 - Average Global Result: Test accuracy of the global model
 - Average Client Result: Average test accuracy across all clients
+
+### Debug Mode
+
+Control output verbosity with the debug flag in your config:
+
+**Clean Output (default):**
+```yaml
+debug: false  # Minimal output, production-ready
+```
+
+**Verbose Output (for debugging):**
+```yaml
+debug: true   # Detailed logs, model info, training details
+```
+
+When `debug: false`, you get clean output (~60% reduction) showing only essential information. When `debug: true`, you see comprehensive debugging details including client initialization, model parameters, training metrics, and more.
 
 ## Analyzing Training Logs
 

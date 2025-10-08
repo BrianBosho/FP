@@ -28,16 +28,19 @@ data/
 ./env
 wandb/
 
-# Logs
+# Logs and output files
 logs/
 *.log
 training_logs/
+nohup.out
 nohup*.out
 old_nohup.out
 *.out
-*.log
+
+# Results and data files
 *.json
 *.csv
+results.csv
 *.txt
 *.pdf
 *.docx
