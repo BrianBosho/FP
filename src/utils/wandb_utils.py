@@ -6,8 +6,13 @@ def to_cpu_scalar(x):
         return x.detach().cpu().item()
     return x
 
-def initialize_wandb(project= "FGL", entity=None, config=None, name=None, dir=None, mode="online", resume=None, group=None):
+def initialize_wandb(project="FGL", entity=None, config=None, name=None, dir=None, mode="online", resume=None, group=None, use_wandb=True):
     import wandb    
+    
+    # Check if wandb should be used
+    if not use_wandb:
+        print(f"[WANDB DEBUG] Wandb logging disabled by configuration")
+        return
     
     # Check if there's already an active run and finish it
     if wandb.run is not None:
@@ -33,6 +38,10 @@ def initialize_wandb(project= "FGL", entity=None, config=None, name=None, dir=No
 
 def log_client_training_metrics(train_results: list, current_global_epoch: int) -> None:
     """Log client training metrics"""
+    # Check if wandb is initialized and enabled
+    if wandb.run is None:
+        return
+        
     client_losses = [to_cpu_scalar(result[0]) for result in train_results]
     client_accuracies = [to_cpu_scalar(result[1]) for result in train_results]
         
@@ -56,6 +65,10 @@ def log_client_training_metrics(train_results: list, current_global_epoch: int) 
     }, step=current_global_epoch)
 
 def log_client_validation_metrics(val_results: list, current_global_epoch: int) -> None:
+    # Check if wandb is initialized and enabled
+    if wandb.run is None:
+        return
+        
     client_val_losses = [to_cpu_scalar(result[0]) for result in val_results]
     client_val_accuracies = [to_cpu_scalar(result[1]) for result in val_results]
     mean_val_loss = np.mean(client_val_losses)
@@ -71,6 +84,10 @@ def log_client_validation_metrics(val_results: list, current_global_epoch: int) 
     }, step=current_global_epoch)
 
 def log_final_validation_metrics(val_results: list, current_global_epoch: int) -> None:
+    # Check if wandb is initialized and enabled
+    if wandb.run is None:
+        return
+        
     client_val_losses = [to_cpu_scalar(result[0]) for result in val_results]
     client_val_accuracies = [to_cpu_scalar(result[1]) for result in val_results]
     mean_val_loss = np.mean(client_val_losses)

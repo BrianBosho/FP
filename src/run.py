@@ -328,18 +328,30 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "run_index": i+1,
                     "num_iterations": cfg.get("num_iterations")
                 }
+                # Get wandb configuration from cfg
+                use_wandb = cfg.get("use_wandb", True)  # Default to True for backward compatibility
+                wandb_project = cfg.get("wandb_project", "FGL3")
+                wandb_entity = cfg.get("wandb_entity", None)
+                wandb_mode = cfg.get("wandb_mode", "online")
+                
                 initialize_wandb(
-                    project="FGL3",
+                    project=wandb_project,
+                    entity=wandb_entity,
                     config=run_config,
-                    group=f"{model_type}_{dataset_name}_{data_loading_option}"
+                    group=f"{model_type}_{dataset_name}_{data_loading_option}",
+                    mode=wandb_mode,
+                    use_wandb=use_wandb
                 )
                 current_cfg = cfg.copy()
-                print(f"Wandb config is set to: {wandb.config}")
-                print(wandb.config)
-                for key in wandb.config:
-                    current_cfg[key] = wandb.config[key]
-                run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_lr{current_cfg.get('lr')}_decay{current_cfg.get('decay')}_beta{current_cfg.get('beta')}_run{i+1}"
-                wandb.run.name = run_name
+                
+                # Only process wandb config if wandb is enabled and initialized
+                if use_wandb and wandb.run is not None:
+                    print(f"Wandb config is set to: {wandb.config}")
+                    print(wandb.config)
+                    for key in wandb.config:
+                        current_cfg[key] = wandb.config[key]
+                    run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_lr{current_cfg.get('lr')}_decay{current_cfg.get('decay')}_beta{current_cfg.get('beta')}_run{i+1}"
+                    wandb.run.name = run_name
 
                 global_results, client_results = run_with_server(
                     dataset_name, 
@@ -362,12 +374,14 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "global_result": float(global_results),
                     "client_result": float(client_results)                })
                 
-                # Log individual run results before finishing
-                wandb.log({
-                    "run_global_test_result": global_results,
-                    "run_client_test_result": client_results                })
+                # Log individual run results before finishing (only if wandb is enabled)
+                if use_wandb and wandb.run is not None:
+                    wandb.log({
+                        "run_global_test_result": global_results,
+                        "run_client_test_result": client_results                })
                 
-                wandb.finish()
+                if use_wandb:
+                    wandb.finish()
             except Exception as e:
                 print(f"Error in round {i+1}: {e}")
                 # Clear resources even if there's an error

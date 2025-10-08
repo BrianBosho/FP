@@ -235,7 +235,9 @@ def run_experiments(args):
 
 
 
-    if wandb.run is not None:
+    # Handle wandb configuration (only if wandb is enabled and running)
+    use_wandb = cfg.get("use_wandb", True)  # Default to True for backward compatibility
+    if use_wandb and wandb.run is not None:
         for key in wandb.config:
             cfg[key] = wandb.config[key]
     
@@ -493,4 +495,7 @@ if __name__ == "__main__":
 
     summary_rows, all_results = run_experiments(args)
     print_summary(summary_rows)
-    wandb.finish()
+    
+    # Only finish wandb if it was enabled and running
+    if wandb.run is not None:
+        wandb.finish()

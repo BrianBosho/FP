@@ -33,6 +33,12 @@ feature_prop_tolerance: 1e-6
 feature_prop_device: "cpu"
 repetitions: 1
 
+# Wandb configuration
+use_wandb: false  # Set to true to enable wandb logging
+wandb_project: "FGL3"  # Project name for wandb
+wandb_entity: null  # Set to your wandb entity/team name (optional)
+wandb_mode: "online"  # "online", "offline", or "disabled"
+
 # Diffusion-specific hyperparameters
 # diffusion_t: 1.0        # Taylor series diffusion time (default 1.0, original behavior)
 

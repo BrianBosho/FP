@@ -5,6 +5,12 @@ beta: 1 # high beta means
 lr: 0.5
 fulltraining_flag: False
 
+# Wandb configuration
+use_wandb: false  # Set to true to enable wandb logging
+wandb_project: "FGL3"  # Project name for wandb
+wandb_entity: null  # Set to your wandb entity/team name (optional)
+wandb_mode: "online"  # "online", "offline", or "disabled"
+
 # Diffusion hyperparameters
 diffusion_t: 1.0        # Taylor series diffusion time
 chebyshev_k: 5          # Chebyshev polynomial order
