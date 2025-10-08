@@ -85,13 +85,14 @@ def save_results_to_csv(results, filename="results.csv"):
         results_df = pd.DataFrame(results)
         results_df.to_csv(filename)
 
-def compare_model_parameters(server_model, clients):
+def compare_model_parameters(server_model, clients, debug=False):
     """
     Compare model parameters between server and clients
     
     Args:
         server_model (torch.nn.Module): Server's model
         clients (list): List of client actors
+        debug (bool): Whether to print detailed comparison info
     
     Returns:
         bool: Whether all parameters are identical
@@ -105,31 +106,38 @@ def compare_model_parameters(server_model, clients):
     # Extract just the parameters from the dictionaries
     client_params_list = [params_dict['params'] for params_dict in client_params_dicts]
     
-    print("\n--- Model Parameter Comparison ---")
+    if debug:
+        print("\n--- Model Parameter Comparison ---")
+    
+    all_match = True
     for layer_idx, (server_param, client_params) in enumerate(zip(server_params, zip(*client_params_list))):
         # Convert to numpy for easier comparison
         server_param_np = server_param.detach().cpu().numpy()
         client_params_np = [p.detach().cpu().numpy() for p in client_params]
         
-        # Check shape
-        print(f"\nLayer {layer_idx}:")
-        print(f"Server param shape: {server_param_np.shape}")
-        print(f"Client param shapes: {[p.shape for p in client_params_np]}")
-        
         # Check if all client params match server params
-        all_match = all(np.array_equal(server_param_np, client_param_np) 
+        layer_match = all(np.array_equal(server_param_np, client_param_np) 
                          for client_param_np in client_params_np)
         
-        # Detailed difference if not matching
-        if not all_match:
-            print("❌ Parameters do NOT match!")
-            for client_idx, client_param_np in enumerate(client_params_np):
-                if not np.array_equal(server_param_np, client_param_np):
-                    print(f"  Client {client_idx} differs:")
-                    print(f"    Max absolute difference: {np.max(np.abs(server_param_np - client_param_np))}")
-                    print(f"    Mean absolute difference: {np.mean(np.abs(server_param_np - client_param_np))}")
-        else:
-            print("✅ Parameters match!")
+        if not layer_match:
+            all_match = False
+        
+        if debug:
+            # Check shape
+            print(f"\nLayer {layer_idx}:")
+            print(f"Server param shape: {server_param_np.shape}")
+            print(f"Client param shapes: {[p.shape for p in client_params_np]}")
+            
+            # Detailed difference if not matching
+            if not layer_match:
+                print("❌ Parameters do NOT match!")
+                for client_idx, client_param_np in enumerate(client_params_np):
+                    if not np.array_equal(server_param_np, client_param_np):
+                        print(f"  Client {client_idx} differs:")
+                        print(f"    Max absolute difference: {np.max(np.abs(server_param_np - client_param_np))}")
+                        print(f"    Mean absolute difference: {np.mean(np.abs(server_param_np - client_param_np))}")
+            else:
+                print("✅ Parameters match!")
     
     return all_match
 

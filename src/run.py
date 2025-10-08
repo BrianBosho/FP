@@ -218,8 +218,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         training_results = ray.get([client.get_loss_acc.remote() for client in server.clients])
         save_results_to_csv(training_results)
 
-        are_params_identical = compare_model_parameters(server.model, server.clients)
-        print(f"\nAll model parameters are identical: {are_params_identical}")
+        are_params_identical = compare_model_parameters(server.model, server.clients, debug=debug)
+        if debug:
+            print(f"\nAll model parameters are identical: {are_params_identical}")
 
         # Evaluate: ensure consistency for single-client runs by testing both on the same global graph
         if len(server.clients) == 1:

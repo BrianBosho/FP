@@ -202,7 +202,7 @@ class FLClient:
         # Ensure model is on the correct device
         self.model.to(self.device)
         # check input dimenoso of the model itself
-        if self.cfg.get("debug", False):
+        if hasattr(self, 'cfg') and self.cfg.get("debug", False):
             print(f"Input dim of the model: {self.model.dim_in}")
             # print input dim of the data
             print(f"Input dim of the data: {self.data.x.shape[1]}")
