@@ -198,7 +198,6 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
                                 sparse_sizes=(num_nodes, num_nodes))
     
     # Clear memory before intensive computations
-    import torch
     torch.cuda.empty_cache()
     
     # Create identity matrix on the proper device.
@@ -216,7 +215,9 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
     
     if num_nodes > 50000:  # Large graph threshold
         # Use first-order approximation for large graphs to avoid memory issues
-        diffusion = identity - sparse_scalar_mul(laplacian, t)
+        # Create a new identity matrix for the approximation
+        identity_approx = SparseTensor.eye(num_nodes).to(device)
+        diffusion = identity_approx - sparse_scalar_mul(laplacian, t)
     else:
         # Use truncated Taylor series for smaller graphs
         diffusion = SparseTensor.eye(num_nodes).to(device)
@@ -241,9 +242,9 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
 # Chebyshev-based Diffusion Kernel Approximations
 # ============================================================================
 
-def _normalized_laplacian(edge_index: Tensor, num_nodes: int, device: str) -> SparseTensor:
+def _normalized_adjacency(edge_index: Tensor, num_nodes: int, device: str) -> SparseTensor:
     """
-    Compute the normalized Laplacian L = I - D^{-1/2} A D^{-1/2}.
+    Compute the normalized adjacency matrix Z = D^{-1/2} A D^{-1/2} = I - L.
     
     Args:
         edge_index: Tensor of shape [2, E] with edge indices.
@@ -251,44 +252,21 @@ def _normalized_laplacian(edge_index: Tensor, num_nodes: int, device: str) -> Sp
         device: Computation device ("cpu" or "cuda").
         
     Returns:
-        SparseTensor: Normalized Laplacian matrix.
+        SparseTensor: Normalized adjacency matrix Z (spectrum in [-1, 1]).
     """
-    edge_index = edge_index.to(device)
-    row, col = edge_index[0], edge_index[1]
-
-    # Compute node degrees
-    deg = torch_scatter.scatter_add(
-        torch.ones_like(row, dtype=torch.float32, device=device),
-        row, dim=0, dim_size=num_nodes
-    )
-    deg_inv_sqrt = deg.pow(-0.5)
-    deg_inv_sqrt[~torch.isfinite(deg_inv_sqrt)] = 0.0
-
-    # Create sparse adjacency matrix
-    adj = SparseTensor(
-        row=row, col=col, value=torch.ones_like(row, dtype=torch.float32, device=device),
-        sparse_sizes=(num_nodes, num_nodes)
-    )
-    
-    # Construct D^{-1/2} A D^{-1/2}
-    diag_idx = torch.arange(num_nodes, device=device)
-    Dm = SparseTensor(row=diag_idx, col=diag_idx, value=deg_inv_sqrt,
-                      sparse_sizes=(num_nodes, num_nodes))
-    norm_adj = Dm @ adj @ Dm
-    
-    # L = I - D^{-1/2} A D^{-1/2}
-    # Negate norm_adj by multiplying values by -1
-    neg_row = norm_adj.storage.row()
-    neg_col = norm_adj.storage.col()
-    neg_values = norm_adj.storage.value() * (-1)
-    neg_norm_adj = SparseTensor(row=neg_row, col=neg_col, value=neg_values,
-                                sparse_sizes=(num_nodes, num_nodes))
-    
-    I = SparseTensor.eye(num_nodes, device=device)
-    L = I + neg_norm_adj  # I - norm_adj = I + (-norm_adj)
-    return L
+    row, col = edge_index[0].to(device), edge_index[1].to(device)
+    deg = torch_scatter.scatter_add(torch.ones_like(row, dtype=torch.float32, device=device),
+                      row, dim=0, dim_size=num_nodes)
+    deg_inv_sqrt = torch.where(deg > 0, deg.pow(-0.5), torch.zeros_like(deg))
+    Dm = SparseTensor(row=torch.arange(num_nodes, device=device),
+                      col=torch.arange(num_nodes, device=device),
+                      value=deg_inv_sqrt, sparse_sizes=(num_nodes, num_nodes))
+    A = SparseTensor(row=row, col=col, value=torch.ones_like(row, dtype=torch.float32, device=device),
+                     sparse_sizes=(num_nodes, num_nodes))
+    return Dm @ A @ Dm  # Z = D^{-1/2} A D^{-1/2} = I - L
 
 
+@torch.no_grad()
 def chebyshev_expmL_apply(
     edge_index: Tensor,
     num_nodes: int,
@@ -298,15 +276,11 @@ def chebyshev_expmL_apply(
     device: str = "cuda"
 ) -> Tensor:
     """
-    Apply y = exp(-t L) X using a Chebyshev expansion with order K (matrix-free).
+    y ≈ exp(-t L) X using Chebyshev on Z = I - L (spec ∈ [-1,1]).
+    Coeffs use scaled Bessel: e^{-t} I_k(t) == ive(k, t) for t >= 0.
     
     This is the RECOMMENDED approach for large graphs as it never materializes
     the full diffusion matrix. Uses only K sparse matrix-vector multiplications.
-    
-    L is the normalized Laplacian; we rescale to Z = L - I so its spectrum is in [-1, 1].
-    The approximation is:
-        exp(-t L) = exp(-t) * [ I0(t) T0(Z) + 2 sum_{k=1..K} I_k(t) T_k(Z) ]
-    where T_k are Chebyshev polynomials and I_k are modified Bessel functions.
     
     Args:
         edge_index: [2, E] edges (undirected with both directions if needed).
@@ -320,45 +294,37 @@ def chebyshev_expmL_apply(
         Y ≈ exp(-t L) X  (same shape as X).
     """
     X = X.to(device)
-    L = _normalized_laplacian(edge_index, num_nodes, device)
-    I = SparseTensor.eye(num_nodes, device=device)
-    
-    # Z = L - I: Negate I by multiplying values by -1, then add
-    neg_I_row = I.storage.row()
-    neg_I_col = I.storage.col()
-    neg_I_values = I.storage.value() * (-1)
-    neg_I = SparseTensor(row=neg_I_row, col=neg_I_col, value=neg_I_values,
-                         sparse_sizes=(num_nodes, num_nodes))
-    Z = L + neg_I  # L - I = L + (-I), since λ(L)∈[0,2] ⇒ λ(Z)=λ(L)-1∈[-1,1]
+    Z = _normalized_adjacency(edge_index, num_nodes, device)  # Z = I - L
 
-    # Precompute Bessel-based Chebyshev coefficients for e^{-tZ}
-    # e^{-tL} = e^{-t} * [ I0(t) T0(Z) + 2 sum_{k=1..K} I_k(t) T_k(Z) ]
-    # Use scipy.special.iv for modified Bessel function of first kind
+    # coefficients: c0 = ive(0,t), ck = 2*ive(k,t) for k>=1
+    # (ive is exponentially scaled: ive(k,t) = e^{-t} I_k(t))
+    c0 = torch.special.i0e(torch.tensor(t, dtype=X.dtype, device=device))
+    
+    # Use scipy for higher order Bessel functions (torch.special.ive not available in this version)
+    import scipy.special
     import numpy as np
-    
-    # Compute Bessel coefficients using scipy (more widely supported than torch.special.iv)
-    i0_val = scipy.special.iv(0, t)
-    coeff0 = np.exp(-t) * i0_val
-    coeff0 = torch.tensor(coeff0, dtype=X.dtype, device=device)
+    coeffs = []
+    for k in range(1, K+1):
+        if k == 1 and hasattr(torch.special, 'i1e'):
+            # Use torch.special.i1e if available
+            coeff = 2.0 * torch.special.i1e(torch.tensor(t, dtype=X.dtype, device=device))
+        else:
+            # Fallback to scipy for higher orders
+            ive_val = scipy.special.iv(k, t) * np.exp(-t)  # ive(k,t) = e^{-t} I_k(t)
+            coeff = 2.0 * torch.tensor(ive_val, dtype=X.dtype, device=device)
+        coeffs.append(coeff)
 
-    # Compute coefficients for k=1 to K
-    Ik_vals = [scipy.special.iv(k, t) for k in range(1, K+1)]
-    coeffs = [torch.tensor(2.0 * np.exp(-t) * Ik_vals[k-1], dtype=X.dtype, device=device) 
-              for k in range(1, K+1)]
+    # Chebyshev recurrence on features
+    T0X = X                               # T0(Z)X
+    Y = c0 * T0X
+    if K == 0: return Y
 
-    # Chebyshev recurrence on features: T0X = X, T1X = Z @ X
-    T0X = X
-    Y = coeff0 * T0X
-
-    if K == 0:
-        return Y
-
-    T1X = Z @ T0X  # SpMM
-    Y = Y + coeffs[0] * T1X  # k=1
+    T1X = Z @ T0X                          # T1(Z)X
+    Y = Y + coeffs[0] * T1X
 
     Tkm2, Tkm1 = T0X, T1X
     for k in range(2, K+1):
-        TkX = 2.0 * (Z @ Tkm1) - Tkm2  # SpMM + axpy
+        TkX = 2.0 * (Z @ Tkm1) - Tkm2     # T_{k+1} = 2 Z T_k - T_{k-1}
         Y = Y + coeffs[k-1] * TkX
         Tkm2, Tkm1 = Tkm1, TkX
 
@@ -390,28 +356,27 @@ def chebyshev_expmL_operator(
     Returns:
         SparseTensor: Approximate diffusion operator exp(-t L).
     """
-    L = _normalized_laplacian(edge_index, num_nodes, device)
-    I = SparseTensor.eye(num_nodes, device=device)
-    
-    # Z = L - I: Negate I by multiplying values by -1, then add
-    neg_I_row = I.storage.row()
-    neg_I_col = I.storage.col()
-    neg_I_values = I.storage.value() * (-1)
-    neg_I = SparseTensor(row=neg_I_row, col=neg_I_col, value=neg_I_values,
-                         sparse_sizes=(num_nodes, num_nodes))
-    Z = L + neg_I  # L - I = L + (-I)
+    Z = _normalized_adjacency(edge_index, num_nodes, device)  # Z = I - L
 
-    # Coefficients using scipy for Bessel functions
+    # Coefficients using PyTorch's scaled Bessel functions with scipy fallback
+    c0 = torch.special.i0e(torch.tensor(t, dtype=torch.float32, device=device))
+    
+    # Use scipy for higher order Bessel functions (torch.special.ive not available in this version)
+    import scipy.special
     import numpy as np
-    
-    i0_val = scipy.special.iv(0, t)
-    c0 = float(np.exp(-t) * i0_val)
-    
-    Ik_vals = [scipy.special.iv(k, t) for k in range(1, K+1)]
-    ck = [float(2.0 * np.exp(-t) * Ik_vals[k-1]) for k in range(1, K+1)]
+    ck = []
+    for k in range(1, K+1):
+        if k == 1 and hasattr(torch.special, 'i1e'):
+            # Use torch.special.i1e if available
+            coeff = 2.0 * torch.special.i1e(torch.tensor(t, dtype=torch.float32, device=device))
+        else:
+            # Fallback to scipy for higher orders
+            ive_val = scipy.special.iv(k, t) * np.exp(-t)  # ive(k,t) = e^{-t} I_k(t)
+            coeff = 2.0 * torch.tensor(ive_val, dtype=torch.float32, device=device)
+        ck.append(coeff)
 
     # Chebyshev matrices: T0=I, T1=Z, T_{k+1} = 2 Z T_k - T_{k-1}
-    T0 = I
+    T0 = SparseTensor.eye(num_nodes, device=device)
     # Use sparse_scalar_mul helper to multiply by scalar
     op = sparse_scalar_mul(T0, c0)
 

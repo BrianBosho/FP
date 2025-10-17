@@ -11,7 +11,7 @@ num_clients: [10]
 num_rounds: 100
 beta: [1]
 lr: 0.5
-data_loading: [adjacency]
+data_loading: [chebyshev_diffusion]
 models: [GCN]
 
 # nohup command to run the experiment
