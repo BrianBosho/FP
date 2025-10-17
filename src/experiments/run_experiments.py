@@ -6,6 +6,7 @@ import ray
 import argparse
 import json
 import yaml
+import torch
 from tabulate import tabulate
 from datetime import datetime
 import time
@@ -356,6 +357,18 @@ def run_experiments(args):
                             end_time = time.time()
                             duration = end_time - start_time
                             duration_formatted = format_time(duration)
+                            
+                            # Clean up Ray processes and memory after each experiment
+                            print("Cleaning up Ray processes and memory...")
+                            ray.shutdown()  # This kills all Ray processes
+                            import gc
+                            gc.collect()
+                            if torch.cuda.is_available():
+                                torch.cuda.empty_cache()
+                                torch.cuda.synchronize()
+                            
+                            # Reinitialize Ray for next experiment
+                            ray.init(ignore_reinit_error=True)
                             
                             # Add duration to the result
                             result["duration"] = {

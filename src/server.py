@@ -64,11 +64,19 @@ class Server():
             batch_results = ray.get(batch_futures)
             all_results.extend(batch_results)
             
-            # Clear CUDA cache between batches
-            clear_memory_basic()
+            # Aggressive memory clearing between batches
+            from src.utils.memory_utils import clear_memory_aggressive
+            clear_memory_aggressive()
             
             # Log memory usage
             log_memory_usage(f"after batch {batch_idx + 1}/{num_batches}")
+            
+            # Force garbage collection and sync
+            import gc
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+                torch.cuda.empty_cache()
         
         return all_results
         
@@ -88,8 +96,9 @@ class Server():
             train_futures = [client.train_client.remote() for client in clients]
             train_results = ray.get(train_futures)
             
-            # Clear memory after parallel training
-            clear_memory_basic()
+            # Aggressive memory clearing after parallel training
+            from src.utils.memory_utils import clear_memory_aggressive
+            clear_memory_aggressive()
             log_memory_usage("after parallel training")
 
         params = [client.get_params.remote() for client in clients]
@@ -132,6 +141,11 @@ class Server():
         # Broadcast params with sync=True when using batched training to ensure consistency
         use_sync = self.max_concurrent_clients and self.max_concurrent_clients < len(clients)
         self.broadcast_params(current_global_epoch, sync=use_sync)
+        
+        # Clear memory after parameter aggregation
+        from src.utils.memory_utils import clear_memory_aggressive
+        clear_memory_aggressive()
+        log_memory_usage("after parameter aggregation")
 
         log_client_training_metrics(train_results, current_global_epoch)
         # lets run evaluation after training
@@ -152,10 +166,43 @@ class Server():
     def evaluate_clients(self):
         clients = self.clients
         criterion = torch.nn.NLLLoss()
-        eval_futures = [client.evaluate.remote(criterion) for client in clients]
-        results = ray.get(eval_futures)
+        
+        # Use batched evaluation based on max_concurrent_clients setting
+        if self.max_concurrent_clients and self.max_concurrent_clients < len(clients):
+            results = self._evaluate_clients_batched(clients, criterion, self.max_concurrent_clients)
+        else:
+            # Original parallel evaluation for small number of clients
+            eval_futures = [client.evaluate.remote(criterion) for client in clients]
+            results = ray.get(eval_futures)
+        
         # log_final_validation_metrics(results, -1)  # -1 for global evaluation
         return results
+    
+    def _evaluate_clients_batched(self, clients, criterion, batch_size):
+        """Evaluate clients in batches to limit peak GPU memory usage"""
+        import math
+        all_results = []
+        num_batches = math.ceil(len(clients) / batch_size)
+        
+        for batch_idx in range(num_batches):
+            start_idx = batch_idx * batch_size
+            end_idx = min((batch_idx + 1) * batch_size, len(clients))
+            batch_clients = clients[start_idx:end_idx]
+            
+            print(f"  Evaluation Batch {batch_idx + 1}/{num_batches}: Evaluating clients {start_idx} to {end_idx - 1}")
+            
+            # Evaluate this batch of clients
+            batch_futures = [client.evaluate.remote(criterion) for client in batch_clients]
+            batch_results = ray.get(batch_futures)
+            all_results.extend(batch_results)
+            
+            # Clear memory between batches
+            from src.utils.memory_utils import clear_memory_basic, log_memory_usage
+            clear_memory_basic()
+            log_memory_usage(f"after evaluation batch {batch_idx + 1}/{num_batches}")
+        
+        print(f"Completed batched evaluation of {len(clients)} clients in {num_batches} batches")
+        return all_results
     
     def broadcast_params(self, current_global_epoch: int, sync=False) -> None:
         params_dict = {

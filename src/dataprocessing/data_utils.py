@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 from torch_geometric.data import Data
-from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, chebyshev_expmL_operator
+from src.dataprocessing.propagation_functions import get_personalized_pagerank_matrix, sparse_random_walk_with_restarts, diffusion_kernel, get_symmetrically_normalized_adjacency, chebyshev_expmL_apply
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -183,17 +183,24 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     # elif mode == "efficient":
     #     return propagate_features_efficient(x, edge_index, mask, device, alpha=alpha, propagation_type="normalized_adjacency")
     elif mode == "chebyshev_diffusion" or mode == "chebyshev_diffusion_operator":
-        # Build Chebyshev diffusion operator once (like diffusion/adja implementations)
-        # Use smaller t per-iteration for gentler smoothing
+        # Use matrix-free Chebyshev approach to avoid memory issues with large graphs
+        # This applies Chebyshev diffusion directly without building the full operator matrix
         if config is None:
             config = {}
         t = config.get("chebyshev_t", 1)
         K = config.get("chebyshev_k", 5)
-        sparse_tensor = chebyshev_expmL_operator(edge_index, n_nodes, t=t, K=K, device=str(DEVICE))
-        row, col = sparse_tensor.storage.row(), sparse_tensor.storage.col()
-        values = sparse_tensor.storage.value()
-        indices = torch.stack([row, col], dim=0)
-        adj = torch.sparse_coo_tensor(indices, values, size=(n_nodes, n_nodes)).to(DEVICE)
+        
+        # For matrix-free approach, we'll apply Chebyshev diffusion directly in the iteration
+        # Create a dummy sparse tensor that will be replaced by direct Chebyshev application
+        adj = torch.sparse_coo_tensor(
+            torch.empty((2, 0), dtype=torch.long, device=DEVICE),
+            torch.empty(0, dtype=x.dtype, device=DEVICE),
+            size=(n_nodes, n_nodes)
+        ).to(DEVICE)
+        
+        # Clear memory before starting Chebyshev iterations
+        from src.utils.memory_utils import clear_memory_for_diffusion
+        clear_memory_for_diffusion()
     elif mode == "adjacency":
         # This returns a tuple of (edge_index, edge_weight), convert to sparse tensor
         edge_index_with_loops, edge_weight = get_symmetrically_normalized_adjacency(edge_index, n_nodes)
@@ -215,7 +222,12 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     for i in range(num_iterations):
         iter_count += 1
         # Diffuse features
-        new_out = torch.sparse.mm(adj, out)
+        if mode == "chebyshev_diffusion" or mode == "chebyshev_diffusion_operator":
+            # Use matrix-free Chebyshev diffusion directly
+            new_out = chebyshev_expmL_apply(edge_index, n_nodes, out, t=t, K=K, device=str(DEVICE))
+        else:
+            # Use standard sparse matrix multiplication for other modes
+            new_out = torch.sparse.mm(adj, out)
         
         # Combine with original features (weighted combination)
         out = alpha * new_out + (1 - alpha) * out
@@ -223,15 +235,14 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         # Reset original known features
         out[mask] = x[mask]
         
-        # Track metrics if logging is enabled
-        if logging_enabled and prev_out is not None:
-            delta = torch.norm(out - prev_out).item()
-            metrics["deltas"].append(delta)
-            energy = compute_dirichlet_energy(out, edge_index)
-            metrics["energies"].append(energy)
-        
-        # Check for convergence
+        # Track metrics if logging is enabled and compute delta for convergence
         if prev_out is not None:
+            delta = torch.norm(out - prev_out).item()
+            if logging_enabled:
+                metrics["deltas"].append(delta)
+                energy = compute_dirichlet_energy(out, edge_index)
+                metrics["energies"].append(energy)
+            
             # Early stopping based on absolute L2 delta threshold
             if delta < tol:
                 if logging_enabled:

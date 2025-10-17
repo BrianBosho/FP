@@ -26,7 +26,7 @@ auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
 use_amp: true
-max_concurrent_clients: 0
+max_concurrent_clients: 5
 
 # Positional encoding settings
 use_pe: [false]
@@ -42,7 +42,7 @@ feature_prop_device: "cuda"
 # Chebyshev/Diffusion hyperparameters
 diffusion_t: 1.0        # Taylor series diffusion time
 chebyshev_k: 5          # Chebyshev polynomial order
-chebyshev_t: 1          # Chebyshev diffusion time
+chebyshev_t: 0.9          # Chebyshev diffusion time
 paths:
   datasets_dir: "datasets"
   planetoid:

@@ -331,79 +331,6 @@ def chebyshev_expmL_apply(
     return Y
 
 
-def chebyshev_expmL_operator(
-    edge_index: Tensor,
-    num_nodes: int,
-    t: float = 1.0,
-    K: int = 10,
-    device: str = "cuda"
-) -> SparseTensor:
-    """
-    Build a SparseTensor approximating exp(-t L) via a Chebyshev expansion.
-    
-    WARNING: This can be memory heavy for larger K as it performs sparse matrix
-    multiplication (SpGEMM) K times. Use only for small graphs or small K.
-    
-    For most cases, prefer chebyshev_expmL_apply() which is matrix-free.
-    
-    Args:
-        edge_index: Tensor of shape [2, E] with edge indices.
-        num_nodes: Number of nodes in the graph.
-        t: Diffusion time parameter (typical range: 0.2 - 2.0).
-        K: Chebyshev order (typically 3-10; keep lower for this version).
-        device: Computation device ("cpu" or "cuda").
-        
-    Returns:
-        SparseTensor: Approximate diffusion operator exp(-t L).
-    """
-    Z = _normalized_adjacency(edge_index, num_nodes, device)  # Z = I - L
-
-    # Coefficients using PyTorch's scaled Bessel functions with scipy fallback
-    c0 = torch.special.i0e(torch.tensor(t, dtype=torch.float32, device=device))
-    
-    # Use scipy for higher order Bessel functions (torch.special.ive not available in this version)
-    import scipy.special
-    import numpy as np
-    ck = []
-    for k in range(1, K+1):
-        if k == 1 and hasattr(torch.special, 'i1e'):
-            # Use torch.special.i1e if available
-            coeff = 2.0 * torch.special.i1e(torch.tensor(t, dtype=torch.float32, device=device))
-        else:
-            # Fallback to scipy for higher orders
-            ive_val = scipy.special.iv(k, t) * np.exp(-t)  # ive(k,t) = e^{-t} I_k(t)
-            coeff = 2.0 * torch.tensor(ive_val, dtype=torch.float32, device=device)
-        ck.append(coeff)
-
-    # Chebyshev matrices: T0=I, T1=Z, T_{k+1} = 2 Z T_k - T_{k-1}
-    T0 = SparseTensor.eye(num_nodes, device=device)
-    # Use sparse_scalar_mul helper to multiply by scalar
-    op = sparse_scalar_mul(T0, c0)
-
-    if K == 0:
-        return op
-
-    T1 = Z
-    op = op + sparse_scalar_mul(T1, ck[0])
-
-    Tkm2, Tkm1 = T0, T1
-    for k in range(2, K+1):
-        # Tk = 2 * Z @ Tkm1 - Tkm2
-        Tk_temp = Z @ Tkm1
-        Tk_scaled = sparse_scalar_mul(Tk_temp, 2.0)
-        
-        # Subtract Tkm2 by negating and adding
-        neg_Tkm2_row = Tkm2.storage.row()
-        neg_Tkm2_col = Tkm2.storage.col()
-        neg_Tkm2_values = Tkm2.storage.value() * (-1)
-        neg_Tkm2 = SparseTensor(row=neg_Tkm2_row, col=neg_Tkm2_col, value=neg_Tkm2_values,
-                                sparse_sizes=(num_nodes, num_nodes))
-        Tk = Tk_scaled + neg_Tkm2  # 2*Z@Tkm1 - Tkm2 = 2*Z@Tkm1 + (-Tkm2)
-        
-        op = op + sparse_scalar_mul(Tk, ck[k-1])
-        Tkm2, Tkm1 = Tkm1, Tk
-
-    return op
 
 
 def get_symmetrically_normalized_adjacency(edge_index: Tensor, num_nodes: int) -> tuple[Tensor, Tensor]:
@@ -439,7 +366,7 @@ def get_symmetrically_normalized_adjacency(edge_index: Tensor, num_nodes: int) -
 def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, device: str, 
                                num_iterations: int = 50, alpha: float = 0.5, 
                                propagation_type: str = "normalized_adjacency",
-                               chebyshev_k: int = 5, diffusion_t: float = 1.0) -> Tensor:
+                               chebyshev_k: int = 10, diffusion_t: float = 1.0) -> Tensor:
     """
     Efficient feature propagation with multiple propagation matrix options.
     
@@ -488,13 +415,14 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
     elif propagation_type == "diffusion_kernel":
         adj = diffusion_kernel(edge_index, num_nodes, device, t=diffusion_t)
     
-    elif propagation_type == "chebyshev_diffusion":
-        # Build Chebyshev diffusion operator (matrix-free would be too expensive per iteration)
-        adj = chebyshev_expmL_operator(edge_index, num_nodes, t=diffusion_t, K=chebyshev_k, device=device)
-    
-    elif propagation_type == "chebyshev_diffusion_operator":
-        # Same as chebyshev_diffusion - both use operator for iterative application
-        adj = chebyshev_expmL_operator(edge_index, num_nodes, t=diffusion_t, K=chebyshev_k, device=device)
+    elif propagation_type == "chebyshev_diffusion" or propagation_type == "chebyshev_diffusion_operator":
+        # Use matrix-free Chebyshev approach (memory efficient)
+        # Create a dummy sparse tensor that will be replaced by direct Chebyshev application
+        adj = torch.sparse_coo_tensor(
+            torch.empty((2, 0), dtype=torch.long, device=device),
+            torch.empty(0, dtype=x.dtype, device=device),
+            size=(num_nodes, num_nodes)
+        ).to(device)
     
     else:
         raise ValueError(f"Unknown propagation type: {propagation_type}")
@@ -505,7 +433,12 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
     # Propagation iterations
     for i in range(num_iterations):
         # Diffuse features
-        new_out = matmul(adj, out)
+        if propagation_type == "chebyshev_diffusion" or propagation_type == "chebyshev_diffusion_operator":
+            # Use matrix-free Chebyshev diffusion directly
+            new_out = chebyshev_expmL_apply(edge_index, num_nodes, out, t=diffusion_t, K=chebyshev_k, device=device)
+        else:
+            # Use standard sparse matrix multiplication for other modes
+            new_out = matmul(adj, out)
         
         # Weighted combination with previous features
         beta = 0.5  # Weight for new features

@@ -376,6 +376,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     run_name = f"{model_type}_{dataset_name}_{current_cfg.get('optimizer')}_lr{current_cfg.get('lr')}_decay{current_cfg.get('decay')}_beta{current_cfg.get('beta')}_run{i+1}"
                     wandb.run.name = run_name
 
+                # Clear memory before each experiment
+                from src.utils.memory_utils import clear_memory_aggressive, log_memory_usage
+                log_memory_usage("before experiment")
+                clear_memory_aggressive()
+                
                 global_results, client_results = run_with_server(
                     dataset_name, 
                     clients_num, 
@@ -388,6 +393,10 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     fulltraining_flag=fulltraining_flag,
                 
                 )
+                
+                # Clear memory after experiment
+                log_memory_usage("after experiment")
+                clear_memory_aggressive()
                 
                 # Check if results are valid
                 if global_results is None or client_results is None:

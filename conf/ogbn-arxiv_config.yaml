@@ -3,20 +3,21 @@
 
 datasets:
    - ogbn-arxiv   # Note: This config is for ogbn-arxiv but uses Cora for testing
-results_dir: results/ogbn-arxiv
-wandb_project: "FGL3-Ogbn-Arxiv"  # Dataset-specific wandb project
+results_dir: results/ogbn-arxiv2
+wandb_project: "FGL3-Ogbn-Arxiv2"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
 num_clients: [10]
-num_rounds: 5
-beta: [1]
-lr: 0.5
+num_rounds: 100
+beta: [10000]
+lr: 0.001
+optimizer: Adam
 hop: 1
 save_results: False
 use_wandb: true  # Enable wandb for this experiment
-data_loading: [diffusion]
-models: [GCN, GAT]
-repetitions: 2
+data_loading: [chebyshev_diffusion, adjacency, full, zero_hop]
+models: [GCN]
+repetitions: 1
 
 # nohup command to run the experiment
 # nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config.out 2>&1 &
