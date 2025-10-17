@@ -4,6 +4,10 @@ from src.train import evaluate, test, evaluate_with_minibatch, test_with_minibat
 from src.utils.wandb_utils import initialize_wandb, log_client_training_metrics, log_client_validation_metrics, log_final_validation_metrics, log_test_metrics
 import gc
 import numpy as np
+from src.utils.memory_utils import (
+    clear_memory_basic, clear_memory_aggressive, 
+    log_memory_usage
+)
 from dotenv import load_dotenv
 load_dotenv()
 import wandb
@@ -61,8 +65,10 @@ class Server():
             all_results.extend(batch_results)
             
             # Clear CUDA cache between batches
-            torch.cuda.empty_cache()
-            gc.collect()
+            clear_memory_basic()
+            
+            # Log memory usage
+            log_memory_usage(f"after batch {batch_idx + 1}/{num_batches}")
         
         return all_results
         
@@ -81,6 +87,10 @@ class Server():
             # Original behavior: train all clients in parallel
             train_futures = [client.train_client.remote() for client in clients]
             train_results = ray.get(train_futures)
+            
+            # Clear memory after parallel training
+            clear_memory_basic()
+            log_memory_usage("after parallel training")
 
         params = [client.get_params.remote() for client in clients]
         self.zero_params()
@@ -94,6 +104,9 @@ class Server():
                     # Aggregate parameters
                     for p, mp in zip(params_dict['params'], self.model.parameters()):
                         mp.data += p.to(self.device)
+                    
+                    # Clear temporary tensors to free memory
+                    del p
                     # Aggregate buffers (e.g., BatchNorm running stats)
                     # Only aggregate floating point buffers (skip num_batches_tracked, etc.)
                     for b, mb in zip(params_dict['buffers'], self.model.buffers()):

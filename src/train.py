@@ -187,7 +187,11 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         total_train_nodes = 0
         
         # Process mini-batches
-        for batch in train_loader:
+        for batch_idx, batch in enumerate(train_loader):
+            # Clear memory every few batches to prevent accumulation
+            if batch_idx % 5 == 0:
+                torch.cuda.empty_cache()
+                
             optimizer.zero_grad()
             
             # Move batch to device
@@ -256,9 +260,14 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                     epoch_acc += train_acc * batch_node_count
                     num_batches += 1
                     total_train_nodes += batch_node_count
+                    
+                    # Clear batch data to free memory
+                    del batch
                 except RuntimeError as e:
                     logging.error(f"Error in mini-batch training: {str(e)}")
                     logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
+                    # Clear memory on error
+                    torch.cuda.empty_cache()
                     continue
         
         # Calculate average loss and accuracy for the epoch (weighted by number of nodes)

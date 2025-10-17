@@ -1,0 +1,21 @@
+# Citeseer Dataset Configuration
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Photo
+results_dir: results/photos
+wandb_project: "FGL3-Photos"  # Dataset-specific wandb project
+
+# Citeseer-specific experiment parameters
+num_clients: [10]
+num_rounds: 1
+beta: [1]
+lr: 0.01
+optimizer: Adam
+data_loading: [full, zero_hop, adjacency, diffusion]
+models: [GCN, GAT]
+repetitions: 2
+
+
+# nohup command to run the experiment
+# nohup python -m src.experiments.run_experiments --config conf/photos_config.yaml > photos_config.out 2>&1 &

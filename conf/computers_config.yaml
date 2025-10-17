@@ -1,0 +1,19 @@
+# Citeseer Dataset Configuration
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Computers
+results_dir: results/computers
+wandb_project: "FGL3-Computers"  # Dataset-specific wandb project
+
+# Citeseer-specific experiment parameters
+num_clients: [10]
+num_rounds: 200
+beta: [10]
+lr: 0.5
+data_loading: [full, adjacency, zero_hop, diffusion]
+models: [GCN, GAT]
+repetitions: 2
+
+# nohup command to run the experiment
+# nohup python -m src.experiments.run_experiments --config conf/computers_config.yaml > computers_config.out 2>&1 &

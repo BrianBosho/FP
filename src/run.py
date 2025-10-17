@@ -324,6 +324,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
                 gc.collect()
+                
+                # Force synchronization for memory-intensive operations
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                    torch.cuda.empty_cache()
 
                 
                 run_config = {

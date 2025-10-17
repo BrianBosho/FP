@@ -159,6 +159,10 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
     Returns:
         SparseTensor: A sparse diffusion matrix that can be used as a propagation matrix.
     """
+    # Set environment variable to help with memory fragmentation
+    import os
+    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+    
     # Ensure edge_index is on the correct device.
     edge_index = edge_index.to(device)
     
@@ -193,21 +197,42 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
     neg_norm_adj = SparseTensor(row=neg_row, col=neg_col, value=neg_values,
                                 sparse_sizes=(num_nodes, num_nodes))
     
+    # Clear memory before intensive computations
+    import torch
+    torch.cuda.empty_cache()
+    
     # Create identity matrix on the proper device.
     identity = SparseTensor.eye(num_nodes).to(device)
     # Compute Laplacian: L = I - norm_adj = I + (-norm_adj)
     laplacian = identity + neg_norm_adj
-
-    # Use a truncated Taylor series to approximate exp(-tL).
-    diffusion = SparseTensor.eye(num_nodes).to(device)
-    taylor_term = SparseTensor.eye(num_nodes).to(device)
     
-    # Compute exp(-tL) ≈ I - tL + (t²/2)L² - (t³/6)L³ + ... (using 5 terms)
-    for i in range(1, 3):
-        coef = ((-t) ** i) / math.factorial(i)
-        taylor_term = taylor_term @ laplacian
-        # Use the helper to multiply taylor_term by coef before adding
-        diffusion = diffusion + sparse_scalar_mul(taylor_term, coef)
+    # Clear intermediate matrices
+    del identity, neg_norm_adj
+    torch.cuda.empty_cache()
+
+    # Use a more memory-efficient approach for large graphs
+    # For ogbn-arxiv (169,343 nodes), the full Taylor series is too memory-intensive
+    # Instead, use a simplified approximation: exp(-tL) ≈ I - tL (first-order approximation)
+    
+    if num_nodes > 50000:  # Large graph threshold
+        # Use first-order approximation for large graphs to avoid memory issues
+        diffusion = identity - sparse_scalar_mul(laplacian, t)
+    else:
+        # Use truncated Taylor series for smaller graphs
+        diffusion = SparseTensor.eye(num_nodes).to(device)
+        taylor_term = SparseTensor.eye(num_nodes).to(device)
+        
+        # Compute exp(-tL) ≈ I - tL + (t²/2)L² - (t³/6)L³ + ... (using 2 terms for memory)
+        for i in range(1, 2):  # Reduced from 3 to 2 iterations
+            coef = ((-t) ** i) / math.factorial(i)
+            taylor_term = taylor_term @ laplacian
+            # Use the helper to multiply taylor_term by coef before adding
+            diffusion = diffusion + sparse_scalar_mul(taylor_term, coef)
+            
+            # Clear intermediate results to free memory
+            if i < 2:  # Don't clear on last iteration
+                del taylor_term
+                torch.cuda.empty_cache()
     
     return diffusion
 

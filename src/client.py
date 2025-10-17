@@ -4,6 +4,11 @@ from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts, 
 import torch
 import sys
 import gc
+from src.utils.memory_utils import (
+    clear_memory_basic, clear_memory_aggressive, 
+    clear_memory_for_diffusion, clear_memory_for_adjacency,
+    log_memory_usage, memory_guard
+)
 
 # Configure batch sizes based on dataset size
 LARGE_DATASET_THRESHOLD = 100000  # Number of nodes threshold for large datasets
@@ -117,10 +122,20 @@ class FLClient:
 
     def _clear_memory(self):
         """Helper method to clear CUDA memory and perform garbage collection"""
-        torch.cuda.empty_cache()
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
+        clear_memory_basic()
+            
+    def _clear_memory_aggressive(self):
+        """More aggressive memory clearing for memory-intensive operations"""
+        clear_memory_aggressive()
+        
+    def _clear_memory_for_data_loading(self, data_loading_option):
+        """Clear memory based on data loading method"""
+        if data_loading_option == "diffusion":
+            clear_memory_for_diffusion()
+        elif data_loading_option == "adjacency":
+            clear_memory_for_adjacency()
+        else:
+            clear_memory_basic()
 
     def train_client(self):
         # Clear memory before training
@@ -169,12 +184,12 @@ class FLClient:
             return 0.0, 0.0
 
     def evaluate(self, criterion):
+        # Clear memory before evaluation
+        self._clear_memory()
+        
         # Ensure model and data are on the correct device
         self.model.to(self.device)
         self.data = self.data.to(self.device)
-        
-        # Clear memory before evaluation
-        self._clear_memory()
         
         try:
             if self.use_minibatch:
@@ -199,6 +214,9 @@ class FLClient:
             return 0.0  # or appropriate default value
 
     def test(self, data=None):
+        # Clear memory before testing
+        self._clear_memory()
+        
         # Ensure model is on the correct device
         self.model.to(self.device)
         # check input dimenoso of the model itself
@@ -210,9 +228,6 @@ class FLClient:
             data = self.data
         else:
             data = data.to(self.device)
-        
-        # Clear memory before testing
-        self._clear_memory()
         
         try:
             if self.use_minibatch:
@@ -244,6 +259,9 @@ class FLClient:
 
     @torch.no_grad()
     def update_params(self, params_dict: dict, current_global_epoch: int) -> None:
+        # Clear memory before parameter update
+        self._clear_memory()
+        
         # load global parameter from global server
         self.model.to("cpu")
         
@@ -255,7 +273,14 @@ class FLClient:
         for (b, mb) in zip(params_dict['buffers'], self.model.buffers()):
             mb.data = b
         
+        # Clear memory after CPU operations
+        torch.cuda.empty_cache()
+        gc.collect()
+        
         self.model.to(self.device)
+        
+        # Clear memory after moving back to GPU
+        self._clear_memory()
 
     def get_loss_acc(self):
         # create a dictionary of training losses and accuracies

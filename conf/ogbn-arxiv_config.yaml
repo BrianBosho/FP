@@ -2,17 +2,21 @@
 # Only dataset-specific settings - everything else inherited from base.yaml
 
 datasets:
-   - Cora  # Note: This config is for ogbn-arxiv but uses Cora for testing
-results_dir: results/review/ablation/ogbn-arxiv
-wandb_project: "FGL3"  # Dataset-specific wandb project
+   - ogbn-arxiv   # Note: This config is for ogbn-arxiv but uses Cora for testing
+results_dir: results/ogbn-arxiv
+wandb_project: "FGL3-Ogbn-Arxiv"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
-num_clients: [5]
-num_rounds: 20
+num_clients: [10]
+num_rounds: 5
 beta: [1]
 lr: 0.5
-hop: 2
+hop: 1
 save_results: False
 use_wandb: true  # Enable wandb for this experiment
-data_loading: [full]
-models: [GCN]
+data_loading: [diffusion]
+models: [GCN, GAT]
+repetitions: 2
+
+# nohup command to run the experiment
+# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config.out 2>&1 &

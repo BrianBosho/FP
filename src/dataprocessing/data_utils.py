@@ -126,6 +126,9 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
 
     # Compute propagation matrix once
     n_nodes = x.size(0)
+    
+    # Clear memory before intensive matrix operations
+    torch.cuda.empty_cache()
 
     if mode == "page_rank":
         # PageRank returns SparseTensor, convert to torch.sparse_coo_tensor
@@ -162,11 +165,20 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         if config is None:
             config = {}
         t_diffusion = config.get("diffusion_t", 0.1)
+        
+        # Clear memory before diffusion kernel computation (memory-intensive)
+        from src.utils.memory_utils import clear_memory_for_diffusion
+        clear_memory_for_diffusion()
+        
         sparse_tensor = diffusion_kernel(edge_index, n_nodes, device, t=t_diffusion)
         row, col = sparse_tensor.storage.row(), sparse_tensor.storage.col()
         values = sparse_tensor.storage.value()
         indices = torch.stack([row, col], dim=0)
         adj = torch.sparse_coo_tensor(indices, values, size=(n_nodes, n_nodes)).to(DEVICE)
+        
+        # Clear temporary tensors
+        del sparse_tensor, row, col, values, indices
+        torch.cuda.empty_cache()
     # Remove/disable the 'efficient' shortcut to ensure all modes iterate consistently
     # elif mode == "efficient":
     #     return propagate_features_efficient(x, edge_index, mask, device, alpha=alpha, propagation_type="normalized_adjacency")
