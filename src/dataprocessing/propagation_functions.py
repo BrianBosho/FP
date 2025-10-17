@@ -272,7 +272,7 @@ def chebyshev_expmL_apply(
     num_nodes: int,
     X: Tensor,
     t: float = 1.0,
-    K: int = 10,
+    K: int = 5,
     device: str = "cuda"
 ) -> Tensor:
     """
@@ -287,7 +287,7 @@ def chebyshev_expmL_apply(
         num_nodes:  Number of nodes.
         X:          [N, F] node feature matrix.
         t:          Diffusion time parameter (typical range: 0.2 - 2.0).
-        K:          Chebyshev order (typically 5-10; often K<=5 works well).
+        K:          Chebyshev order (typically 3-10; often K<=5 works well).
         device:     "cpu" or "cuda".
         
     Returns:
@@ -350,7 +350,7 @@ def chebyshev_expmL_operator(
         edge_index: Tensor of shape [2, E] with edge indices.
         num_nodes: Number of nodes in the graph.
         t: Diffusion time parameter (typical range: 0.2 - 2.0).
-        K: Chebyshev order (typically 5-10; keep lower for this version).
+        K: Chebyshev order (typically 3-10; keep lower for this version).
         device: Computation device ("cpu" or "cuda").
         
     Returns:
@@ -439,7 +439,7 @@ def get_symmetrically_normalized_adjacency(edge_index: Tensor, num_nodes: int) -
 def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, device: str, 
                                num_iterations: int = 50, alpha: float = 0.5, 
                                propagation_type: str = "normalized_adjacency",
-                               chebyshev_k: int = 10, diffusion_t: float = 1.0) -> Tensor:
+                               chebyshev_k: int = 5, diffusion_t: float = 1.0) -> Tensor:
     """
     Efficient feature propagation with multiple propagation matrix options.
     
