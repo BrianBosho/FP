@@ -284,6 +284,11 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
             # Move features back to original DEVICE for training/PE
             clients_data[i].x = x_fp.to(DEVICE)
+            
+            # Immediately clear GPU memory after propagation
+            del x_fp, edge_index_fp, original_nodes_mask_fp
+            if fp_device.type == "cuda":
+                torch.cuda.empty_cache()
 
         # Step 2: Then Positional Encoding (if requested)
         if use_pe:
@@ -305,8 +310,25 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
         final_subgraphs.append(clients_data[i])
 
+    # CRITICAL: Move all preprocessed data to CPU before returning
+    # This frees GPU memory after preprocessing is complete
+    cpu_device = torch.device("cpu")
+    for i, subgraph in enumerate(final_subgraphs):
+        final_subgraphs[i] = subgraph.to(cpu_device)
+    
+    # Also move initial subgraphs to CPU
+    for i, subgraph in enumerate(initial_subgraphs):
+        initial_subgraphs[i] = subgraph.to(cpu_device)
+    
+    # Clear GPU cache after all preprocessing
+    if DEVICE.type == "cuda":
+        torch.cuda.empty_cache()
+        import gc
+        gc.collect()
+
     if use_feature_prop and config and config.get("debug", False):
         print(f"Feature propagation logs saved to: {json_file}")
+        print(f"All preprocessed data moved to CPU - GPU freed")
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 

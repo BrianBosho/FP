@@ -150,8 +150,18 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         config=cfg,
     )
     _partition_secs = time.time() - _t_partition_start
+    
+    # CRITICAL: Ensure full graph is on CPU after preprocessing to free GPU memory
+    data = data.to(torch.device("cpu"))
+    
+    # Clear GPU memory after all data preprocessing is complete
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        gc.collect()
+    
     if debug:
         print(f"partition_time_s: {round(_partition_secs, 2)}")
+        print(f"GPU memory freed after preprocessing")
         # Debug: device and feature dims to ensure tensors are on the expected device
         try:
             print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
