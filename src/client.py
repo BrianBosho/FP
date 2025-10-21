@@ -74,9 +74,11 @@ class FLClient:
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
-                self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.cpu_device)
+                self.model = GCN_arxiv(input_dim=self.input_dim, hidden_dim=256, output_dim=40, dropout=0.5).to(self.cpu_device)
             elif self.dataset_name == "ogbn-products":
-                self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.cpu_device)
+                # Some processed splits use fixed dimensionality; fall back to self.input_dim if config overrides exist
+                products_input_dim = getattr(dataset, "num_features", None) or self.input_dim
+                self.model = GraphSAGEProducts(input_dim=products_input_dim, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.cpu_device)
             else:
                 self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.cpu_device)
         elif model_type == "GAT":
@@ -86,12 +88,12 @@ class FLClient:
                 model_params = cfg["model_params"][model_type]
             
             if self.dataset_name == "Pubmed":
-                self.model = PubmedGAT(dataset.num_features, 8, dataset.num_classes, heads=8).to(self.cpu_device)
+                self.model = PubmedGAT(self.input_dim, 8, dataset.num_classes, heads=8).to(self.cpu_device)
             else:
                 hidden_dim = model_params.get("hidden_dim", 8)  # FedGAT default: 8
                 num_heads = model_params.get("num_heads", 8)    # FedGAT default: 8
                 dropout = model_params.get("dropout", 0.6)      # FedGAT default: 0.6
-                self.model = GAT(dataset.num_features, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.cpu_device)
+                self.model = GAT(self.input_dim, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.cpu_device)
 
         self.epochs = cfg["epochs"]
         

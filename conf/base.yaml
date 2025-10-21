@@ -26,7 +26,7 @@ auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
 use_amp: true
-max_concurrent_clients: 5
+max_concurrent_clients: 0  # Number of clients to train in parallel per batch
 
 # Positional encoding settings
 use_pe: [true]

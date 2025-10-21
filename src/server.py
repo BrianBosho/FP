@@ -57,9 +57,10 @@ class Server():
             end_idx = min((batch_idx + 1) * batch_size, len(clients))
             batch_clients = clients[start_idx:end_idx]
             
-            print(f"  Batch {batch_idx + 1}/{num_batches}: Training clients {start_idx} to {end_idx - 1}")
+            print(f"  Batch {batch_idx + 1}/{num_batches}: Training clients {start_idx} to {end_idx - 1} (parallel)")
             
-            # Train this batch of clients
+            # Train this batch of clients IN PARALLEL
+            # The key is that we only submit batch_size tasks at once
             batch_futures = [client.train_client.remote() for client in batch_clients]
             batch_results = ray.get(batch_futures)
             all_results.extend(batch_results)
@@ -70,13 +71,6 @@ class Server():
             
             # Log memory usage
             log_memory_usage(f"after batch {batch_idx + 1}/{num_batches}")
-            
-            # Force garbage collection and sync
-            import gc
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
-                torch.cuda.empty_cache()
         
         return all_results
         
@@ -189,9 +183,9 @@ class Server():
             end_idx = min((batch_idx + 1) * batch_size, len(clients))
             batch_clients = clients[start_idx:end_idx]
             
-            print(f"  Evaluation Batch {batch_idx + 1}/{num_batches}: Evaluating clients {start_idx} to {end_idx - 1}")
+            print(f"  Evaluation Batch {batch_idx + 1}/{num_batches}: Evaluating clients {start_idx} to {end_idx - 1} (parallel)")
             
-            # Evaluate this batch of clients
+            # Evaluate this batch of clients IN PARALLEL
             batch_futures = [client.evaluate.remote(criterion) for client in batch_clients]
             batch_results = ray.get(batch_futures)
             all_results.extend(batch_results)
@@ -203,6 +197,34 @@ class Server():
         
         print(f"Completed batched evaluation of {len(clients)} clients in {num_batches} batches")
         return all_results
+    
+    def test_clients_batched(self, test_data_list, batch_size):
+        """Test clients in batches to limit GPU memory usage"""
+        import math
+        results = []
+        num_batches = math.ceil(len(self.clients) / batch_size)
+        
+        for batch_idx in range(num_batches):
+            start_idx = batch_idx * batch_size
+            end_idx = min((batch_idx + 1) * batch_size, len(self.clients))
+            
+            print(f"  Test Batch {batch_idx + 1}/{num_batches}: Testing clients {start_idx} to {end_idx - 1} (parallel)")
+            
+            # Test this batch IN PARALLEL
+            batch_futures = [
+                self.clients[i].test.remote(test_data_list[i]) 
+                for i in range(start_idx, end_idx)
+            ]
+            batch_results = ray.get(batch_futures)
+            results.extend(batch_results)
+            
+            # Clear memory between batches
+            import gc
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        
+        return results
     
     def broadcast_params(self, current_global_epoch: int, sync=False) -> None:
         params_dict = {

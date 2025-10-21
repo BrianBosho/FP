@@ -224,12 +224,22 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             print(f"\nAll model parameters are identical: {are_params_identical}")
 
         # Evaluate: ensure consistency for single-client runs by testing both on the same global graph
+        # Use batched testing when max_concurrent_clients is set to avoid memory issues
+        max_concurrent = cfg.get("max_concurrent_clients", None)
+        use_batched = max_concurrent is not None and max_concurrent > 0
+        
         if len(server.clients) == 1:
             test_results = server.test_global_model(data)
-            client_test_results = ray.get([client.test.remote(data) for client in server.clients])
+            if use_batched:
+                client_test_results = server.test_clients_batched([data], max_concurrent)
+            else:
+                client_test_results = ray.get([client.test.remote(data) for client in server.clients])
         else:
             test_results = server.test_global_model(data)
-            client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
+            if use_batched:
+                client_test_results = server.test_clients_batched(test_data, max_concurrent)
+            else:
+                client_test_results = ray.get([client.test.remote(test) for client, test in zip(server.clients, test_data)])
         
         # Debug: verify masks and cross-accuracy when single client
         if debug:
