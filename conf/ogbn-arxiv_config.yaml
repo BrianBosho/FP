@@ -8,16 +8,16 @@ wandb_project: "FGL3-Ogbn-Arxiv2"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
-beta: [10000]
+num_rounds: 5
+beta: [10000, 1, 10]
 lr: 0.001
 optimizer: Adam
 hop: 1
-save_results: False
+save_results: true
 use_wandb: true  # Enable wandb for this experiment
 data_loading: [chebyshev_diffusion, adjacency, full, zero_hop]
 models: [GCN]
-repetitions: 1
+repetitions: 2
 
 # nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config2.out 2>&1 &

@@ -29,7 +29,7 @@ use_amp: true
 max_concurrent_clients: 5
 
 # Positional encoding settings
-use_pe: [false]
+use_pe: [true]
 pe_r: 64
 pe_P: 16
 normalize: qr
