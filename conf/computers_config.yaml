@@ -8,12 +8,12 @@ wandb_project: "FGL3-Computers"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
-beta: [10, 10000, 1]
-lr: 0.001
+num_rounds: 200
+beta: [10000]
+lr: 0.01
 optimizer: Adam
-data_loading: [chebyshev_diffusion, adjacency, full, zero_hop]
-models: [GCN, GAT]
+data_loading: [adjacency, zero_hop]
+models: [GCN]
 repetitions: 1
 
 # nohup command to run the experiment

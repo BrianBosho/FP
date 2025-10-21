@@ -8,13 +8,13 @@ wandb_project: "FGL3-Photos"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
 num_clients: [10]
-num_rounds: 1
+num_rounds: 100
 beta: [1]
 lr: 0.01
 optimizer: Adam
-data_loading: [full, zero_hop, adjacency, diffusion]
+data_loading: [full]
 models: [GCN, GAT]
-repetitions: 2
+repetitions: 1
 
 
 # nohup command to run the experiment

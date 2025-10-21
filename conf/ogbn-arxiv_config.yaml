@@ -12,7 +12,7 @@ num_rounds: 5
 beta: [10000]
 lr: 0.001
 optimizer: Adam
-hop: 1
+hop: 2
 save_results: true
 use_wandb: false  # Enable wandb for this experiment
 data_loading: [chebyshev_diffusion]
@@ -20,7 +20,7 @@ models: [GCN]
 repetitions: 1
 
 # Override for large dataset - train fewer clients in parallel
-max_concurrent_clients: 5  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
+max_concurrent_clients: 3  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
 
 # nohup command to run the experiment
 # nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config2.out 2>&1 &
