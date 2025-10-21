@@ -29,8 +29,12 @@ class FLClient:
         torch.cuda.empty_cache()
         gc.collect()
 
+        self.cfg = cfg
         self.DEVICE = device
-        self.device = self.DEVICE
+        self.target_device = torch.device(device)
+        self.cpu_device = torch.device("cpu")
+        self.current_device = self.cpu_device
+        self.data_gpu = None
         
         # Get debug flag from config
         debug = cfg.get("debug", False)
@@ -43,7 +47,9 @@ class FLClient:
             print(f"  - Feature shape: {data.x.shape}")
             print(f"  - Data device (before moving): {data.x.device}")
         
-        self.data = data.to(self.device)
+        # Keep a CPU copy always resident; swap to GPU only when actively computing
+        self.data_cpu = data.to(self.cpu_device)
+        self.data = self.data_cpu
         self.dataset = dataset
         self.dataset_name = dataset.name if hasattr(dataset, 'name') else "unknown"
 
@@ -68,11 +74,11 @@ class FLClient:
 
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
-                self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.device)
+                self.model = GCN_arxiv(input_dim=dataset.num_features, hidden_dim=256, output_dim=40, dropout=0.5).to(self.cpu_device)
             elif self.dataset_name == "ogbn-products":
-                self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.device)
+                self.model = GraphSAGEProducts(input_dim=100, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.cpu_device)
             else:
-                self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.device)
+                self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.cpu_device)
         elif model_type == "GAT":
             # Use same configuration logic as server for consistency
             model_params = {}
@@ -80,12 +86,12 @@ class FLClient:
                 model_params = cfg["model_params"][model_type]
             
             if self.dataset_name == "Pubmed":
-                self.model = PubmedGAT(dataset.num_features, 8, dataset.num_classes, heads=8).to(self.device)
+                self.model = PubmedGAT(dataset.num_features, 8, dataset.num_classes, heads=8).to(self.cpu_device)
             else:
                 hidden_dim = model_params.get("hidden_dim", 8)  # FedGAT default: 8
                 num_heads = model_params.get("num_heads", 8)    # FedGAT default: 8
                 dropout = model_params.get("dropout", 0.6)      # FedGAT default: 0.6
-                self.model = GAT(dataset.num_features, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.device)
+                self.model = GAT(dataset.num_features, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.cpu_device)
 
         self.epochs = cfg["epochs"]
         
@@ -94,7 +100,7 @@ class FLClient:
         self.num_neighbors = cfg.get("num_neighbors", DEFAULT_NUM_NEIGHBORS)
         
         # Setup mixed precision training
-        self.use_amp = cfg.get("use_amp", False)
+        self.use_amp = bool(cfg.get("use_amp", False) and self.target_device.type == "cuda")
 
         optimizer_type = cfg["optimizer"]
         lr = cfg["lr"]
@@ -120,6 +126,40 @@ class FLClient:
         self.validation_losses = []
         self.client_id = client_id
 
+    def _move_optimizer_state(self, device):
+        """Move optimizer state tensors to the requested device."""
+        for state in self.optimizer.state.values():
+            for key, value in state.items():
+                if torch.is_tensor(value):
+                    state[key] = value.to(device)
+
+    def _move_to_device(self, device):
+        """Move model/data between CPU and the target compute device on demand."""
+        device = torch.device(device)
+        if device == self.current_device:
+            return
+
+        if device == self.cpu_device:
+            # Return everything to CPU and release GPU memory
+            self.model.to(self.cpu_device)
+            self._move_optimizer_state(self.cpu_device)
+            self.data = self.data_cpu
+            self.data_gpu = None
+            self.current_device = self.cpu_device
+            torch.cuda.empty_cache()
+            gc.collect()
+            return
+
+        if device.type == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA device requested but not available")
+
+        # Move to GPU and keep a transient copy of the data there
+        self.model.to(device)
+        self._move_optimizer_state(device)
+        self.data_gpu = self.data_cpu.to(device)
+        self.data = self.data_gpu
+        self.current_device = device
+
     def _clear_memory(self):
         """Helper method to clear CUDA memory and perform garbage collection"""
         clear_memory_basic()
@@ -140,6 +180,7 @@ class FLClient:
     def train_client(self):
         # Clear memory before training
         self._clear_memory()
+        self._move_to_device(self.target_device)
         
         try:
             if self.use_minibatch:
@@ -172,6 +213,7 @@ class FLClient:
                 self.training_accuracies.append(acc_item)
             
             # Clear memory after training
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             
             return loss, acc
@@ -180,16 +222,14 @@ class FLClient:
             print(f"Error in client {self.client_id} training: {str(e)}")
             print(traceback.format_exc())
             # Attempt to free memory and return default values
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             return 0.0, 0.0
 
     def evaluate(self, criterion):
         # Clear memory before evaluation
         self._clear_memory()
-        
-        # Ensure model and data are on the correct device
-        self.model.to(self.device)
-        self.data = self.data.to(self.device)
+        self._move_to_device(self.target_device)
         
         try:
             if self.use_minibatch:
@@ -204,22 +244,23 @@ class FLClient:
                 result = evaluate(self.model, self.data, criterion)
             
             # Clear memory after evaluation
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             
             return result
         except Exception as e:
             print(f"Error in client {self.client_id} evaluation: {str(e)}")
             # Attempt to free memory
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             return 0.0  # or appropriate default value
 
     def test(self, data=None):
         # Clear memory before testing
         self._clear_memory()
-        
-        # Ensure model is on the correct device
-        self.model.to(self.device)
-        # check input dimenoso of the model itself
+        self._move_to_device(self.target_device)
+
+        # check input dimension of the model itself
         if hasattr(self, 'cfg') and self.cfg.get("debug", False):
             print(f"Input dim of the model: {self.model.dim_in}")
             # print input dim of the data
@@ -227,7 +268,7 @@ class FLClient:
         if data is None:
             data = self.data
         else:
-            data = data.to(self.device)
+            data = data.to(self.target_device)
         
         try:
             if self.use_minibatch:
@@ -241,16 +282,19 @@ class FLClient:
                 result = test(self.model, data)
             
             # Clear memory after testing
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             
             return result
         except Exception as e:
             print(f"Error in client {self.client_id} testing: {str(e)}")
             # Attempt to free memory
+            self._move_to_device(self.cpu_device)
             self._clear_memory()
             return 0.0  # or appropriate default value
 
     def get_params(self) -> dict:
+        self._move_to_device(self.cpu_device)
         self.optimizer.zero_grad(set_to_none=True)
         return {
             'params': tuple(self.model.parameters()),
@@ -261,25 +305,16 @@ class FLClient:
     def update_params(self, params_dict: dict, current_global_epoch: int) -> None:
         # Clear memory before parameter update
         self._clear_memory()
-        
-        # load global parameter from global server
-        self.model.to("cpu")
-        
+        self._move_to_device(self.cpu_device)
+
         # Update parameters (weights and biases)
         for (p, mp) in zip(params_dict['params'], self.model.parameters()):
-            mp.data = p
+            mp.data.copy_(p.to(self.cpu_device))
         
         # Update buffers (BatchNorm running stats, etc.)
         for (b, mb) in zip(params_dict['buffers'], self.model.buffers()):
-            mb.data = b
-        
-        # Clear memory after CPU operations
-        torch.cuda.empty_cache()
-        gc.collect()
-        
-        self.model.to(self.device)
-        
-        # Clear memory after moving back to GPU
+            mb.data.copy_(b.to(self.cpu_device))
+
         self._clear_memory()
 
     def get_loss_acc(self):
