@@ -7,17 +7,17 @@ results_dir: results/ogbn-arxiv2
 wandb_project: "FGL3-Ogbn-Arxiv2"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
-num_clients: [4]
+num_clients: [10]
 num_rounds: 5
-beta: [10000, 1, 10]
+beta: [10000]
 lr: 0.001
 optimizer: Adam
 hop: 1
 save_results: true
-use_wandb: true  # Enable wandb for this experiment
-data_loading: [chebyshev_diffusion, adjacency, full, zero_hop]
+use_wandb: false  # Enable wandb for this experiment
+data_loading: [chebyshev_diffusion]
 models: [GCN]
-repetitions: 2
+repetitions: 1
 
 # Override for large dataset - train fewer clients in parallel
 max_concurrent_clients: 5  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint

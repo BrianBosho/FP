@@ -312,6 +312,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     # CRITICAL: Move all preprocessed data to CPU before returning
     # This frees GPU memory after preprocessing is complete
+    print(f"Moving all {len(final_subgraphs)} preprocessed subgraphs to CPU to free GPU memory...")
     cpu_device = torch.device("cpu")
     for i, subgraph in enumerate(final_subgraphs):
         final_subgraphs[i] = subgraph.to(cpu_device)
@@ -325,10 +326,10 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         torch.cuda.empty_cache()
         import gc
         gc.collect()
+        print(f"✓ GPU memory freed after preprocessing - all data now on CPU")
 
     if use_feature_prop and config and config.get("debug", False):
         print(f"Feature propagation logs saved to: {json_file}")
-        print(f"All preprocessed data moved to CPU - GPU freed")
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 

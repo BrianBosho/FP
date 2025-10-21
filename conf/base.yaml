@@ -15,7 +15,7 @@ repetitions: 1
 debug: false  # Set to true to enable verbose debug output
 
 # Wandb configuration
-use_wandb: true  # Set to true to enable wandb logging
+use_wandb: false  # Set to true to enable wandb logging
 wandb_project: "FGL4"  # Project name for wandb
 wandb_entity: null  # Set to your wandb entity/team name (optional)
 wandb_mode: "online"  # "online", "offline", or "disabled"
@@ -37,7 +37,7 @@ normalize: qr
 # Feature propagation settings
 num_iterations: 80
 feature_prop_tolerance: 1e-6
-feature_prop_device: "cpu"  # Changed from "cuda" to reduce driver memory usage
+feature_prop_device: "cuda"  # Use GPU for fast preprocessing, then move to CPU
 
 # Chebyshev/Diffusion hyperparameters
 diffusion_t: 1.0        # Taylor series diffusion time
