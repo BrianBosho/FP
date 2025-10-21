@@ -108,8 +108,6 @@ class Server():
                     for p, mp in zip(params_dict['params'], self.model.parameters()):
                         mp.data += p.to(self.device)
                     
-                    # Clear temporary tensors to free memory
-                    del p
                     # Aggregate buffers (e.g., BatchNorm running stats)
                     # Only aggregate floating point buffers (skip num_batches_tracked, etc.)
                     for b, mb in zip(params_dict['buffers'], self.model.buffers()):
@@ -119,6 +117,9 @@ class Server():
                             # For non-float buffers (like num_batches_tracked), just copy from first client
                             if self.num_of_trainers == 1 or mb.sum() == 0:
                                 mb.data = b.to(self.device)
+                    
+                    # Explicitly delete params_dict to free memory
+                    del params_dict
             params = left
             if not params:
                 break

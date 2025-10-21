@@ -19,10 +19,11 @@ DEFAULT_NUM_NEIGHBORS = [10, 10, 10]
 OGBN_ARXIV_BATCH_SIZE = 2048 # Smaller batch size for ogbn-arxiv
 OGBN_ARXIV_NUM_NEIGHBORS = [25, 25]  # Increased from 10 to reduce variance while avoiding OOM
 
-gpu_nums = 1/10
+# Remove GPU reservation to allow actors to be truly idle on CPU
+# gpu_nums = 1/10
 
-@ray.remote(num_gpus=gpu_nums)
-# @ray.remote(num_cpus=0.25)
+@ray.remote
+# @ray.remote(num_gpus=gpu_nums)  # Disabled: causes GPU memory pre-allocation even when idle
 class FLClient:
     def __init__(self, data, dataset, client_id, cfg, device, model_type="GCN"):
         # Clear any existing CUDA cache and perform garbage collection
@@ -298,9 +299,14 @@ class FLClient:
     def get_params(self) -> dict:
         self._move_to_device(self.cpu_device)
         self.optimizer.zero_grad(set_to_none=True)
+        
+        # Return CPU tensors to avoid keeping GPU memory
+        params_cpu = tuple(p.detach().cpu() for p in self.model.parameters())
+        buffers_cpu = tuple(b.detach().cpu() for b in self.model.buffers())
+        
         return {
-            'params': tuple(self.model.parameters()),
-            'buffers': tuple(self.model.buffers())
+            'params': params_cpu,
+            'buffers': buffers_cpu
         }
 
     @torch.no_grad()
