@@ -1,38 +1,124 @@
 # do all imports here
 import torch
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv
-
-
-import torch
-import torch.nn.functional as F
-from torch_geometric.nn import GATv2Conv
+from torch_geometric.nn import GCNConv, GATv2Conv, SAGEConv, BatchNorm
 from torch.nn import Linear, Dropout
-# from utils import accuracy
-
-import torch
 import torch.nn as nn
-
 from torch_geometric.utils import to_dense_adj
 
 
+def get_model_config(cfg, model_type, dataset_name=None):
+    """
+    Extract model architecture hyperparameters from config.
+    
+    This function intelligently selects the right configuration based on:
+    1. Global defaults
+    2. Model-specific settings (e.g., GCN, GAT)
+    3. Dataset-specific variants (e.g., GCN_arxiv for ogbn-arxiv, PubmedGAT for Pubmed)
+    
+    Args:
+        cfg: Configuration dictionary
+        model_type: Type of model (e.g., 'GCN', 'GAT')
+        dataset_name: Optional dataset name for dataset-specific overrides
+        
+    Returns:
+        Dictionary with model hyperparameters including:
+        - hidden_dim: Hidden layer dimensions
+        - num_layers: Number of GNN layers
+        - dropout: Dropout rate
+        - normalization: Type of normalization ('batch', 'layer', 'group', 'none')
+        - num_heads: Number of attention heads (for GAT models)
+    """
+    # Default values (fallback if no config provided)
+    default_config = {
+        'hidden_dim': 16,
+        'num_layers': 2,
+        'dropout': 0.5,
+        'normalization': 'none',
+        'num_heads': 8,  # For GAT models
+    }
+    
+    if cfg is None:
+        return default_config
+    
+    # Get model architecture section from config
+    model_arch = cfg.get('model_architecture', {})
+    
+    # Start with global defaults from config
+    config = default_config.copy()
+    if 'default' in model_arch:
+        config.update(model_arch['default'])
+    
+    # Override with base model-specific settings
+    if model_type in model_arch:
+        config.update(model_arch[model_type])
+    
+    # Dataset-specific overrides (this allows using specialized configs for certain datasets)
+    # For ogbn-arxiv: check for GCN_arxiv settings when using GCN
+    if dataset_name == 'ogbn-arxiv' and model_type == 'GCN' and 'GCN_arxiv' in model_arch:
+        config.update(model_arch['GCN_arxiv'])
+    # For Pubmed: check for PubmedGAT settings when using GAT
+    elif dataset_name == 'Pubmed' and model_type == 'GAT' and 'PubmedGAT' in model_arch:
+        config.update(model_arch['PubmedGAT'])
+    
+    return config
+
+
 class GCN(torch.nn.Module):
-    """Graph Convolutional Network"""
-    def __init__(self, dim_in, dim_h, dim_out):
+    """Graph Convolutional Network with configurable architecture"""
+    def __init__(self, dim_in, dim_h, dim_out, num_layers=2, dropout=0.5, normalization='none'):
         super().__init__()
         self.dim_in = dim_in
-        self.dim_h = 16
+        self.dim_h = dim_h
         self.dim_out = dim_out
-        self.gcn1 = GCNConv(dim_in, dim_h)
-        self.gcn2 = GCNConv(dim_h, dim_out)
+        self.num_layers = num_layers
+        self.dropout_rate = dropout
+        self.normalization = normalization
+        
+        # Build GCN layers
+        self.convs = torch.nn.ModuleList()
+        self.norms = torch.nn.ModuleList()
+        
+        # First layer
+        self.convs.append(GCNConv(dim_in, dim_h))
+        if normalization == 'batch':
+            self.norms.append(torch.nn.BatchNorm1d(dim_h))
+        elif normalization == 'layer':
+            self.norms.append(torch.nn.LayerNorm(dim_h))
+        elif normalization == 'group':
+            self.norms.append(torch.nn.GroupNorm(8, dim_h))
+        else:
+            self.norms.append(torch.nn.Identity())
+        
+        # Hidden layers (if num_layers > 2)
+        for _ in range(num_layers - 2):
+            self.convs.append(GCNConv(dim_h, dim_h))
+            if normalization == 'batch':
+                self.norms.append(torch.nn.BatchNorm1d(dim_h))
+            elif normalization == 'layer':
+                self.norms.append(torch.nn.LayerNorm(dim_h))
+            elif normalization == 'group':
+                self.norms.append(torch.nn.GroupNorm(8, dim_h))
+            else:
+                self.norms.append(torch.nn.Identity())
+        
+        # Output layer
+        self.convs.append(GCNConv(dim_h, dim_out))
 
     def forward(self, x, edge_index):
+        # Input dropout
         x = F.dropout(x, training=self.training, p=0.0)
-        h = self.gcn1(x, edge_index)
-        h = F.relu(h)
-        h = F.dropout(h, training=self.training, p=0.5)
-        h = self.gcn2(h, edge_index)
-        return F.log_softmax(h, dim=1)
+        
+        # Hidden layers with normalization and dropout
+        for i in range(len(self.convs) - 1):
+            x = self.convs[i](x, edge_index)
+            x = self.norms[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, training=self.training, p=self.dropout_rate)
+        
+        # Output layer
+        x = self.convs[-1](x, edge_index)
+        return F.log_softmax(x, dim=1)
 
 # lets do a GCn for ogb-arxiv
 import torch
@@ -41,14 +127,18 @@ from torch_geometric.nn import GCNConv, BatchNorm
 
 
 class GCN_arxiv(torch.nn.Module):
-    # def __init__(self, nfeat=128, nhid=256, nclass=40, dropout=0.5, NumLayers=3):
-    def __init__(self, input_dim=128, hidden_dim=256, output_dim=40, dropout=0.5, NumLayers=3):
+    """GCN for ogbn-arxiv with configurable architecture"""
+    def __init__(self, input_dim=128, hidden_dim=256, output_dim=40, dropout=0.5, num_layers=3, normalization='batch'):
         """
-        Hard-coded 3-layer GCN for ogbn-arxiv as used in FedGCN.
-        ───────────────────────────────────────────────────────────
-        • Layer 1 : GCNConv 128 → 256  + BatchNorm + ReLU + Dropout(0.5)
-        • Layer 2 : GCNConv 256 → 256  + BatchNorm + ReLU + Dropout(0.5)
-        • Layer 3 : GCNConv 256 → 40   → log-softmax
+        Configurable GCN for ogbn-arxiv.
+        
+        Args:
+            input_dim: Input feature dimension (default: 128)
+            hidden_dim: Hidden layer dimension (default: 256)
+            output_dim: Output dimension/number of classes (default: 40)
+            dropout: Dropout rate (default: 0.5)
+            num_layers: Number of layers (default: 3)
+            normalization: Normalization type - 'batch', 'layer', 'group', or 'none' (default: 'batch')
         """
         nfeat = input_dim
         nhid = hidden_dim
@@ -57,14 +147,37 @@ class GCN_arxiv(torch.nn.Module):
         super(GCN_arxiv, self).__init__()
 
         self.convs = torch.nn.ModuleList()
-        self.convs.append(GCNConv(nfeat, nhid))
         self.bns = torch.nn.ModuleList()
-        self.bns.append(torch.nn.BatchNorm1d(nhid))
-        self.convs.append(GCNConv(nhid, nhid))
-        self.bns.append(torch.nn.BatchNorm1d(nhid))
+        
+        # First layer
+        self.convs.append(GCNConv(nfeat, nhid))
+        if normalization == 'batch':
+            self.bns.append(torch.nn.BatchNorm1d(nhid))
+        elif normalization == 'layer':
+            self.bns.append(torch.nn.LayerNorm(nhid))
+        elif normalization == 'group':
+            self.bns.append(torch.nn.GroupNorm(8, nhid))
+        else:
+            self.bns.append(torch.nn.Identity())
+        
+        # Hidden layers
+        for _ in range(num_layers - 2):
+            self.convs.append(GCNConv(nhid, nhid))
+            if normalization == 'batch':
+                self.bns.append(torch.nn.BatchNorm1d(nhid))
+            elif normalization == 'layer':
+                self.bns.append(torch.nn.LayerNorm(nhid))
+            elif normalization == 'group':
+                self.bns.append(torch.nn.GroupNorm(8, nhid))
+            else:
+                self.bns.append(torch.nn.Identity())
+        
+        # Output layer
         self.convs.append(GCNConv(nhid, nclass))
 
         self.dropout = dropout
+        self.num_layers = num_layers
+        self.normalization = normalization
         self.dim_in = input_dim
         self.dim_h = hidden_dim
         self.dim_out = output_dim
@@ -73,21 +186,20 @@ class GCN_arxiv(torch.nn.Module):
         for conv in self.convs:
             conv.reset_parameters()
         for bn in self.bns:
-            bn.reset_parameters()
+            if hasattr(bn, 'reset_parameters'):
+                bn.reset_parameters()
         return None
 
     def forward(self, x: torch.Tensor, adj_t: torch.Tensor) -> torch.Tensor:
-        x = self.convs[0](x, adj_t)
-        x = self.bns[0](x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        # Apply all layers except the last
+        for i in range(len(self.convs) - 1):
+            x = self.convs[i](x, adj_t)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
         
-        x = self.convs[1](x, adj_t)
-        x = self.bns[1](x)
-        x = F.relu(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
-        
-        x = self.convs[2](x, adj_t)
+        # Output layer
+        x = self.convs[-1](x, adj_t)
         return x.log_softmax(dim=-1)
 
 
@@ -164,51 +276,113 @@ class GraphSAGEProducts(torch.nn.Module):
 
 
 class GAT(torch.nn.Module):
-    def __init__(self, dim_in, dim_h, dim_out, heads=8, dropout=0.6):
+    """Graph Attention Network with configurable architecture"""
+    def __init__(self, dim_in, dim_h, dim_out, heads=8, dropout=0.6, num_layers=2, normalization='none'):
         super().__init__()
         self.dim_in = dim_in
         self.dim_h = dim_h
         self.dim_out = dim_out
         self.heads = heads
         self.dropout = dropout
-        self.gat1 = GATv2Conv(dim_in, dim_h, heads=heads)
-        self.gat2 = GATv2Conv(dim_h*heads, dim_out, heads=1)
+        self.num_layers = num_layers
+        self.normalization = normalization
+        
+        self.convs = torch.nn.ModuleList()
+        self.norms = torch.nn.ModuleList()
+        
+        # First layer
+        self.convs.append(GATv2Conv(dim_in, dim_h, heads=heads))
+        if normalization == 'batch':
+            self.norms.append(torch.nn.BatchNorm1d(dim_h * heads))
+        elif normalization == 'layer':
+            self.norms.append(torch.nn.LayerNorm(dim_h * heads))
+        elif normalization == 'group':
+            self.norms.append(torch.nn.GroupNorm(8, dim_h * heads))
+        else:
+            self.norms.append(torch.nn.Identity())
+        
+        # Hidden layers (if num_layers > 2)
+        for _ in range(num_layers - 2):
+            self.convs.append(GATv2Conv(dim_h * heads, dim_h, heads=heads))
+            if normalization == 'batch':
+                self.norms.append(torch.nn.BatchNorm1d(dim_h * heads))
+            elif normalization == 'layer':
+                self.norms.append(torch.nn.LayerNorm(dim_h * heads))
+            elif normalization == 'group':
+                self.norms.append(torch.nn.GroupNorm(8, dim_h * heads))
+            else:
+                self.norms.append(torch.nn.Identity())
+        
+        # Output layer (single head for final prediction)
+        self.convs.append(GATv2Conv(dim_h * heads, dim_out, heads=1))
 
     def forward(self, x, edge_index):
-        h = F.dropout(x, p=self.dropout, training=self.training)
-        h = self.gat1(h, edge_index)
-        h = F.elu(h)
-        h = F.dropout(h, p=self.dropout, training=self.training)
-        h = self.gat2(h, edge_index)
-        return F.log_softmax(h, dim=1)
+        # Apply all layers except the last
+        for i in range(len(self.convs) - 1):
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = self.convs[i](x, edge_index)
+            x = self.norms[i](x)
+            x = F.elu(x)
+        
+        # Output layer
+        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, edge_index)
+        return F.log_softmax(x, dim=1)
 
 
 class PubmedGAT(torch.nn.Module):
-    def __init__(self, dim_in, dim_h, dim_out, heads=8):
+    """GAT specifically tuned for Pubmed dataset with configurable architecture"""
+    def __init__(self, dim_in, dim_h, dim_out, heads=8, dropout=0.6, num_layers=2, normalization='none'):
         super().__init__()
         self.dim_in = dim_in
-        self.dim_h = dim_h
+        self.dim_h = dim_h if dim_h != 8 else 8  # Default to 8 for Pubmed
         self.dim_out = dim_out
         self.heads = heads
-
-        dim_h = 8
+        self.dropout = dropout
+        self.num_layers = num_layers
+        self.normalization = normalization
         
-        # Two GAT layers: Layer 1 (8 heads) -> Output Layer (8 heads)
-        self.gat1 = GATv2Conv(dim_in, dim_h, heads=heads)
-        self.gat2 = GATv2Conv(dim_h*heads, dim_out, heads=8)
-        # self.gat3 = GATv2Conv(dim_h*heads, dim_out, heads=1)
+        self.convs = torch.nn.ModuleList()
+        self.norms = torch.nn.ModuleList()
+        
+        # First layer
+        self.convs.append(GATv2Conv(dim_in, self.dim_h, heads=heads))
+        if normalization == 'batch':
+            self.norms.append(torch.nn.BatchNorm1d(self.dim_h * heads))
+        elif normalization == 'layer':
+            self.norms.append(torch.nn.LayerNorm(self.dim_h * heads))
+        elif normalization == 'group':
+            self.norms.append(torch.nn.GroupNorm(8, self.dim_h * heads))
+        else:
+            self.norms.append(torch.nn.Identity())
+        
+        # Hidden layers (if num_layers > 2)
+        for _ in range(num_layers - 2):
+            self.convs.append(GATv2Conv(self.dim_h * heads, self.dim_h, heads=heads))
+            if normalization == 'batch':
+                self.norms.append(torch.nn.BatchNorm1d(self.dim_h * heads))
+            elif normalization == 'layer':
+                self.norms.append(torch.nn.LayerNorm(self.dim_h * heads))
+            elif normalization == 'group':
+                self.norms.append(torch.nn.GroupNorm(8, self.dim_h * heads))
+            else:
+                self.norms.append(torch.nn.Identity())
+        
+        # Output layer (8 heads for Pubmed, as in original)
+        self.convs.append(GATv2Conv(self.dim_h * heads, dim_out, heads=8))
 
     def forward(self, x, edge_index):
-        # First layer
-        h = F.dropout(x, p=0.6, training=self.training)
-        h = self.gat1(h, edge_index)
-        h = F.elu(h)
+        # Apply all layers except the last
+        for i in range(len(self.convs) - 1):
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = self.convs[i](x, edge_index)
+            x = self.norms[i](x)
+            x = F.elu(x)
         
-        # Second layer (Output layer)
-        h = F.dropout(h, p=0.6, training=self.training)
-        h = self.gat2(h, edge_index)
-        
-        return F.log_softmax(h, dim=1)
+        # Output layer
+        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, edge_index)
+        return F.log_softmax(x, dim=1)
 
 
 class VanillaGNN(nn.Module):

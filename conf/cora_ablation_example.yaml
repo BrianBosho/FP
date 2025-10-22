@@ -1,0 +1,40 @@
+# Example: Ablation Study Config
+# This config demonstrates running an ablation study on model architecture for Cora
+
+datasets:
+   - Cora
+results_dir: results/cora_ablation
+wandb_project: "FGL3-Cora-Ablation"
+
+# Run multiple configurations
+num_clients: [10]
+num_rounds: 100
+beta: [1]
+lr: 0.01
+optimizer: Adam
+data_loading: [chebyshev_diffusion]
+models: [GCN]
+
+# Ablation: Test deep GCN with batch normalization
+model_architecture:
+  GCN:
+    hidden_dim: 32
+    num_layers: 4
+    dropout: 0.5
+    normalization: "batch"  # Critical for deep networks!
+    use_unified_model: true
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0.0005
+  epochs: 5
+  patience: 20
+
+# To test different configurations, you can:
+# 1. Copy this file to cora_ablation_shallow.yaml and change num_layers to 2
+# 2. Copy this file to cora_ablation_wide.yaml and change hidden_dim to 64
+# 3. Copy this file to cora_ablation_no_norm.yaml and change normalization to "none"
+# 4. Compare results across all configurations
+
+# nohup python -m src.experiments.run_experiments --config conf/cora_ablation.yaml > cora_ablation.out 2>&1 &

@@ -71,28 +71,76 @@ class FLClient:
 
         print(f"Client {client_id}: Using {'mini-batch' if self.use_minibatch else 'full-batch'} training for {self.dataset_name} dataset")
 
+        # Import get_model_config for consistent model configuration
+        from models import get_model_config
+        
+        # Get model configuration from config file
+        model_config = get_model_config(cfg, model_type, self.dataset_name)
+        
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
-                self.model = GCN_arxiv(input_dim=self.input_dim, hidden_dim=256, output_dim=40, dropout=0.5).to(self.cpu_device)
+                # Use standard GCN with arxiv-specific configuration (unified approach)
+                use_unified_gcn = model_config.get('use_unified_model', True)
+                
+                if use_unified_gcn:
+                    self.model = GCN(
+                        self.input_dim,
+                        model_config.get('hidden_dim', 256),
+                        dataset.num_classes,
+                        num_layers=model_config.get('num_layers', 3),
+                        dropout=model_config.get('dropout', 0.5),
+                        normalization=model_config.get('normalization', 'batch')
+                    ).to(self.cpu_device)
+                else:
+                    # Fallback to GCN_arxiv if explicitly requested
+                    self.model = GCN_arxiv(
+                        input_dim=self.input_dim,
+                        hidden_dim=model_config.get('hidden_dim', 256),
+                        output_dim=dataset.num_classes,
+                        dropout=model_config.get('dropout', 0.5),
+                        num_layers=model_config.get('num_layers', 3),
+                        normalization=model_config.get('normalization', 'batch')
+                    ).to(self.cpu_device)
             elif self.dataset_name == "ogbn-products":
-                # Some processed splits use fixed dimensionality; fall back to self.input_dim if config overrides exist
                 products_input_dim = getattr(dataset, "num_features", None) or self.input_dim
-                self.model = GraphSAGEProducts(input_dim=products_input_dim, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3).to(self.cpu_device)
+                self.model = GraphSAGEProducts(
+                    input_dim=products_input_dim,
+                    hidden_dim=model_config.get('hidden_dim', 256),
+                    output_dim=dataset.num_classes,
+                    dropout=model_config.get('dropout', 0.5),
+                    num_layers=model_config.get('num_layers', 3)
+                ).to(self.cpu_device)
             else:
-                self.model = GCN(self.input_dim, 16, dataset.num_classes).to(self.cpu_device)
+                self.model = GCN(
+                    self.input_dim,
+                    model_config.get('hidden_dim', 16),
+                    dataset.num_classes,
+                    num_layers=model_config.get('num_layers', 2),
+                    dropout=model_config.get('dropout', 0.5),
+                    normalization=model_config.get('normalization', 'none')
+                ).to(self.cpu_device)
+                
         elif model_type == "GAT":
-            # Use same configuration logic as server for consistency
-            model_params = {}
-            if cfg is not None and "model_params" in cfg and model_type in cfg["model_params"]:
-                model_params = cfg["model_params"][model_type]
-            
             if self.dataset_name == "Pubmed":
-                self.model = PubmedGAT(self.input_dim, 8, dataset.num_classes, heads=8).to(self.cpu_device)
+                self.model = PubmedGAT(
+                    self.input_dim,
+                    model_config.get('hidden_dim', 8),
+                    dataset.num_classes,
+                    heads=model_config.get('num_heads', 8),
+                    dropout=model_config.get('dropout', 0.6),
+                    num_layers=model_config.get('num_layers', 2),
+                    normalization=model_config.get('normalization', 'none')
+                ).to(self.cpu_device)
             else:
-                hidden_dim = model_params.get("hidden_dim", 8)  # FedGAT default: 8
-                num_heads = model_params.get("num_heads", 8)    # FedGAT default: 8
-                dropout = model_params.get("dropout", 0.6)      # FedGAT default: 0.6
-                self.model = GAT(self.input_dim, hidden_dim, dataset.num_classes, heads=num_heads, dropout=dropout).to(self.cpu_device)
+                self.model = GAT(
+                    self.input_dim,
+                    model_config.get('hidden_dim', 8),
+                    dataset.num_classes,
+                    heads=model_config.get('num_heads', 8),
+                    dropout=model_config.get('dropout', 0.6),
+                    num_layers=model_config.get('num_layers', 2),
+                    normalization=model_config.get('normalization', 'none')
+                ).to(self.cpu_device)
 
         self.epochs = cfg["epochs"]
         

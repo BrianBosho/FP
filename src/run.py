@@ -38,33 +38,115 @@ def load_configuration(config_path="/home/brian_bosho/FP/FP/federated-gnn/conf/b
     return cfg["num_clients"], cfg["beta"], cfg
 
 def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora", cfg=None):
+    """
+    Instantiate a model with hyperparameters from config.
+    
+    Args:
+        model_type: Type of model ('GCN', 'GAT', etc.)
+        num_features: Number of input features
+        num_classes: Number of output classes
+        device: Device to place model on
+        dataset_name: Name of dataset
+        cfg: Configuration dictionary
+        
+    Returns:
+        Model instance on specified device
+    """
+    from models import get_model_config
+    
     DEVICE = device
-    model_params = {}
-    if cfg is not None and "model_params" in cfg and model_type in cfg["model_params"]:
-        model_params = cfg["model_params"][model_type]
+    
+    # Get model configuration from config file
+    model_config = get_model_config(cfg, model_type, dataset_name)
+    
     if model_type == "GCN":
-        if dataset_name == "ogbn-arxiv": # 
-            model = GCN_arxiv(input_dim=num_features, hidden_dim=256, output_dim=40, dropout=0.5)
-            print(f"Model is {model}")
+        if dataset_name == "ogbn-arxiv":
+            # Use standard GCN with arxiv-specific configuration
+            # This makes GCN_arxiv optional - we can use GCN for everything!
+            use_unified_gcn = model_config.get('use_unified_model', True)
+            
+            if use_unified_gcn:
+                model = GCN(
+                    num_features,
+                    model_config.get('hidden_dim', 256),
+                    num_classes,
+                    num_layers=model_config.get('num_layers', 3),
+                    dropout=model_config.get('dropout', 0.5),
+                    normalization=model_config.get('normalization', 'batch')
+                )
+                print(f"Model: GCN (unified, ogbn-arxiv config: hidden_dim={model_config.get('hidden_dim', 256)}, "
+                      f"num_layers={model_config.get('num_layers', 3)}, "
+                      f"dropout={model_config.get('dropout', 0.5)}, "
+                      f"normalization={model_config.get('normalization', 'batch')})")
+            else:
+                # Fallback to GCN_arxiv if explicitly requested
+                model = GCN_arxiv(
+                    input_dim=num_features, 
+                    hidden_dim=model_config.get('hidden_dim', 256),
+                    output_dim=num_classes,
+                    dropout=model_config.get('dropout', 0.5),
+                    num_layers=model_config.get('num_layers', 3),
+                    normalization=model_config.get('normalization', 'batch')
+                )
+                print(f"Model: GCN_arxiv (separate class: hidden_dim={model_config.get('hidden_dim', 256)}, "
+                      f"num_layers={model_config.get('num_layers', 3)})")
             return model.to(DEVICE)
         elif dataset_name == "ogbn-products":
-            model = GraphSAGEProducts(input_dim=num_features, hidden_dim=256, output_dim=47, dropout=0.5, num_layers=3)
-            print(f"Model is {model}")
+            model = GraphSAGEProducts(
+                input_dim=num_features, 
+                hidden_dim=model_config.get('hidden_dim', 256),
+                output_dim=num_classes,
+                dropout=model_config.get('dropout', 0.5),
+                num_layers=model_config.get('num_layers', 3)
+            )
+            print(f"Model: GraphSAGEProducts(hidden_dim={model_config.get('hidden_dim', 256)}, "
+                  f"num_layers={model_config.get('num_layers', 3)})")
             return model.to(DEVICE)
         else:
-            return GCN(num_features, 16, num_classes).to(DEVICE)
+            # Standard GCN for smaller datasets
+            model = GCN(
+                num_features, 
+                model_config.get('hidden_dim', 16),
+                num_classes,
+                num_layers=model_config.get('num_layers', 2),
+                dropout=model_config.get('dropout', 0.5),
+                normalization=model_config.get('normalization', 'none')
+            )
+            print(f"Model: GCN(hidden_dim={model_config.get('hidden_dim', 16)}, "
+                  f"num_layers={model_config.get('num_layers', 2)}, "
+                  f"dropout={model_config.get('dropout', 0.5)}, "
+                  f"normalization={model_config.get('normalization', 'none')})")
+            return model.to(DEVICE)
+            
     elif model_type == "GAT":
         if dataset_name == "Pubmed":
-            model = PubmedGAT(num_features, 8, num_classes, heads=8).to(DEVICE)
-            print(f"Model is {model}")
+            model = PubmedGAT(
+                num_features, 
+                model_config.get('hidden_dim', 8),
+                num_classes,
+                heads=model_config.get('num_heads', 8),
+                dropout=model_config.get('dropout', 0.6),
+                num_layers=model_config.get('num_layers', 2),
+                normalization=model_config.get('normalization', 'none')
+            )
+            print(f"Model: PubmedGAT(hidden_dim={model_config.get('hidden_dim', 8)}, "
+                  f"num_heads={model_config.get('num_heads', 8)}, "
+                  f"num_layers={model_config.get('num_layers', 2)})")
             return model.to(DEVICE)
         else:
-            hidden_dim = model_params.get("hidden_dim", 8)
-            num_heads = model_params.get("num_heads", 8)
-            dropout = model_params.get("dropout", 0.6)
-            return GAT(num_features, hidden_dim, num_classes, heads=num_heads, dropout=dropout).to(DEVICE)
-            
-        # else:
+            model = GAT(
+                num_features, 
+                model_config.get('hidden_dim', 8),
+                num_classes,
+                heads=model_config.get('num_heads', 8),
+                dropout=model_config.get('dropout', 0.6),
+                num_layers=model_config.get('num_layers', 2),
+                normalization=model_config.get('normalization', 'none')
+            )
+            print(f"Model: GAT(hidden_dim={model_config.get('hidden_dim', 8)}, "
+                  f"num_heads={model_config.get('num_heads', 8)}, "
+                  f"num_layers={model_config.get('num_layers', 2)})")
+            return model.to(DEVICE)
             
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

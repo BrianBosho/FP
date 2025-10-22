@@ -22,5 +22,22 @@ repetitions: 1
 # Override for large dataset - train fewer clients in parallel
 max_concurrent_clients: 3  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
 
+# Override model architecture for ogbn-arxiv
+# This will override the settings from base.yaml for this specific experiment
+model_architecture:
+  GCN_arxiv:
+    hidden_dim: 256        # Can change to 128, 512, etc.
+    num_layers: 3          # Can change to 2, 4, 5, etc.
+    dropout: 0.5           # Can change to 0.3, 0.6, etc.
+    normalization: "batch" # Can change to "layer", "group", or "none"
+
+# Override training hyperparameters for ogbn-arxiv
+training:
+  lr: 0.001
+  optimizer: "Adam"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 15  # Early stopping patience for larger dataset
+
 # nohup command to run the experiment
 # nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config2.out 2>&1 &

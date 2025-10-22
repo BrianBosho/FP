@@ -43,6 +43,57 @@ feature_prop_device: "cuda"  # Use GPU for fast preprocessing, then move to CPU
 diffusion_t: 1.0        # Taylor series diffusion time
 chebyshev_k: 5          # Chebyshev polynomial order
 chebyshev_t: 0.9          # Chebyshev diffusion time
+
+# Model architecture hyperparameters
+# These can be overridden per dataset or per model type
+model_architecture:
+  # Default hyperparameters (applied to all models unless overridden)
+  default:
+    hidden_dim: 16              # Hidden layer dimensions
+    num_layers: 2               # Number of GNN layers (excluding input layer)
+    dropout: 0.5                # Dropout rate
+    normalization: "none"       # Options: "batch", "layer", "group", "none"
+    activation: "relu"          # Options: "relu", "elu", "tanh", "none"
+    
+  # GCN-specific hyperparameters
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+    
+  # GCN_arxiv-specific hyperparameters (for ogbn-arxiv dataset)
+  GCN_arxiv:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+    
+  # GAT-specific hyperparameters
+  GAT:
+    hidden_dim: 8
+    num_layers: 2
+    dropout: 0.6
+    num_heads: 8
+    normalization: "none"
+    
+  # PubmedGAT-specific hyperparameters
+  PubmedGAT:
+    hidden_dim: 8
+    num_layers: 2
+    dropout: 0.6
+    num_heads: 8
+    normalization: "none"
+
+# Training hyperparameters per dataset (can override in dataset configs)
+training:
+  default:
+    lr: 0.5
+    optimizer: "SGD"
+    weight_decay: 0.0005
+    epochs: 3
+    patience: 10  # Early stopping patience
+    
 paths:
   datasets_dir: "datasets"
   planetoid:

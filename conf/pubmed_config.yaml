@@ -8,9 +8,10 @@ wandb_project: "FGL3-Pubmed"  # Dataset-specific wandb project
 
 # Pubmed-specific experiment parameters
 num_clients: [10]
-num_rounds: 10
+num_rounds: 100
 beta: [10000]
 lr: 0.01
 optimizer: Adam  # Pubmed works better with Adam
 data_loading: [full]
 models: [GCN]
+repetitions: 2
