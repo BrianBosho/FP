@@ -72,7 +72,7 @@ class FLClient:
         print(f"Client {client_id}: Using {'mini-batch' if self.use_minibatch else 'full-batch'} training for {self.dataset_name} dataset")
 
         # Import get_model_config for consistent model configuration
-        from models import get_model_config
+        from src.models import get_model_config
         
         # Get model configuration from config file
         model_config = get_model_config(cfg, model_type, self.dataset_name)
@@ -343,10 +343,13 @@ class FLClient:
             return 0.0  # or appropriate default value
 
     def get_params(self) -> dict:
+        # Memory optimization: Move model to CPU before extracting parameters
+        # to avoid keeping GPU tensor references alive
         self._move_to_device(self.cpu_device)
         self.optimizer.zero_grad(set_to_none=True)
         
-        # Return CPU tensors to avoid keeping GPU memory
+        # Return CPU tensors to avoid keeping GPU memory references
+        # detach() prevents gradient computation, cpu() moves to CPU
         params_cpu = tuple(p.detach().cpu() for p in self.model.parameters())
         buffers_cpu = tuple(b.detach().cpu() for b in self.model.buffers())
         

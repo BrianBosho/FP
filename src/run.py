@@ -52,7 +52,7 @@ def instantiate_model(model_type, num_features, num_classes, device, dataset_nam
     Returns:
         Model instance on specified device
     """
-    from models import get_model_config
+    from src.models import get_model_config
     
     DEVICE = device
     

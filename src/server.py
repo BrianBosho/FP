@@ -118,7 +118,8 @@ class Server():
                             if self.num_of_trainers == 1 or mb.sum() == 0:
                                 mb.data = b.to(self.device)
                     
-                    # Explicitly delete params_dict to free memory
+                    # Memory optimization: Explicitly delete params_dict after use
+                    # to free GPU memory immediately after aggregation
                     del params_dict
             params = left
             if not params:

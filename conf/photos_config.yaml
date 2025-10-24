@@ -7,14 +7,22 @@ results_dir: results/photos
 wandb_project: "FGL3-Photos"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
-num_clients: [10]
-num_rounds: 100
+num_clients: [50]
+num_rounds: 20
 beta: [1]
 lr: 0.01
 optimizer: Adam
-data_loading: [full]
-models: [GCN, GAT]
+data_loading: [full, zero_hop, adjacency]
+models: [GCN]
 repetitions: 1
+model_architecture:
+  GCN:
+    hidden_dim: 64          # Try different hidden dimensions (default: 16)
+    num_layers: 2           # Try deeper models (default: 2)
+    dropout: 0.5            # Try different dropout rates (default: 0.5)
+    normalization: "none"
+
+max_concurrent_clients: 20  # Limit to 5 clients training in parallel to reduce GPU memory usage
 
 
 # nohup command to run the experiment

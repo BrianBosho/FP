@@ -8,15 +8,22 @@ wandb_project: "FGL3-Computers"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
 num_clients: [10]
-num_rounds: 200
-beta: [1]
-lr: 0.005
+num_rounds: 20
+beta: [10000]
+lr: 0.01
 optimizer: Adam
-data_loading: [diffusion]
+data_loading: [chebyshev-diffusion]
 models: [GCN]
 repetitions: 1
 use_amp: false
 use_pe: [false]
+
+model_architecture:
+  GCN:
+    hidden_dim: 64          # Try different hidden dimensions (default: 16)
+    num_layers: 2           # Try deeper models (default: 2)
+    dropout: 0.5            # Try different dropout rates (default: 0.5)
+    normalization: "none"  # Try batch normalization (default: "none")
 
 # nohup command to run the experiment
 # nohup python -m src.experiments.run_experiments --config conf/computers_config.yaml > computers_config.out 2>&1 &

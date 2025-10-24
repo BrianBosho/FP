@@ -3,24 +3,27 @@
 
 datasets:
    - ogbn-arxiv   # Note: This config is for ogbn-arxiv but uses Cora for testing
-results_dir: results/ogbn-arxiv2
-wandb_project: "FGL3-Ogbn-Arxiv2"  # Dataset-specific wandb project
+results_dir: results/ogbn-arxiv
+wandb_project: "FGL4-Ogbn-Arxiv"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
 num_clients: [10]
-num_rounds: 5
-beta: [10000]
-lr: 0.001
+num_rounds: 50
+beta: [1, 10, 10000]
+lr: 0.005
 optimizer: Adam
 hop: 2
 save_results: true
-use_wandb: false  # Enable wandb for this experiment
-data_loading: [chebyshev_diffusion]
+use_wandb: true  # Enable wandb for this experiment
+data_loading: [full, zero_hop, adjacency, diffusion, chebyshev-diffusion]  # Use full data loading strategy for ogbn-arxiv
 models: [GCN]
 repetitions: 1
+use_pe: [true, false]
+
+
 
 # Override for large dataset - train fewer clients in parallel
-max_concurrent_clients: 3  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
+max_concurrent_clients: 2  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
 
 # Override model architecture for ogbn-arxiv
 # This will override the settings from base.yaml for this specific experiment

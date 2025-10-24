@@ -11,24 +11,21 @@ num_clients: [10]
 num_rounds: 100
 beta: [1]
 lr: 0.5
-data_loading: [chebyshev_diffusion, adjacency, full, zero_hop]
-models: [GCN]
+optimizer: SGD
+data_loading: [adjacency]
+models: [GAT]
+hop: 2
+use_pe: [True]
+
 
 # Optional: Override model architecture for Cora experiments
 # Uncomment and modify these to experiment with different architectures
-# model_architecture:
-#   GCN:
-#     hidden_dim: 32          # Try different hidden dimensions (default: 16)
-#     num_layers: 3           # Try deeper models (default: 2)
-#     dropout: 0.6            # Try different dropout rates (default: 0.5)
-#     normalization: "batch"  # Try batch normalization (default: "none")
+model_architecture:
+  GCN:
+    hidden_dim: 16          # Try different hidden dimensions (default: 16)
+    num_layers: 2           # Try deeper models (default: 2)
+    dropout: 0.5            # Try different dropout rates (default: 0.5)
+    normalization: "none"  # Try batch normalization (default: "none")
 
-# Optional: Override training hyperparameters
-# training:
-#   lr: 0.01
-#   optimizer: "Adam"
-#   epochs: 5
-#   patience: 20
 
-# nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora_config.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora.out 2>&1 &
