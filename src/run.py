@@ -411,8 +411,9 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
     try:
         # Initialize Ray with memory management settings
+        # RAY_REDIS_ADDRESS is set per process in the script
         ray.init(
-            num_gpus=1, 
+            num_gpus=1,
             ignore_reinit_error=True,
             object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
             _system_config={

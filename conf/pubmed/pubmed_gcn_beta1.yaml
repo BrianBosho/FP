@@ -1,0 +1,18 @@
+# Pubmed Dataset Configuration - GCN, beta=1, PE=True
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Pubmed
+results_dir: results/IEEE/pubmed
+wandb_project: "FGL4-Pubmed"  # Dataset-specific wandb project
+
+# Pubmed-specific experiment parameters
+num_clients: [10]
+num_rounds: 200
+beta: [1]
+lr: 0.01
+optimizer: Adam  # Pubmed works better with Adam
+data_loading: [zero_hop, adjacency, full, diffusion]
+models: [GCN]
+hop: 2
+use_pe: [False]

@@ -1,0 +1,18 @@
+# Cora Dataset Configuration
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Cora
+results_dir: results/IEEE/cora
+wandb_project: "FGL4-Cora"  # Dataset-specific wandb project
+
+# Cora-specific experiment parameters
+num_clients: [10]
+num_rounds: 200
+beta: [1]
+lr: 0.5
+optimizer: SGD
+data_loading: [zero_hop, adjacency, full, diffusion]
+models: [GCN]
+hop: 2
+use_pe: [False]

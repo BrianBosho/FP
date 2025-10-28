@@ -34,6 +34,7 @@ def parse_arguments():
     parser.add_argument('--optimizer', type=str, help='Optimizer to use')
     parser.add_argument('--decay', type=float, help='Weight decay')
     parser.add_argument('--repetitions', type=int, help='Number of repetitions for each experiment')
+    parser.add_argument('--ray_port', type=int, help='Ray port for distributed execution')
     return parser.parse_args()
 
 def load_yaml_config(config_path):
@@ -325,6 +326,11 @@ def run_experiments(args):
                             print(f"\n{'='*80}")
                             print(f"Running experiment: {experiment_name}")
                             print(f"{'='*80}")
+                            
+                            # Set Ray port if specified
+                            if hasattr(args, 'ray_port') and args.ray_port:
+                                # Ray will use the address directly, no need for env var
+                                pass
                             
                             # Create a training configuration for the experiment
                             training_cfg = cfg.copy()  # Pass all parameters through

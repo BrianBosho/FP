@@ -3,17 +3,17 @@
 
 datasets:
    - Cora
-results_dir: results/cora
-wandb_project: "FGL3-Cora"  # Dataset-specific wandb project
+results_dir: results/IEEE/cora
+wandb_project: "FGL4-Cora"  # Dataset-specific wandb project
 
 # Cora-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
+num_rounds: 1
 beta: [1]
 lr: 0.5
 optimizer: SGD
-data_loading: [adjacency]
-models: [GAT]
+data_loading: [diffusion]
+models: [GCN]
 hop: 2
 use_pe: [True]
 
@@ -28,4 +28,4 @@ model_architecture:
     normalization: "none"  # Try batch normalization (default: "none")
 
 
-# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/cora/cora_config.yaml > cora.out 2>&1 &

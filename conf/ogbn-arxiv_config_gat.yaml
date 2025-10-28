@@ -18,7 +18,7 @@ use_wandb: true  # Enable wandb for this experiment
 data_loading: [full, zero_hop, adjacency, diffusion, chebyshev-diffusion]  # Use full data loading strategy for ogbn-arxiv
 models: [GCN]
 repetitions: 5
-use_pe: [true]
+use_pe: [false]
 
 
 
@@ -43,4 +43,4 @@ training:
   patience: 15  # Early stopping patience for larger dataset
 
 # nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config2.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config_gat.yaml > ogbn-arxiv_config_gat2.out 2>&1 &

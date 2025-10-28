@@ -1,0 +1,18 @@
+# Citeseer Dataset Configuration - GCN, beta=10000, PE=True
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Citeseer
+results_dir: results/IEEE/citeseer
+wandb_project: "FGL4-Citeseer"  # Dataset-specific wandb project
+
+# Citeseer-specific experiment parameters
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+data_loading: [zero_hop, adjacency, full, diffusion]
+models: [GCN]
+hop: 2
+use_pe: [False]

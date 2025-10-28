@@ -9,13 +9,13 @@ decay: 0.0005
 hop: 1
 fulltraining_flag: false
 save_results: true
-repetitions: 1
+repetitions: 10
 
 # Debug configuration
 debug: false  # Set to true to enable verbose debug output
 
 # Wandb configuration
-use_wandb: false  # Set to true to enable wandb logging
+use_wandb: true  # Set to true to enable wandb logging
 wandb_project: "FGL4"  # Project name for wandb
 wandb_entity: null  # Set to your wandb entity/team name (optional)
 wandb_mode: "online"  # "online", "offline", or "disabled"
