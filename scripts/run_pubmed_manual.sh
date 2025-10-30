@@ -15,9 +15,7 @@ echo ""
 
 CONFIGS=(
     "conf/pubmed/pubmed_gcn_beta1.yaml"
-    "conf/pubmed/pubmed_gcn_beta10000.yaml"
     "conf/pubmed/pubmed_gat_beta1.yaml"
-    "conf/pubmed/pubmed_gat_beta10000.yaml"
 )
 
 for config in "${CONFIGS[@]}"; do

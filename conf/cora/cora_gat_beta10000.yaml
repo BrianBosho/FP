@@ -12,7 +12,7 @@ num_rounds: 200
 beta: [10000]
 lr: 0.5
 optimizer: SGD
-data_loading: [zero_hop, adjacency, full, diffusion]
+data_loading: [diffusion]
 models: [GAT]
 hop: 2
-use_pe: [False]
+use_pe: [False, True]

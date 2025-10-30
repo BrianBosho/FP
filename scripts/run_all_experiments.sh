@@ -18,9 +18,9 @@ nohup ./scripts/run_cora_manual.sh > "$LOG_DIR/cora_${TIMESTAMP}.log" 2>&1 &
 CORA_PID=$!
 echo "Cora experiments started with PID: $CORA_PID"
 
-# Wait 20 minutes before starting Pubmed
-echo "Waiting 20 minutes before starting Pubmed experiments..."
-sleep 1200  # 20 minutes = 1200 seconds
+# Wait 5 minutes before starting Pubmed
+echo "Waiting 5 minutes before starting Pubmed experiments..."
+sleep 300  # 5 minutes = 300 seconds
 
 # Run Pubmed experiments
 echo "Starting Pubmed experiments at $(date)"
@@ -28,9 +28,9 @@ nohup ./scripts/run_pubmed_manual.sh > "$LOG_DIR/pubmed_${TIMESTAMP}.log" 2>&1 &
 PUBMED_PID=$!
 echo "Pubmed experiments started with PID: $PUBMED_PID"
 
-# Wait 20 minutes before starting Citeseer
-echo "Waiting 20 minutes before starting Citeseer experiments..."
-sleep 1200  # 20 minutes = 1200 seconds
+# Wait 5 minutes before starting Citeseer
+echo "Waiting 5 minutes before starting Citeseer experiments..."
+sleep 300  # 5 minutes = 300 seconds
 
 # Run Citeseer experiments
 echo "Starting Citeseer experiments at $(date)"

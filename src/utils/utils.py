@@ -12,9 +12,20 @@ def load_config(config_path: str) -> DictConfig:
     """
     import os
     
-    # Get the directory containing the config file
-    config_dir = os.path.dirname(config_path)
-    base_config_path = os.path.join(config_dir, "base.yaml")
+    # Get the absolute path to the config file
+    config_path_abs = os.path.abspath(config_path)
+    
+    # Find the conf directory by looking for it in the path
+    # Assumes base.yaml is always in the top-level conf directory
+    if 'conf' in config_path_abs:
+        # Get everything up to and including 'conf'
+        conf_index = config_path_abs.find('conf')
+        conf_dir = config_path_abs[:conf_index + 4]  # +4 for 'conf'
+    else:
+        # Fallback to same directory as config file
+        conf_dir = os.path.dirname(config_path_abs)
+    
+    base_config_path = os.path.join(conf_dir, "base.yaml")
     
     # Load base configuration
     base_config = OmegaConf.load(base_config_path)

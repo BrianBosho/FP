@@ -229,11 +229,10 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
             taylor_term = taylor_term @ laplacian
             # Use the helper to multiply taylor_term by coef before adding
             diffusion = diffusion + sparse_scalar_mul(taylor_term, coef)
-            
-            # Clear intermediate results to free memory
-            if i < 2:  # Don't clear on last iteration
-                del taylor_term
-                torch.cuda.empty_cache()
+        
+        # Clear intermediate results to free memory after loop
+        del taylor_term
+        torch.cuda.empty_cache()
     
     return diffusion
 

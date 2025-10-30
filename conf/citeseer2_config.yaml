@@ -1,0 +1,33 @@
+# Cora Dataset Configuration
+# Only dataset-specific settings - everything else inherited from base.yaml
+
+datasets:
+   - Citeseer
+results_dir: results/IEEE/citeseer
+# set wandb false
+wandb: false
+wandb_project: "FGL6-Citeseer"  # Dataset-specific wandb project
+
+# Cciteseer-specific experiment parameters
+num_clients: [10]
+num_rounds: 100
+beta: [1]
+lr: 0.5
+optimizer: SGD
+data_loading: [diffusion, full, zero_hop]
+models: [GCN, GAT]
+hop: 1
+use_pe: [True]
+repetitions: 4
+
+# Optional: Override model architecture for Cora experiments
+# Uncomment and modify these to experiment with different architectures
+model_architecture:
+  GCN:
+    hidden_dim: 16          # Try different hidden dimensions (default: 16)
+    num_layers: 2           # Try deeper models (default: 2)
+    dropout: 0.5            # Try different dropout rates (default: 0.5)  
+    normalization: "none"  # Try batch normalization (default: "none")
+
+
+# nohup python -m src.experiments.run_experiments --config conf/citeseer2_config.yaml > citeseer2.out 2>&1 &
