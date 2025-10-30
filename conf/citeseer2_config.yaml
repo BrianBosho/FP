@@ -10,7 +10,7 @@ wandb_project: "FGL6-Citeseer"  # Dataset-specific wandb project
 
 # Cciteseer-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
+num_rounds: 5
 beta: [1]
 lr: 0.5
 optimizer: SGD

@@ -65,12 +65,7 @@ class Server():
             batch_results = ray.get(batch_futures)
             all_results.extend(batch_results)
             
-            # Aggressive memory clearing between batches
-            from src.utils.memory_utils import clear_memory_aggressive
-            clear_memory_aggressive()
-            
-            # Log memory usage
-            log_memory_usage(f"after batch {batch_idx + 1}/{num_batches}")
+            # Memory clearing between batches removed for performance
         
         return all_results
         
@@ -90,10 +85,7 @@ class Server():
             train_futures = [client.train_client.remote() for client in clients]
             train_results = ray.get(train_futures)
             
-            # Aggressive memory clearing after parallel training
-            from src.utils.memory_utils import clear_memory_aggressive
-            clear_memory_aggressive()
-            log_memory_usage("after parallel training")
+            # Memory clearing removed for performance (happens naturally with Python GC)
 
         params = [client.get_params.remote() for client in clients]
         self.zero_params()
@@ -138,10 +130,7 @@ class Server():
         use_sync = self.max_concurrent_clients and self.max_concurrent_clients < len(clients)
         self.broadcast_params(current_global_epoch, sync=use_sync)
         
-        # Clear memory after parameter aggregation
-        from src.utils.memory_utils import clear_memory_aggressive
-        clear_memory_aggressive()
-        log_memory_usage("after parameter aggregation")
+        # Memory clearing removed for performance (happens naturally with Python GC)
 
         log_client_training_metrics(train_results, current_global_epoch)
         # lets run evaluation after training
@@ -192,10 +181,7 @@ class Server():
             batch_results = ray.get(batch_futures)
             all_results.extend(batch_results)
             
-            # Clear memory between batches
-            from src.utils.memory_utils import clear_memory_basic, log_memory_usage
-            clear_memory_basic()
-            log_memory_usage(f"after evaluation batch {batch_idx + 1}/{num_batches}")
+            # Memory clearing between batches removed for performance
         
         print(f"Completed batched evaluation of {len(clients)} clients in {num_batches} batches")
         return all_results

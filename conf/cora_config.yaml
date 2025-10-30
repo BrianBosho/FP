@@ -10,7 +10,7 @@ wandb_project: "FGL6-Cora"  # Dataset-specific wandb project
 
 # Cora-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
+num_rounds: 200
 beta: [1]
 lr: 0.5
 optimizer: SGD
@@ -30,4 +30,4 @@ model_architecture:
     normalization: "none"  # Try batch normalization (default: "none")
 
 
-# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora.out 2>&1 & 2193920
+# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora2.out 2>&1 & 2193920

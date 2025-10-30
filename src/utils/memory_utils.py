@@ -22,18 +22,12 @@ def clear_memory_basic():
 
 def clear_memory_aggressive():
     """Aggressive memory clearing for memory-intensive operations"""
-    # Multiple rounds of clearing
-    for _ in range(3):
-        clear_cuda_cache()
-        gc.collect()
-    
-    # Force garbage collection of all generations
+    # Single efficient clearing round (reduced from 3 for performance)
+    clear_cuda_cache()
     gc.collect()
     
-    # Final synchronization and cache clearing
     if torch.cuda.is_available():
         torch.cuda.synchronize()
-        torch.cuda.empty_cache()
 
 def clear_memory_with_model(model: Optional[torch.nn.Module] = None, 
                            device: Union[str, torch.device] = "cuda"):
@@ -50,31 +44,18 @@ def clear_memory_with_model(model: Optional[torch.nn.Module] = None,
 
 def clear_memory_for_diffusion():
     """Specialized memory clearing for diffusion operations"""
-    logging.info("Clearing memory for diffusion operation")
-    
-    # Multiple aggressive clearing rounds
-    for i in range(3):
+    # Single efficient clearing round (reduced from 3 for performance)
+    if torch.cuda.is_available():
         torch.cuda.empty_cache()
         gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
-    
-    # Log memory usage
-    if torch.cuda.is_available():
-        allocated = torch.cuda.memory_allocated() / 1024**3  # GB
-        cached = torch.cuda.memory_reserved() / 1024**3      # GB
-        logging.info(f"Memory after clearing - Allocated: {allocated:.2f}GB, Cached: {cached:.2f}GB")
+        torch.cuda.synchronize()
 
 def clear_memory_for_adjacency():
     """Specialized memory clearing for adjacency operations"""
-    logging.info("Clearing memory for adjacency operation")
-    
-    # Clear cache and force garbage collection
-    clear_memory_aggressive()
-    
-    # Additional clearing for sparse matrix operations
+    # Single efficient clearing round (reduced from aggressive for performance)
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+        gc.collect()
         torch.cuda.synchronize()
 
 def log_memory_usage(stage: str = ""):

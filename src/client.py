@@ -227,8 +227,7 @@ class FLClient:
             clear_memory_basic()
 
     def train_client(self):
-        # Clear memory before training
-        self._clear_memory()
+        # Move to device for training (memory clearing removed for performance)
         self._move_to_device(self.target_device)
         
         try:
