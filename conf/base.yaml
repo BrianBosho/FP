@@ -39,6 +39,11 @@ num_iterations: 80
 feature_prop_tolerance: 1e-6
 feature_prop_device: "cuda"  # Memory optimization: Use CPU for preprocessing to save ~9GB GPU memory
 
+# GPU Memory Optimization Settings
+keep_data_on_gpu: true  # Keep data on GPU during training to avoid CPU<->GPU transfers
+                        # Set to false for large datasets that may run out of GPU memory
+                        # Recommended: true for Cora/Citeseer/Pubmed, false for ogbn-arxiv/ogbn-products
+
 # Chebyshev/Diffusion hyperparameters
 diffusion_t: 1.0        # Taylor series diffusion time
 chebyshev_k: 5          # Chebyshev polynomial order

@@ -25,6 +25,9 @@ use_pe: [true]
 # Override for large dataset - train fewer clients in parallel
 max_concurrent_clients: 2  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
 
+# Disable keep_data_on_gpu for large dataset to prevent GPU OOM
+keep_data_on_gpu: false  # Large dataset - move data back to CPU after each operation
+
 # Override model architecture for ogbn-arxiv
 # This will override the settings from base.yaml for this specific experiment
 model_architecture:

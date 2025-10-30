@@ -35,6 +35,9 @@ class FLClient:
         self.current_device = self.cpu_device
         self.data_gpu = None
         
+        # Get GPU memory optimization flag from config
+        self.keep_data_on_gpu = cfg.get("keep_data_on_gpu", True)
+        
         # Get debug flag from config
         debug = cfg.get("debug", False)
         
@@ -260,9 +263,10 @@ class FLClient:
             for acc_item in acc_list:
                 self.training_accuracies.append(acc_item)
             
-            # Clear memory after training
-            self._move_to_device(self.cpu_device)
-            self._clear_memory()
+            # Only move back to CPU if keep_data_on_gpu is disabled
+            if not self.keep_data_on_gpu:
+                self._move_to_device(self.cpu_device)
+                self._clear_memory()
             
             return loss, acc
         except Exception as e:
@@ -275,8 +279,7 @@ class FLClient:
             return 0.0, 0.0
 
     def evaluate(self, criterion):
-        # Clear memory before evaluation
-        self._clear_memory()
+        # Move to device for evaluation (no memory clearing for performance)
         self._move_to_device(self.target_device)
         
         try:
@@ -291,9 +294,10 @@ class FLClient:
             else:
                 result = evaluate(self.model, self.data, criterion)
             
-            # Clear memory after evaluation
-            self._move_to_device(self.cpu_device)
-            self._clear_memory()
+            # Only move back to CPU if keep_data_on_gpu is disabled
+            if not self.keep_data_on_gpu:
+                self._move_to_device(self.cpu_device)
+                self._clear_memory()
             
             return result
         except Exception as e:
@@ -304,8 +308,7 @@ class FLClient:
             return 0.0  # or appropriate default value
 
     def test(self, data=None):
-        # Clear memory before testing
-        self._clear_memory()
+        # Move to device for testing (no memory clearing for performance)
         self._move_to_device(self.target_device)
 
         # check input dimension of the model itself
@@ -329,9 +332,10 @@ class FLClient:
             else:
                 result = test(self.model, data)
             
-            # Clear memory after testing
-            self._move_to_device(self.cpu_device)
-            self._clear_memory()
+            # Only move back to CPU if keep_data_on_gpu is disabled
+            if not self.keep_data_on_gpu:
+                self._move_to_device(self.cpu_device)
+                self._clear_memory()
             
             return result
         except Exception as e:
