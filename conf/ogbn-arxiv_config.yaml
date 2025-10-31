@@ -12,12 +12,12 @@ num_rounds: 200
 beta: [1,  10000]
 lr: 0.005
 optimizer: Adam
-hop: 1
+hop: 2
 save_results: true
 use_wandb: true  # Enable wandb for this experiment
 data_loading: [full, zero_hop, adjacency, diffusion, chebyshev-diffusion]  # Use full data loading strategy for ogbn-arxiv
 models: [GCN]
-repetitions: 5
+repetitions: 3
 use_pe: [true]
 
 
@@ -46,4 +46,4 @@ training:
   patience: 15  # Early stopping patience for larger dataset
 
 # nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config2.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config_2hop.out 2>&1 &

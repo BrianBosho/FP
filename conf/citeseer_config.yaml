@@ -4,12 +4,28 @@
 datasets:
    - Citeseer
 results_dir: results/citeseer
-wandb_project: "FGL3-Citeseer"  # Dataset-specific wandb project
+wandb_project: "FGL7-Citeseer"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
 num_clients: [10]
-num_rounds: 100
-beta: [1, 10, 10000]
+num_rounds: 200
+beta: [1, 10000]
 lr: 0.5
-data_loading: [full, adjacency, zero_hop]
+data_loading: [full, adjacency, zero_hop, diffusion]
 models: [GCN, GAT]
+
+hop: 1
+use_pe: [True]
+repetitions: 3
+
+# Optional: Override model architecture for Cora experiments
+# Uncomment and modify these to experiment with different architectures
+model_architecture:
+  GCN:
+    hidden_dim: 16          # Try different hidden dimensions (default: 16)
+    num_layers: 2           # Try deeper models (default: 2)
+    dropout: 0.5            # Try different dropout rates (default: 0.5)
+    normalization: "none"  # Try batch normalization (default: "none")
+
+
+# nohup python -m src.experiments.run_experiments --config conf/citeseer_config.yaml > citeseer1_hop.out 2>&1 & 2193920

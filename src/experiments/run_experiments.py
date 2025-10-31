@@ -368,10 +368,24 @@ def run_experiments(args):
                             print("Cleaning up Ray processes and memory...")
                             ray.shutdown()  # This kills all Ray processes
                             import gc
-                            gc.collect()
+                            
+                            # Aggressive cleanup, especially important after diffusion experiments
+                            # which use torch_sparse.SparseTensor with internal CUDA state
+                            for _ in range(3):
+                                gc.collect()
+                            
                             if torch.cuda.is_available():
                                 torch.cuda.empty_cache()
                                 torch.cuda.synchronize()
+                                # Reset CUDA memory stats to clear any lingering state from torch_sparse
+                                torch.cuda.reset_peak_memory_stats()
+                                torch.cuda.reset_accumulated_memory_stats()
+                            
+                            # Final GC round after CUDA cleanup
+                            gc.collect()
+                            
+                            # Give CUDA time to fully release resources before reinitializing
+                            time.sleep(1)
                             
                             # Reinitialize Ray for next experiment
                             ray.init(ignore_reinit_error=True)

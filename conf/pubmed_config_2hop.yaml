@@ -15,8 +15,8 @@ optimizer: Adam  # Pubmed works better with Adam
 data_loading: [full, adjacency, zero_hop, diffusion]
 models: [GCN, GAT]
 
-hop: 1
+hop: 2
 use_pe: [True]
 repetitions: 3
 
-# nohup python -m src.experiments.run_experiments --config conf/pubmed_config.yaml > pubmed1_hop.out 2>&1 & 2193920
+# nohup python -m src.experiments.run_experiments --config conf/pubmed_config_2hop.yaml > pubmed2_hop.out 2>&1 & 2193920

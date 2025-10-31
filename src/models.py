@@ -125,6 +125,91 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, BatchNorm
 
+import torch
+from torch import nn
+import torch.nn.functional as F
+from torch_geometric.nn import GATConv
+
+class GAT_Arxiv(torch.nn.Module):
+    """GAT for ogbn-arxiv with configurable architecture"""
+    def __init__(self, input_dim=128, hidden_dim=256, output_dim=40, 
+                 dropout=0.5, num_layers=3, normalization='batch',
+                 heads_hidden=4, heads_out=6):
+        """
+        Configurable GAT for ogbn-arxiv.
+
+        Args:
+            input_dim: Input feature dimension (default: 128)
+            hidden_dim: Hidden layer dimension (default: 256)
+            output_dim: Output dimension/number of classes (default: 40)
+            dropout: Dropout rate (default: 0.5)
+            num_layers: Number of layers (default: 3)
+            normalization: Normalization type - 'batch', 'layer', 'group', or 'none' (default: 'batch')
+            heads_hidden: Number of heads in hidden layers (default: 4)
+            heads_out: Number of heads in output layer (default: 6)
+        """
+        nfeat = input_dim
+        nhid = hidden_dim
+        nclass = output_dim
+
+        super(GAT_Arxiv, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.bns = torch.nn.ModuleList()
+
+        # First layer
+        self.convs.append(GATConv(nfeat, nhid, heads=heads_hidden, dropout=dropout))
+        if normalization == 'batch':
+            self.bns.append(nn.BatchNorm1d(nhid * heads_hidden))
+        elif normalization == 'layer':
+            self.bns.append(nn.LayerNorm(nhid * heads_hidden))
+        elif normalization == 'group':
+            self.bns.append(nn.GroupNorm(8, nhid * heads_hidden))
+        else:
+            self.bns.append(nn.Identity())
+
+        # Hidden layers
+        for _ in range(num_layers - 2):
+            self.convs.append(GATConv(nhid * heads_hidden, nhid, heads=heads_hidden, dropout=dropout))
+            if normalization == 'batch':
+                self.bns.append(nn.BatchNorm1d(nhid * heads_hidden))
+            elif normalization == 'layer':
+                self.bns.append(nn.LayerNorm(nhid * heads_hidden))
+            elif normalization == 'group':
+                self.bns.append(nn.GroupNorm(8, nhid * heads_hidden))
+            else:
+                self.bns.append(nn.Identity())
+
+        # Output layer (no concat)
+        self.convs.append(GATConv(nhid * heads_hidden, nclass, heads=heads_out, concat=False, dropout=dropout))
+
+        self.dropout = dropout
+        self.num_layers = num_layers
+        self.normalization = normalization
+        self.dim_in = input_dim
+        self.dim_h = hidden_dim
+        self.dim_out = output_dim
+
+    def reset_parameters(self) -> None:
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            if hasattr(bn, 'reset_parameters'):
+                bn.reset_parameters()
+        return None
+
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        # Apply all layers except last
+        for i in range(len(self.convs) - 1):
+            x = self.convs[i](x, edge_index)
+            x = self.bns[i](x)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+
+        # Output layer
+        x = self.convs[-1](x, edge_index)
+        return x.log_softmax(dim=-1)
+
 
 class GCN_arxiv(torch.nn.Module):
     """GCN for ogbn-arxiv with configurable architecture"""

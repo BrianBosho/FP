@@ -159,10 +159,6 @@ def diffusion_kernel(edge_index: Tensor, num_nodes: int, device: str, t: float =
     Returns:
         SparseTensor: A sparse diffusion matrix that can be used as a propagation matrix.
     """
-    # Set environment variable to help with memory fragmentation
-    import os
-    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
-    
     # Ensure edge_index is on the correct device.
     edge_index = edge_index.to(device)
     

@@ -176,9 +176,25 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         indices = torch.stack([row, col], dim=0)
         adj = torch.sparse_coo_tensor(indices, values, size=(n_nodes, n_nodes)).to(DEVICE)
         
-        # Clear temporary tensors
+        # AGGRESSIVE cleanup: torch_sparse.SparseTensor holds internal CUDA state
+        # that standard PyTorch cleanup doesn't release, causing CUDA context corruption
         del sparse_tensor, row, col, values, indices
-        torch.cuda.empty_cache()
+        
+        # Force multiple rounds of GC to ensure torch_sparse releases resources
+        import gc
+        for _ in range(3):
+            gc.collect()
+        
+        # Aggressive CUDA cleanup to ensure torch_sparse releases its CUDA context
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+            # Reset CUDA memory stats to clear any lingering state
+            torch.cuda.reset_peak_memory_stats()
+            torch.cuda.reset_accumulated_memory_stats()
+        
+        # Final GC round after CUDA cleanup
+        gc.collect()
     # Remove/disable the 'efficient' shortcut to ensure all modes iterate consistently
     # elif mode == "efficient":
     #     return propagate_features_efficient(x, edge_index, mask, device, alpha=alpha, propagation_type="normalized_adjacency")
