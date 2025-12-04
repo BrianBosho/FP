@@ -40,7 +40,7 @@ feature_prop_tolerance: 1e-6
 feature_prop_device: "cuda"  # Memory optimization: Use CPU for preprocessing to save ~9GB GPU memory
 
 # GPU Memory Optimization Settings
-keep_data_on_gpu: true  # Keep data on GPU during training to avoid CPU<->GPU transfers
+keep_data_on_gpu: false  # Keep data on GPU during training to avoid CPU<->GPU transfers
                         # Set to false for large datasets that may run out of GPU memory
                         # Recommended: true for Cora/Citeseer/Pubmed, false for ogbn-arxiv/ogbn-products
 
@@ -73,6 +73,16 @@ model_architecture:
     num_layers: 3
     dropout: 0.5
     normalization: "batch"
+    
+  # GAT_Arxiv-specific hyperparameters (for ogbn-arxiv dataset)
+  GAT_Arxiv:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+    heads_hidden: 4
+    heads_out: 6
+    num_heads: 8  # For compatibility with unified GAT model
     
   # GAT-specific hyperparameters
   GAT:

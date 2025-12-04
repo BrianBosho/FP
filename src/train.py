@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from src.models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv, GraphSAGEProducts, PubmedGAT
+from src.models import VanillaGNN, MLP, GCN, GAT, SparseVanillaGNN, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 from torch_geometric.utils import to_dense_adj
 from torch_geometric.loader import NeighborLoader, DataLoader
 import random
@@ -38,7 +38,7 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
     # Add this check before using the model
-    if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts):
+    if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, GAT_Arxiv):
         # Ensure edge_index has correct format
         if data.edge_index.dim() != 2 or data.edge_index.size(0) != 2:
             raise ValueError(f"Edge index has incorrect format: {data.edge_index.shape}")
@@ -55,7 +55,7 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False):
         with torch.cuda.amp.autocast(enabled=use_amp):
             if isinstance(model, VanillaGNN):
                 output = model(data.x, adjacency)
-            elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT):
+            elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT) or isinstance(model, GAT_Arxiv):
                 output = model(data.x, data.edge_index)
             elif isinstance(model, MLP):
                 output = model(data.x)
@@ -208,7 +208,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                     adj = to_dense_adj(batch.edge_index)[0]
                     adj = adj + torch.eye(len(adj), device=adj.device)
                     output = model(batch.x, adj)
-                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT)):
+                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv)):
                     output = model(batch.x, batch.edge_index)
                 elif isinstance(model, MLP):
                     output = model(batch.x)

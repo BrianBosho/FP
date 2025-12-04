@@ -8,17 +8,18 @@ wandb_project: "FGL4-Ogbn-Arxiv"  # Dataset-specific wandb project
 
 # ogbn-arxiv-specific experiment parameters
 num_clients: [10]
-num_rounds: 200
+num_rounds: 5
 beta: [1,  10000]
 lr: 0.005
 optimizer: Adam
-hop: 2
+hop: 1
 save_results: true
 use_wandb: true  # Enable wandb for this experiment
 data_loading: [full, zero_hop, adjacency, diffusion, chebyshev-diffusion]  # Use full data loading strategy for ogbn-arxiv
-models: [GCN]
-repetitions: 3
+models: [GAT]
+repetitions: 1
 use_pe: [true]
+use_unified_model: false
 
 
 
@@ -36,6 +37,14 @@ model_architecture:
     num_layers: 3          # Can change to 2, 4, 5, etc.
     dropout: 0.5           # Can change to 0.3, 0.6, etc.
     normalization: "batch" # Can change to "layer", "group", or "none"
+  GAT_Arxiv:
+    hidden_dim: 256        # Can change to 128, 512, etc.
+    num_layers: 3          # Can change to 2, 4, 5, etc.
+    dropout: 0.5           # Can change to 0.3, 0.6, etc.
+    normalization: "batch" # Can change to "layer", "group", or "none"
+    heads_hidden: 4        # Number of attention heads in hidden layers
+    heads_out: 6           # Number of attention heads in output layer
+    num_heads: 8           # For compatibility with unified GAT model
 
 # Override training hyperparameters for ogbn-arxiv
 training:
@@ -46,4 +55,4 @@ training:
   patience: 15  # Early stopping patience for larger dataset
 
 # nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config_2hop.out 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > ogbn-arxiv_config_gat_test.out 2>&1 &

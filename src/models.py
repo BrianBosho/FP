@@ -57,9 +57,16 @@ def get_model_config(cfg, model_type, dataset_name=None):
     # For ogbn-arxiv: check for GCN_arxiv settings when using GCN
     if dataset_name == 'ogbn-arxiv' and model_type == 'GCN' and 'GCN_arxiv' in model_arch:
         config.update(model_arch['GCN_arxiv'])
+    # For ogbn-arxiv: check for GAT_Arxiv settings when using GAT
+    elif dataset_name == 'ogbn-arxiv' and model_type == 'GAT' and 'GAT_Arxiv' in model_arch:
+        config.update(model_arch['GAT_Arxiv'])
     # For Pubmed: check for PubmedGAT settings when using GAT
     elif dataset_name == 'Pubmed' and model_type == 'GAT' and 'PubmedGAT' in model_arch:
         config.update(model_arch['PubmedGAT'])
+    
+    # Include use_unified_model flag from config if present
+    if 'use_unified_model' in cfg:
+        config['use_unified_model'] = cfg['use_unified_model']
     
     return config
 

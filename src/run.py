@@ -1,7 +1,7 @@
 import torch
 import ray
 from src.client import FLClient
-from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT
+from src.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 from src.server import Server
 import pandas as pd
 from src.utils.utils import load_config
@@ -119,7 +119,41 @@ def instantiate_model(model_type, num_features, num_classes, device, dataset_nam
             return model.to(DEVICE)
             
     elif model_type == "GAT":
-        if dataset_name == "Pubmed":
+        if dataset_name == "ogbn-arxiv":
+            # Use GAT_Arxiv with arxiv-specific configuration (similar to GCN_arxiv)
+            # Default to False to use GAT_Arxiv (not unified GAT)
+            use_unified_gat = model_config.get('use_unified_model', False)
+            
+            if use_unified_gat:
+                model = GAT(
+                    num_features,
+                    model_config.get('hidden_dim', 256),
+                    num_classes,
+                    heads=model_config.get('num_heads', 8),
+                    dropout=model_config.get('dropout', 0.5),
+                    num_layers=model_config.get('num_layers', 3),
+                    normalization=model_config.get('normalization', 'batch')
+                )
+                print(f"Model: GAT (unified, ogbn-arxiv config: hidden_dim={model_config.get('hidden_dim', 256)}, "
+                      f"num_layers={model_config.get('num_layers', 3)}, "
+                      f"dropout={model_config.get('dropout', 0.5)}, "
+                      f"normalization={model_config.get('normalization', 'batch')})")
+            else:
+                # Fallback to GAT_Arxiv if explicitly requested
+                model = GAT_Arxiv(
+                    input_dim=num_features,
+                    hidden_dim=model_config.get('hidden_dim', 256),
+                    output_dim=num_classes,
+                    dropout=model_config.get('dropout', 0.5),
+                    num_layers=model_config.get('num_layers', 3),
+                    normalization=model_config.get('normalization', 'batch'),
+                    heads_hidden=model_config.get('heads_hidden', 4),
+                    heads_out=model_config.get('heads_out', 6)
+                )
+                print(f"Model: GAT_Arxiv (separate class: hidden_dim={model_config.get('hidden_dim', 256)}, "
+                      f"num_layers={model_config.get('num_layers', 3)})")
+            return model.to(DEVICE)
+        elif dataset_name == "Pubmed":
             model = PubmedGAT(
                 num_features, 
                 model_config.get('hidden_dim', 8),

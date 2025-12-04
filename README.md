@@ -150,6 +150,23 @@ wandb_mode: "online"      # "online", "offline", or "disabled"
   wandb_mode: "offline"
   ```
 
+### Secure WandB Configuration
+
+To prevent exposing your WandB API key, use environment variables. We recommend using a `.env` file (which is gitignored).
+
+1. Create a `.env` file in the `federated-gnn/` directory (copy from template):
+   ```bash
+   cp env.template .env
+   ```
+
+2. Edit `.env` and add your API key:
+   ```bash
+   WANDB_API_KEY=your_actual_api_key_here
+   WANDB_PROJECT=FGL4
+   ```
+
+The system will automatically load these variables when running experiments.
+
 ## Finding and Analyzing Results
 
 Experiment results are saved in the specified `results_dir` with the following structure:

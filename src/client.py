@@ -1,6 +1,6 @@
 import ray
 from src.train import train, evaluate, test, train_with_minibatch, evaluate_with_minibatch, test_with_minibatch
-from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts, PubmedGAT
+from src.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 import torch
 import sys
 import gc
@@ -124,7 +124,34 @@ class FLClient:
                 ).to(self.cpu_device)
                 
         elif model_type == "GAT":
-            if self.dataset_name == "Pubmed":
+            if self.dataset_name == "ogbn-arxiv":
+                # Use GAT_Arxiv with arxiv-specific configuration (similar to GCN_arxiv)
+                # Default to False to use GAT_Arxiv (not unified GAT)
+                use_unified_gat = model_config.get('use_unified_model', False)
+                
+                if use_unified_gat:
+                    self.model = GAT(
+                        self.input_dim,
+                        model_config.get('hidden_dim', 256),
+                        dataset.num_classes,
+                        heads=model_config.get('num_heads', 8),
+                        dropout=model_config.get('dropout', 0.5),
+                        num_layers=model_config.get('num_layers', 3),
+                        normalization=model_config.get('normalization', 'batch')
+                    ).to(self.cpu_device)
+                else:
+                    # Fallback to GAT_Arxiv if explicitly requested
+                    self.model = GAT_Arxiv(
+                        input_dim=self.input_dim,
+                        hidden_dim=model_config.get('hidden_dim', 256),
+                        output_dim=dataset.num_classes,
+                        dropout=model_config.get('dropout', 0.5),
+                        num_layers=model_config.get('num_layers', 3),
+                        normalization=model_config.get('normalization', 'batch'),
+                        heads_hidden=model_config.get('heads_hidden', 4),
+                        heads_out=model_config.get('heads_out', 6)
+                    ).to(self.cpu_device)
+            elif self.dataset_name == "Pubmed":
                 self.model = PubmedGAT(
                     self.input_dim,
                     model_config.get('hidden_dim', 8),
