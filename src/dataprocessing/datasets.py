@@ -11,18 +11,21 @@ import yaml
 from pathlib import Path
 
 
-def _find_repo_root(start: Path) -> Path:
-    """
-    Find repo root by searching for `conf/base.yaml` up the directory tree.
-    This is intentionally local (no `src.*` imports) to keep backward compatibility
-    when this module is imported as `dataprocessing.datasets` (cwd=src).
-    """
-    start = start.resolve()
-    for p in [start, *start.parents]:
-        if (p / "conf" / "base.yaml").exists():
-            return p
-    # Fallback: src/dataprocessing/datasets.py -> src/dataprocessing -> src -> repo root
-    return start.parents[2]
+try:
+    # Preferred when `src/` is importable as a package
+    from src.utils.project_paths import find_repo_root as _find_repo_root
+except ImportError:
+    def _find_repo_root(start: Path) -> Path:
+        """
+        Backward compatibility: if running from within `src/` and `src.*` imports fail,
+        find repo root by searching for `conf/base.yaml` up the directory tree.
+        """
+        start = start.resolve()
+        for p in [start, *start.parents]:
+            if (p / "conf" / "base.yaml").exists():
+                return p
+        # Fallback: src/dataprocessing/datasets.py -> src/dataprocessing -> src -> repo root
+        return start.parents[2]
 
 
 def load_config():

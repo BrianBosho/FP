@@ -32,16 +32,20 @@ import gc
 from pathlib import Path
 
 
-def _find_repo_root(start: Path) -> Path:
-    """
-    Find repo root by searching for `conf/base.yaml` up the directory tree.
-    Local fallback keeps compatibility if this file is executed from within `src/`.
-    """
-    start = start.resolve()
-    for p in [start, *start.parents]:
-        if (p / "conf" / "base.yaml").exists():
-            return p
-    return start.parents[1]
+try:
+    # Preferred when `src/` is importable as a package
+    from src.utils.project_paths import find_repo_root as _find_repo_root
+except ImportError:
+    def _find_repo_root(start: Path) -> Path:
+        """
+        Backward compatibility: if running from within `src/` and `src.*` imports fail,
+        find repo root by searching for `conf/base.yaml` up the directory tree.
+        """
+        start = start.resolve()
+        for p in [start, *start.parents]:
+            if (p / "conf" / "base.yaml").exists():
+                return p
+        return start.parents[1]
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"DEVICE: {DEVICE}")

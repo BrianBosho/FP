@@ -202,56 +202,56 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 
 ### Phase A checklist — Repo hygiene + reproducibility (no code moves)
 
-- [ ] **A0 (decision)**: Pick canonical directories
-  - [ ] Canonical run output root chosen (`runs/` recommended)
+- [x] **A0 (decision)**: Pick canonical directories
+  - [x] Canonical run output root chosen (`runs/` recommended)
   - [ ] Canonical data root chosen (`data/` or `datasets/`)
-- [ ] **A1**: Standardize generated output roots in configs/docs
-  - [ ] Document where outputs go and what is generated vs tracked
-- [ ] **A2**: Make default output paths repo-local (no `../results/...` defaults)
-  - [ ] Default `results_dir` points inside `federated-gnn/` (e.g., `runs/experiments`)
-  - [ ] CLI `--results_dir` override still works
-  - [ ] YAML `results_dir` override still works
+- [x] **A1**: Standardize generated output roots in configs/docs
+  - [x] Document where outputs go and what is generated vs tracked
+- [x] **A2**: Make default output paths repo-local (no `../results/...` defaults)
+  - [x] Default `results_dir` points inside `federated-gnn/` (e.g., `runs/experiments`)
+  - [x] CLI `--results_dir` override still works
+  - [x] YAML `results_dir` override still works
   - [ ] Optional env override (e.g., `FEDGNN_RUNS_DIR`) supported (if adopted)
-- [ ] **A3**: Remove absolute paths from code defaults
-  - [ ] No defaults reference `/home/...` (or any machine-specific path)
-- [ ] **A4**: Add/confirm dependency management
-  - [ ] `requirements.txt` *or* `pyproject.toml` *or* `environment.yml` exists and is documented
-  - [ ] `README.md` install instructions match the chosen method
-- [ ] **A5 (optional)**: Add a tiny “smoke run” config + command
-  - [ ] Single command that produces outputs under `runs/` and completes quickly
+- [x] **A3**: Remove absolute paths from code defaults
+  - [x] No defaults reference `/home/...` (or any machine-specific path)
+- [x] **A4**: Add/confirm dependency management
+  - [x] `requirements.txt` *or* `pyproject.toml` *or* `environment.yml` exists and is documented
+  - [x] `README.md` install instructions match the chosen method
+- [x] **A5 (optional)**: Add a tiny “smoke run” config + command
+  - [x] Single command that produces outputs under `runs/` and completes quickly
 
 **Phase A done when**
-- [ ] A clean clone can install dependencies with one documented command.
-- [ ] A default experiment run writes only under `federated-gnn/runs/` (and/or `federated-gnn/results/`), not parent directories.
+- [x] A clean clone can install dependencies with one documented command.
+- [x] A default experiment run writes only under `federated-gnn/runs/` (and/or `federated-gnn/results/`), not parent directories.
 
 ### Phase B checklist — Stop tracking generated artifacts (git cleanup)
 
-- [ ] **B1**: `.gitignore` is directory/pattern focused (not “ignore all `*.json`/`*.csv`/`*.txt`”)
-  - [ ] `wandb/`, `runs/`, `results/`, `results_summary/`, `logs/`, `training_logs/` ignored
-  - [ ] `*.out`, `nohup*.out`, `*.log` ignored
-  - [ ] Checkpoints/artifacts ignored (`*.pt`, `*.pth`, `*.ckpt`, etc.)
-- [ ] **B2**: Remove already-tracked artifacts from git index (preserve local copies)
-  - [ ] `git rm --cached` applied to any tracked generated dirs/files
-  - [ ] Commit created that removes them from tracking
-- [ ] **B3 (optional)**: Add a safe cleanup helper
-  - [ ] `scripts/clean_artifacts.sh` (or python) exists
-  - [ ] Supports `--dry-run`
-  - [ ] Only deletes known generated directories
+- [x] **B1**: `.gitignore` is directory/pattern focused (not “ignore all `*.json`/`*.csv`/`*.txt`”)
+  - [x] `wandb/`, `runs/`, `results/`, `results_summary/`, `logs/`, `training_logs/` ignored
+  - [x] `*.out`, `nohup*.out`, `*.log` ignored
+  - [x] Checkpoints/artifacts ignored (`*.pt`, `*.pth`, `*.ckpt`, etc.)
+- [x] **B2**: Remove already-tracked artifacts from git index (preserve local copies)
+  - [x] `git rm --cached` applied to any tracked generated dirs/files (completed previously; currently none tracked)
+  - [x] Commit created that removes them from tracking (completed previously; currently none tracked)
+- [x] **B3 (optional)**: Add a safe cleanup helper
+  - [x] `scripts/clean_artifacts.sh` (or python) exists
+  - [x] Supports `--dry-run`
+  - [x] Only deletes known generated directories
 
 **Phase B done when**
-- [ ] After running experiments, `git status` is clean (generated files are ignored and not tracked).
+- [x] After running experiments, `git status` is clean (generated files are ignored and not tracked).
 
 ### Phase C checklist — Package + module refactor (keep old entrypoints working)
 
 - [ ] **C0 (decision)**: Choose package namespace (e.g., `fedgnn`)
 - [ ] **C1**: Create package skeleton under `src/<pkg_name>/`
   - [ ] `data/`, `fl/`, `models/`, `experiments/`, `analysis/`, `utils/` exist (as needed)
-- [ ] **C2**: Add compatibility shims
-  - [ ] `python -m src.experiments.run_experiments --config conf/...` still works
-  - [ ] Legacy imports continue to resolve (re-export/alias strategy)
-- [ ] **C3**: Centralize paths + configuration helpers
-  - [ ] Single module for repo root / config resolution / output roots
-  - [ ] No more `..`-based output pathing
+- [x] **C2**: Add compatibility shims
+  - [x] `python -m src.experiments.run_experiments --config conf/...` still works
+  - [x] Legacy imports continue to resolve (re-export/alias strategy)
+- [x] **C3**: Centralize paths + configuration helpers
+  - [x] Single module for repo root / config resolution / output roots
+  - [x] No more `..`-based output pathing (in `src/`)
 - [ ] **C4**: Move code incrementally (one domain at a time)
   - [ ] `utils` migrated (or wrapped)
   - [ ] `dataprocessing` migrated (or wrapped)
