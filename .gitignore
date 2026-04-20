@@ -27,11 +27,11 @@ ehthumbs.db
 ############################
 # Data directories (local)
 ############################
-datasets/
-processed/
-raw/
-data/
-your_data_root/
+/datasets/
+/processed/
+/raw/
+/data/
+/your_data_root/
 
 ############################
 # Experiment outputs (generated)
