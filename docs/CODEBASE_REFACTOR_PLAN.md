@@ -274,7 +274,7 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 - [ ] **D2**: Promote reusable analysis logic into modules
   - [x] Shared parsing/plotting utilities are importable python modules
 - [ ] **D3 (optional)**: Curated export path
-  - [ ] `reports/` exists (tracked) only for intentionally curated artifacts
+  - [x] `reports/` exists (tracked) only for intentionally curated artifacts
 
 **Phase D done when**
 - [ ] Notebooks run end-to-end without generating tracked junk.
