@@ -272,7 +272,7 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
   - [x] Notebooks live in `notebooks/` (tracked)
   - [x] Notebook outputs go to `runs/` (ignored) unless explicitly curated
 - [ ] **D2**: Promote reusable analysis logic into modules
-  - [ ] Shared parsing/plotting utilities are importable python modules
+  - [x] Shared parsing/plotting utilities are importable python modules
 - [ ] **D3 (optional)**: Curated export path
   - [ ] `reports/` exists (tracked) only for intentionally curated artifacts
 
