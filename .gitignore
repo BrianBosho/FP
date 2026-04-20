@@ -1,99 +1,84 @@
-# Dataset folders (actual data)
-datasets/
-!datasets/__init__.py
-
-# Processed data
-processed/
-raw/
-
-# Notebook data
-notebooks/Cora/
-notebooks/processed/
-notebooks/raw/
-
-se # Results directories
-results/
-**/results/
-Central_results*/
-New_results/
-old_results/
-results_*/
-result_processing/
-results_archived/
-results_1_client/
-extracted_results.xlsx
-results_summary/
-artifacts/
-data/
-./env
-wandb/
-
-# Logs and output files
-logs/
-*.log
-training_logs/
-nohup.out
-nohup*.out
-old_nohup.out
-*.out
-
-# Results and data files
-*.json
-*.csv
-results.csv
-*.txt
-*.pdf
-*.docx
-*.doc
-*.xls
-*.xlsx
-*.png
-
-# Python
+############################
+# Python / environments
+############################
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Jupyter Notebook
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
-
-# VS Code
-.vscode/
-
-# Environment
 .env
 .venv
 env/
 venv/
 ENV/
 
-# OS generated files
+############################
+# Editor / OS
+############################
+.vscode/
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
 .DS_Store
-.DS_Store?
 ._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-archive/
-src/results.csv
-wandb/
+ehthumbs.db
+
+############################
+# Data directories (local)
+############################
+datasets/
+processed/
+raw/
+data/
 your_data_root/
+
+############################
+# Experiment outputs (generated)
+############################
+wandb/
+logs/
+training_logs/
+runs/
+results/
+results_summary/
+archive/
+artifacts/**
+
+nohup.out
+nohup*.out
+*.out
+*.log
+
+# Common single-file outputs that should never be tracked
+results.csv
+
+# Common ML artifacts
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.npz
+*.npy
+*.pkl
+*.pickle
+*.parquet
+*.feather
+
+# Large media / documents (usually generated)
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+############################
+# Allow-list exceptions
+############################
+!artifacts/
+!artifacts/generate_branch_diff_report.sh
+
+############################
+# Known misplaced local artifacts (keep `src/` code-only)
+############################
+src/*.png
