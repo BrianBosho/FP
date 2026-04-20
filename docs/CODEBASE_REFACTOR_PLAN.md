@@ -243,9 +243,9 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 
 ### Phase C checklist — Package + module refactor (keep old entrypoints working)
 
-- [ ] **C0 (decision)**: Choose package namespace (e.g., `fedgnn`)
-- [ ] **C1**: Create package skeleton under `src/<pkg_name>/`
-  - [ ] `data/`, `fl/`, `models/`, `experiments/`, `analysis/`, `utils/` exist (as needed)
+- [x] **C0 (decision)**: Choose package namespace (e.g., `fedgnn`)
+- [x] **C1**: Create package skeleton under `src/<pkg_name>/`
+  - [x] `data/`, `fl/`, `models/`, `experiments/`, `analysis/`, `utils/` exist (as needed)
 - [x] **C2**: Add compatibility shims
   - [x] `python -m src.experiments.run_experiments --config conf/...` still works
   - [x] Legacy imports continue to resolve (re-export/alias strategy)
