@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-from run import load_configuration, main_experiment
+try:
+    # Preferred: run as `python -m src.experiments.run_simple`
+    from src.run import load_configuration, main_experiment
+    from src.utils.utils import load_config
+except ImportError:  # Backward compatibility: run from within `src/`
+    from run import load_configuration, main_experiment
+    from utils.utils import load_config
 import os
 import ray
 import argparse
@@ -10,7 +16,6 @@ from tabulate import tabulate
 from datetime import datetime
 import time
 import shutil
-from utils.utils import load_config
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run a simple federated GNN experiment from a YAML config')
@@ -140,7 +145,10 @@ def run_simple_experiment(args):
     )
     
     # Create a monkey patch for save_results_to_csv in run_utils
-    from utils.run_utils import save_results_to_csv as original_save_func
+    try:
+        from src.utils.run_utils import save_results_to_csv as original_save_func
+    except ImportError:
+        from utils.run_utils import save_results_to_csv as original_save_func
     
     def patched_save_func(results, filename=None):
         # Use the original function but with our custom filename
@@ -148,7 +156,10 @@ def run_simple_experiment(args):
         return original_save_func(results, csv_filename)
     
     # Apply the monkey patch to the imported function
-    import utils.run_utils as run_utils
+    try:
+        import src.utils.run_utils as run_utils
+    except ImportError:
+        import utils.run_utils as run_utils
     run_utils.save_results_to_csv = patched_save_func
     
     # Print experiment header

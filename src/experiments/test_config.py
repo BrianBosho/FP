@@ -2,8 +2,13 @@
 
 import yaml
 import os
-from dataprocessing.partitioning import partition_data
-from dataprocessing.datasets import GraphDataset
+try:
+    # Preferred: run as `python -m src.experiments.test_config`
+    from src.dataprocessing.partitioning import partition_data
+    from src.dataprocessing.datasets import GraphDataset
+except ImportError:  # Backward compatibility: run from within `src/`
+    from dataprocessing.partitioning import partition_data
+    from dataprocessing.datasets import GraphDataset
 
 def test_config_passing():
     """
