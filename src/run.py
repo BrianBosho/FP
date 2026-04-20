@@ -29,11 +29,27 @@ from src.utils.run_utils import (
     generate_experiment_output
 )
 import gc
+from pathlib import Path
+
+
+def _find_repo_root(start: Path) -> Path:
+    """
+    Find repo root by searching for `conf/base.yaml` up the directory tree.
+    Local fallback keeps compatibility if this file is executed from within `src/`.
+    """
+    start = start.resolve()
+    for p in [start, *start.parents]:
+        if (p / "conf" / "base.yaml").exists():
+            return p
+    return start.parents[1]
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(f"DEVICE: {DEVICE}")
 
-def load_configuration(config_path="/home/brian_bosho/FP/FP/federated-gnn/conf/base.yaml"):
+def load_configuration(config_path=None):
+    if config_path is None:
+        repo_root = _find_repo_root(Path(__file__).resolve())
+        config_path = str(repo_root / "conf" / "base.yaml")
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
 

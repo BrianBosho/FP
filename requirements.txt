@@ -1,0 +1,22 @@
+# Core
+numpy
+pandas
+pyyaml
+omegaconf
+tabulate
+tqdm
+python-dotenv
+
+# Training / FL runtime
+torch
+ray
+
+# Graph ML
+torch-geometric
+ogb
+
+# Experiment tracking (optional via config)
+wandb
+
+# Common utilities
+scikit-learn

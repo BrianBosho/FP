@@ -11,11 +11,24 @@ import yaml
 from pathlib import Path
 
 
+def _find_repo_root(start: Path) -> Path:
+    """
+    Find repo root by searching for `conf/base.yaml` up the directory tree.
+    This is intentionally local (no `src.*` imports) to keep backward compatibility
+    when this module is imported as `dataprocessing.datasets` (cwd=src).
+    """
+    start = start.resolve()
+    for p in [start, *start.parents]:
+        if (p / "conf" / "base.yaml").exists():
+            return p
+    # Fallback: src/dataprocessing/datasets.py -> src/dataprocessing -> src -> repo root
+    return start.parents[2]
+
+
 def load_config():
-    # Get the project root directory (parent of conf/)
-    project_root = Path(__file__).parent.parent
-    # config_path = project_root / "conf" / "base.yaml"
-    config_path = "/home/brian_bosho/FP/FP/federated-gnn/conf/base.yaml"
+    # Repo root contains `conf/base.yaml`
+    project_root = _find_repo_root(Path(__file__).resolve())
+    config_path = project_root / "conf" / "base.yaml"
     
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)

@@ -11,7 +11,7 @@ pip install -r requirements.txt
 # 2. Run experiment with Cora dataset
 python -m src.experiments.run_experiments --config conf/cora_config.yaml
 
-# 3. View results in results/cora/ directory
+# 3. View results in runs/experiments/ (default) or your configured results_dir
 ```
 
 That's it! The experiment will train a federated GNN model and save results automatically.
@@ -169,7 +169,7 @@ The system will automatically load these variables when running experiments.
 
 ## Finding and Analyzing Results
 
-Experiment results are saved in the specified `results_dir` with the following structure:
+Experiment results are saved in the specified `results_dir` (default: `runs/experiments/`) with the following structure:
 
 ```
 results_dir/
@@ -177,11 +177,32 @@ results_dir/
 │   ├── results_*.json          # Detailed experiment results in JSON format
 │   ├── results_*.txt           # Human-readable experiment output
 │   └── training_*.csv          # Training logs with client-wise metrics
-└── summary_results_*.json      # Summary of all experiments in JSON format
-└── summary_results_*.txt       # Human-readable summary of all experiments
 ```
 
-For ablation studies, a summary file is also created in the parent directory that contains aggregated results from all experiment combinations.
+Summaries are written under `results_summary/`:
+
+```
+results_summary/
+└── <results_dir_name>/
+    ├── summary_results_*.json
+    └── summary_results_*.txt
+```
+
+For ablation studies, the summary aggregates all experiment combinations that ran in the invocation.
+
+### Quick smoke (paths only)
+
+Generate an example config (no training):
+
+```bash
+python -m src.experiments.run_experiments --config generate_example
+```
+
+Run a small experiment and confirm outputs go under `runs/` (may take a few minutes depending on your setup):
+
+```bash
+python -m src.experiments.run_experiments --config conf/cora_config.yaml --clients 1 --rounds 1 --epochs 1 --beta 1 --results_dir runs/smoke
+```
 
 The key metrics reported are:
 - Average Global Result: Test accuracy of the global model

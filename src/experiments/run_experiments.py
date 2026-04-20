@@ -12,6 +12,7 @@ from datetime import datetime
 import time
 import shutil
 from src.utils.utils import load_config
+from src.utils.project_paths import resolve_results_and_summary_dirs
 import wandb
 
 def parse_arguments():
@@ -185,7 +186,9 @@ def run_experiments(args):
         "lr": 0.5,
         "optimizer": "SGD",
         "decay": 0.0005,
-        "results_dir": "../results/experiments",
+        # Default is repo-local to avoid polluting parent directories.
+        # Users can still override via YAML `results_dir` or CLI `--results_dir`.
+        "results_dir": "runs/experiments",
         "save_results": False,
         "hop": 1,
         "fulltraining_flag": False
@@ -253,7 +256,10 @@ def run_experiments(args):
     datasets = OmegaConf.to_container(cfg["datasets"], resolve=True)
     data_loading_options = OmegaConf.to_container(cfg["data_loading"], resolve=True)
     model_types = OmegaConf.to_container(cfg["models"], resolve=True)
-    results_dir = cfg["results_dir"]
+    # Resolve results_dir and summary_dir deterministically
+    resolved_paths = resolve_results_and_summary_dirs(cfg.get("results_dir"))
+    results_dir = str(resolved_paths.results_dir)
+    cfg["results_dir"] = results_dir
     save_results = cfg["save_results"]
     hop = cfg["hop"]
     fulltraining_flag = cfg["fulltraining_flag"]
@@ -267,11 +273,9 @@ def run_experiments(args):
     
     # Create main results directory
     os.makedirs(results_dir, exist_ok=True)
-    
+
     # Create summary results directory
-    results_dir = os.path.abspath(cfg["results_dir"])
-    summary_dir = os.path.join(os.path.dirname(results_dir), "../results_summary", os.path.basename(results_dir))
-    summary_dir = os.path.abspath(summary_dir)
+    summary_dir = str(resolved_paths.summary_dir)
     os.makedirs(summary_dir, exist_ok=True)
     
     # Store all experiment results
@@ -510,7 +514,7 @@ def create_example_config(output_path="experiment_config_example.yaml"):
         "datasets": ["Cora", "Citeseer"],
         "data_loading": ["full", "adjacency", "zero_hop"],
         "models": ["GCN"],
-        "results_dir": "../results/yaml_experiment_results",
+        "results_dir": "runs/yaml_experiment_results",
         "save_results": True,
         "hop": 1,
         "fulltraining_flag": False
