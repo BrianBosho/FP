@@ -260,7 +260,7 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 - [ ] **C5 (recommended)**: Add minimal tests for invariants
   - [x] Config load/merge test
   - [x] Output directory creation/path resolution test
-  - [ ] CLI parse/help smoke test
+  - [x] CLI parse/help smoke test
 
 **Phase C done when**
 - [ ] New code lives under `src/<pkg_name>/` with clean imports.
