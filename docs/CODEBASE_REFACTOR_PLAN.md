@@ -28,6 +28,18 @@
 - **Git ignore patterns were previously too broad**
   - Ignoring all `*.json`, `*.csv`, `*.txt`, etc. can accidentally hide files you *do* want to track (configs, docs, small fixtures).
 
+**Status refresh (2026-04-21):**
+
+- `src/fedgnn/` exists, but its core modules are compatibility wrappers over
+  legacy `src.*` modules. This is transition scaffolding, not a completed
+  package refactor.
+- `bench/reports/...` contains tracked CSV/JSON/Markdown benchmark outputs.
+  Decide whether these are curated reports or generated artifacts and document
+  that convention explicitly.
+- A local `datasets` symlink can still appear as untracked because `/datasets/`
+  ignores directories but not the symlink path itself. Add `/datasets` if local
+  symlinks are expected.
+
 ---
 
 ## Phase A — Repo hygiene + reproducibility (no code moves)
@@ -253,10 +265,11 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
   - [x] Single module for repo root / config resolution / output roots
   - [x] No more `..`-based output pathing (in `src/`)
 - [ ] **C4**: Move code incrementally (one domain at a time)
-  - [ ] `utils` migrated (or wrapped)
-  - [ ] `dataprocessing` migrated (or wrapped)
-  - [ ] `models` migrated (or wrapped)
-  - [ ] `client/server/run/experiments` migrated (or wrapped)
+  - [ ] `utils` migrated to `src/fedgnn/utils` as source of truth (currently partly wrapped)
+  - [ ] `dataprocessing` migrated to `src/fedgnn/data` as source of truth (currently wrapped)
+  - [ ] `models` migrated to `src/fedgnn/models` as source of truth (currently wrapped)
+  - [ ] `client/server/run/experiments` migrated to `src/fedgnn/fl` and
+        `src/fedgnn/experiments` as source of truth (currently wrapped)
 - [ ] **C5 (recommended)**: Add minimal tests for invariants
   - [x] Config load/merge test
   - [x] Output directory creation/path resolution test
@@ -264,6 +277,8 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 
 **Phase C done when**
 - [ ] New code lives under `src/<pkg_name>/` with clean imports.
+- [ ] Legacy `src.*` modules are thin wrappers importing from `fedgnn.*`, not
+      the other way around.
 - [ ] Legacy entrypoints still work unchanged.
 
 ### Phase D checklist — Notebooks + analysis consolidation
@@ -296,4 +311,3 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
   - **Mitigation:** default to `--dry-run`, require explicit confirmation flags, only delete known generated dirs.
 - **Risk:** configs/results confusion (tracked vs untracked)  
   - **Mitigation:** keep configs in `conf/` (tracked), keep outputs in `runs/` (ignored), document the convention in `README.md`.
-

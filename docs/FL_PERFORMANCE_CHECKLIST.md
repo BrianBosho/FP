@@ -15,6 +15,10 @@ For each item:
 
 Use this file as the working tracker; link PRs next to each item.
 
+**Current review update (2026-04-21):** Some items have partial code in place,
+but none of the high-impact `[~]` items should be treated as publication-ready
+until the remaining notes under each item are resolved.
+
 ---
 
 ## A. Correctness bugs that silently skew accuracy (fix first)
@@ -22,7 +26,7 @@ Use this file as the working tracker; link PRs next to each item.
 These are bugs where a code path is either wrong or broken, and results
 you have already produced may reflect the bug rather than the science.
 
-- [ ] **A1. `GAT_Arxiv` missing from `evaluate`/`test` (train.py §2.3)**
+- [x] **A1. `GAT_Arxiv` missing from `evaluate`/`test` (train.py §2.3)**
   - Symptom: any run with `GAT_Arxiv` crashes on validation or test.
     If no crash observed, confirm which GAT class is actually used on
     `ogbn-arxiv` (config uses `use_unified_model: false` → `GAT_Arxiv`).
@@ -32,7 +36,7 @@ you have already produced may reflect the bug rather than the science.
     `evaluate`, `test`, `evaluate_with_minibatch`, `test_with_minibatch`.
   - Confidence: High.
 
-- [ ] **A2. `PubmedGAT` output layer produces `num_classes * 8` logits
+- [x] **A2. `PubmedGAT` output layer produces `num_classes * 8` logits
       (models.py §7.1)**
   - Symptom: final layer uses `heads=8` with default `concat=True`.
     `log_softmax` spreads probability across 8× as many columns as classes.
@@ -41,15 +45,17 @@ you have already produced may reflect the bug rather than the science.
   - Effort: Trivial. Either `heads=1`, or `heads=8, concat=False`.
   - Confidence: High.
 
-- [ ] **A3. `page_rank` propagation mode references undefined
-      `current_node` (propagation_functions.py §5.3)**
-  - Symptom: any run with `data_loading: page_rank` crashes with
-    `NameError`.
-  - Impact: High if ever used; none if never used. Confirm against logs.
-  - Effort: Trivial.
+- [x] **A3. `page_rank` propagation mode was crashy and is still not
+      publication-scale (propagation_functions.py §5.3)**
+  - Current status: the old `current_node` `NameError` is fixed. Added a
+    size guard that raises `ValueError` for graphs >50k nodes (use
+    `random_walk` or `chebyshev_diffusion` instead).
+  - Impact: High if ever used on real graph sizes; it may OOM or be
+    prohibitively slow.
+  - Effort: Easy for a small-graph guard; Medium for a sparse implementation.
   - Confidence: High.
 
-- [ ] **A4. Early‑stopping logic resets patience against stale bests
+- [x] **A4. Early‑stopping logic resets patience against stale bests
       (run.py §3.1)**
   - Symptom: `best_eval_loss` is only updated in the `elif`; `best_eval_acc`
     only in the `if`. Patience can reset spuriously, stretching training
@@ -59,7 +65,7 @@ you have already produced may reflect the bug rather than the science.
   - Effort: Trivial — pick loss as sole criterion, or track both cleanly.
   - Confidence: High.
 
-- [ ] **A5. Val/test mask division by zero on highly non‑IID shards
+- [x] **A5. Val/test mask division by zero on highly non‑IID shards
       (train.py §2.4)**
   - Symptom: `acc = int(correct) / int(data.val_mask.sum())` when a
     client has zero val/test nodes → `ZeroDivisionError` or `inf` acc.
@@ -74,52 +80,47 @@ you have already produced may reflect the bug rather than the science.
 These directly change the fixed point of the federated training and are
 the most likely sources of systematic accuracy gaps vs. literature.
 
-- [ ] **B1. Unweighted averaging instead of FedAvg (server.py §1.1)**
-  - Symptom: `p.data /= self.num_of_trainers` — ignores `n_k`.
+- [~] **B1. Unweighted averaging instead of FedAvg (server.py §1.1)**
+  - Current status: `_aggregate_fedavg_weighted` and
+    `FLClient.get_num_train_samples()` exist, but `conf/base.yaml` still
+    defaults to `aggregation: "mean"`.
+  - Symptom: publication configs that do not opt in still use
+    `p.data /= self.num_of_trainers` and ignore `n_k`.
   - Impact: **High** under Dirichlet non‑IID (low β) where client sizes
     differ by orders of magnitude. Biases toward small clients.
-  - Effort: Easy. Add `aggregation: "mean" | "fedavg"` config flag; for
-    `fedavg`, collect `n_k` once via a new remote method and weight the
-    sum. Keep `"mean"` as default for backward compatibility.
+  - Effort: Easy. Add tests and publication configs/presets that use
+    `"fedavg_weighted"` by default. Keep `"mean"` only for legacy
+    reproduction.
   - Confidence: High.
 
-- [ ] **B2. Naive BatchNorm running‑stats averaging (server.py §1.3)**
-  - Symptom: float buffers (BN running mean/var) are summed across
-    clients and divided by `K`. Under non‑IID this is known to hurt.
+- [x] **B2. Naive BatchNorm running‑stats averaging (server.py §1.3)**
+  - Fixed: added `bn_fl_strategy: "average"` (legacy) or `"fedbn"` config.
+    When `"fedbn"`, BN running-mean/var are skipped during aggregation;
+    clients keep their own stats.
   - Impact: **High** for configs using `normalization: batch`
     (ogbn‑arxiv GCN_arxiv / GAT_Arxiv, GraphSAGEProducts).
-  - Effort: Medium. Options, from cheapest to most principled:
-    1. Switch FL models to `layer` / `group` norm (trivial, may lose
-       accuracy on arxiv).
-    2. Keep running stats per‑client, aggregate only `weight` + `bias`
-       (FedBN).
-    3. Apply SiloBN / HeteroBN.
+  - Effort: Medium.
   - Confidence: High.
 
-- [ ] **B3. `num_batches_tracked` becomes stale after round 1
+- [x] **B3. `num_batches_tracked` becomes stale after round 1
       (server.py §1.3)**
-  - Symptom: `zero_buffers()` only zeroes float buffers; non‑float
-    buffers are copied from the first client only when `mb.sum()==0`,
-    which is only true at round 0.
-  - Impact: Low to Medium. BN uses `num_batches_tracked` mainly for
-    momentum; stale values slowly drift running stats but are not
-    catastrophic.
-  - Effort: Trivial — explicitly copy from the first contributing client
-    each round.
+  - Fixed: non-float buffers are now always copied from the first client
+    each round (tracked via `first_client` flag), not only when `mb.sum()==0`.
+  - Impact: Low to Medium.
+  - Effort: Trivial.
   - Confidence: Medium.
 
-- [ ] **B4. Initial broadcast not synchronized (server.py §1.4)**
-  - Symptom: `broadcast_params(-1)` in `__init__` without `sync=True`.
-    In batched mode this can race with the first training submission.
+- [x] **B4. Initial broadcast not synchronized (server.py §1.4)**
+  - Fixed: `broadcast_params(-1, sync=True)` in `Server.__init__`.
   - Impact: Low to Medium — can bias round 0 per‑client training when
     `max_concurrent_clients < num_clients`.
   - Effort: Trivial.
   - Confidence: Medium.
 
-- [ ] **B5. Silent inclusion of failed clients in aggregation
+- [x] **B5. Silent inclusion of failed clients in aggregation
       (server.py §1.5)**
-  - Symptom: `train_client` returns `(0.0, 0.0)` on exception; `get_params`
-    still returns the pre‑training broadcast, which is averaged in.
+  - Fixed: `train_client` now returns `(loss, acc, success: bool)`. Failed
+    clients are filtered before aggregation with a warning.
   - Impact: Medium when clients OOM intermittently (observed in
     ogbn‑arxiv + diffusion runs).
   - Effort: Easy — return a success flag and filter before averaging.
@@ -184,18 +185,18 @@ This is the biggest subtle source of wrong numbers on FP + PE experiments.
     test size.
   - Confidence: High.
 
-- [ ] **C5. Train/eval seed inconsistency masks true variance
+- [~] **C5. Train/eval seed inconsistency masks true variance
       (train.py §2.5)**
-  - Symptom: `label_dirichlet_partition` seeds `np.random.seed(123)`,
-    every repetition gets the **same partition**. Mini‑batch paths seed
-    torch/np/python to 42 on every entry. Full‑batch path never seeds.
-    RFP unseeded.
+  - Current status: `experiment_seed` reaches partitioning, server model
+    initialization, client training, and per-client RFP. Remaining gaps:
+    default is `null`; repetitions do not derive distinct seeds; mini-batch
+    eval/test still call `set_seed(42)`; global PE is not seeded; result JSON
+    does not record all seed values.
   - Impact: **High on reported std**. Reported `std` is training‑noise
     only; partition variance hidden. Given how sensitive FL is to
     partitioning, the true std is likely much larger.
-  - Effort: Medium. Single `experiment_seed`, derive per‑repetition
-    `seed + run_idx`, thread into partitioning, RFP, model init, DataLoaders.
-    Keep defaults that reproduce current behavior.
+  - Effort: Medium. Derive per‑repetition `seed + run_idx`, avoid RNG mutation
+    in evaluation, seed global PE, and save seed provenance.
   - Confidence: High.
 
 ---
@@ -212,7 +213,8 @@ between configs/datasets very hard.
   - Effort: Trivial. Expose `grad_clip_norm` in `base.yaml`, default 1.0.
   - Confidence: Medium.
 
-- [ ] **D2. `patience_threshold=10` hardcoded (run.py)**
+- [x] **D2. `patience_threshold=10` hardcoded (run.py)**
+  - Fixed: now reads `early_stopping_patience` from config (default 10).
   - Impact: With `num_rounds=200` (Cora) this is fine; with
     `num_rounds=5` (ogbn‑arxiv) it is effectively disabled. Tied to A4.
   - Effort: Trivial. Expose `patience` in config.
@@ -247,8 +249,9 @@ comparisons (sweeps across β, propagation mode, etc.) unreliable.
 
 - [ ] **E1. `use_pe` list/scalar inconsistency in
       `run_experiments.py` (§9.1)**
-  - Symptom: scalar `use_pe: true` crashes the sweep loop; silent
-    regression when users edit dataset configs.
+  - Symptom: scalar `use_pe: true` crashes the sweep loop; the in-memory
+    default config also omits `use_pe`, so running without a YAML config can
+    hit a missing-key path.
   - Effort: Trivial. Wrap the same way as `num_clients`, `beta`, etc.
   - Confidence: High.
 
@@ -274,6 +277,10 @@ actually need.
 - [ ] F4. `GradScaler` instantiated even on CPU / `use_amp=false` (§2.6).
 - [ ] F5. Hardcoded `num_gpus=1/10` per actor, fixed `num_gpus=1` in Ray
       init (§2.1, §3.4).
+- [ ] F6. Reproducible environment is not pinned: `requirements.txt` leaves
+      critical versions unconstrained and does not explicitly list
+      `torch_sparse` / `torch_scatter`, while CLI smoke tests are skipped when
+      heavy deps are absent.
 
 ---
 
@@ -283,15 +290,16 @@ If time is limited, do these in order; each one independently improves
 the accuracy numbers you can trust.
 
 1. **A1, A2, A3** — stop crashes / obvious logit bugs. (<1 hour total)
-2. **C5 (seed plumbing)** — so every subsequent measurement reflects
+2. **A4, A5** — fix early stopping and empty-mask metrics before more runs.
+3. **C5 (seed plumbing)** — so every subsequent measurement reflects
    real variance. Trivial plumbing but unlocks meaningful error bars.
-3. **B1 (FedAvg weighting)** — single most likely source of a clean
+4. **B1 (FedAvg weighting)** — single most likely source of a clean
    accuracy jump at low β.
-4. **B2 (BN strategy)** — biggest win for ogbn‑arxiv / products configs.
-5. **C1, C2 (FP/PE consistency at eval time)** — realigns client training
+5. **B2 (BN strategy)** — biggest win for ogbn‑arxiv / products configs.
+6. **C1, C2 (FP/PE consistency at eval time)** — realigns client training
    and global evaluation.
-6. **A4, A5, B4, B5, C3, C4** — cleanups that tighten numbers.
-7. **D, E, F** — polish.
+7. **B4, B5, C3, C4** — cleanups that tighten numbers.
+8. **D, E, F** — infrastructure and reproducibility polish.
 
 ---
 

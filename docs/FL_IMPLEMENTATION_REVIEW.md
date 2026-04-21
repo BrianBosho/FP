@@ -1,6 +1,6 @@
 # Federated‑GNN Implementation Review
 
-**Scope:** `/home/brian_bosho/FP/FP/federated-gnn/src` (plus `conf/`)
+**Scope:** repo-local `src/` plus `conf/`
 **Files reviewed:** `run.py`, `server.py`, `client.py`, `train.py`, `models.py`,
 `dataprocessing/partitioning.py`, `dataprocessing/loaders.py`,
 `dataprocessing/data_utils.py`, `dataprocessing/propagation_functions.py`,
@@ -11,6 +11,24 @@
 This document is a rigorous, section‑by‑section review ordered by severity.
 Concrete fixes are suggested at the end; they are designed to be
 backward‑compatible per project convention.
+
+**Status refresh (2026-04-21):** This review remains valid as historical
+context, but several items are now partially implemented or have changed shape.
+Use `FL_PERFORMANCE_CHECKLIST.md` as the tracker and
+`FL_FIX_IMPLEMENTATION_PLAN.md` as the current implementation plan. Important
+refresh notes:
+
+- B1 weighted FedAvg has an opt-in implementation, but `aggregation: "mean"`
+  remains the default.
+- C5 seed plumbing is partial: partitioning, server model init, client training,
+  and per-client RFP read `experiment_seed`, but defaults/repetition/global-PE
+  gaps remain.
+- The old `page_rank` `current_node` `NameError` appears fixed, but the current
+  implementation is still dense and not publication-scale.
+- Summary directory resolution has been improved through
+  `src/utils/project_paths.py`.
+- The `src/fedgnn` package exists, but it is currently a compatibility wrapper
+  layer over legacy `src.*` modules.
 
 ---
 
@@ -360,7 +378,13 @@ Unused in practice.
 
 **Fix:** drop it, or guard behind a size threshold.
 
-### 5.3 `get_personalized_pagerank_matrix` bug — `page_rank` mode is broken
+### 5.3 `get_personalized_pagerank_matrix` — `page_rank` mode needs a scalable path
+
+**2026-04-21 update:** the exact `current_node` `NameError` shown below no
+longer appears in the current code. The current implementation uses `node`, so
+the crash described here is stale. The remaining production issue is that it
+constructs a dense `num_nodes x num_nodes` PPR matrix and loops over nodes,
+which is not viable for large graphs.
 
 ```37:46:src/dataprocessing/propagation_functions.py
     for i in range(max_iter):
@@ -370,11 +394,9 @@ Unused in practice.
             neighbors = col[row == current_node]  # NameError: `current_node`
 ```
 
-`current_node` is undefined. Any call through `mode="page_rank"` in
-`propagate_features` will crash.
-
-**Fix:** replace with a power‑iteration on the normalized adjacency (see
-`propagate_features_efficient` for a correct sketch).
+**Fix:** replace with a sparse power‑iteration on the normalized adjacency, or
+guard this mode to small graphs only and document it as unsupported for
+publication-scale experiments.
 
 ### 5.4 `diffusion_kernel` large‑graph fallback is not a diffusion
 
@@ -561,6 +583,10 @@ re‑init.
 
 ### 10.3 Summary directory resolution
 
+**2026-04-21 update:** this has been improved by
+`src/utils/project_paths.resolve_results_and_summary_dirs`. Keep tests around
+that helper and route new output-path behavior through it.
+
 ```272:275:src/experiments/run_experiments.py
     results_dir = os.path.abspath(cfg["results_dir"])
     summary_dir = os.path.join(os.path.dirname(results_dir), "../results_summary", os.path.basename(results_dir))
@@ -580,7 +606,7 @@ directory. Brittle.
 | 3.3 / 4.5 | FP/PE computed locally per client but global test uses untouched graph | High | Medium |
 | 4.1 | Partitioning seeded with `np.random.seed(123)`, hiding partition variance | High | Trivial |
 | 2.3 | GAT_Arxiv missing from evaluate/test → crash | High | Trivial |
-| 5.3 | `page_rank` mode references undefined `current_node` → crash | High | Trivial |
+| 5.3 | `page_rank` dense implementation is not publication-scale | High | Medium |
 | 7.1 | PubmedGAT output has `dim_out * 8` classes | High | Trivial |
 | 3.1 | Early‑stopping `best_eval_loss` update bug | Medium | Trivial |
 | 1.4 | Initial broadcast not synced | Medium | Trivial |
@@ -633,5 +659,5 @@ The issues most likely to change reportable accuracy numbers:
    graph.
 4. §4.1 — Hardcoded partition seed, repetitions share one partition.
 5. §2.3 — `GAT_Arxiv` missing from evaluate/test (will crash on val).
-6. §5.3 — `page_rank` propagation mode references an undefined variable.
+6. §5.3 — `page_rank` propagation mode needs a sparse/scalable implementation.
 7. §7.1 — PubmedGAT final layer produces `num_classes * 8` outputs.
