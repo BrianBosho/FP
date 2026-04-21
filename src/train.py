@@ -78,7 +78,8 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
         scaler.step(optimizer)
         scaler.update()
 
-        training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / data.train_mask.sum().item()
+        train_total = data.train_mask.sum().item()
+        training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / train_total if train_total > 0 else float('nan')
         training_losses.append(loss.item())
         training_accuracies.append(training_acc)
         
@@ -107,19 +108,18 @@ def evaluate(model, data, criterion):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT):
+        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
         else:
             raise ValueError("Unknown model")
-        # out = model(data.x, data.edge_index)
         out = output
-        # out = model(data.x, data.edge_index)
         loss = criterion(out[data.val_mask], data.y[data.val_mask])
         _, pred = torch.max(out[data.val_mask], dim=1)
         correct = (pred == data.y[data.val_mask]).sum()
-        acc = int(correct) / int(data.val_mask.sum())
+        val_total = int(data.val_mask.sum())
+        acc = int(correct) / val_total if val_total > 0 else float('nan')
     return loss, acc
 
 def test(model, data):
@@ -127,17 +127,17 @@ def test(model, data):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, GCN) or isinstance(model, GAT) or isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, PubmedGAT):
+        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
         else:
             raise ValueError("Unknown model")
-        # out = model(data.x, data.edge_index)
         out = output
         _, pred = torch.max(out[data.test_mask], dim=1)
         correct = (pred == data.y[data.test_mask]).sum()
-        acc = int(correct) / int(data.test_mask.sum())
+        test_total = int(data.test_mask.sum())
+        acc = int(correct) / test_total if test_total > 0 else float('nan')
     return acc
 
 def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False, seed=None):
@@ -329,7 +329,7 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)
@@ -400,7 +400,7 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)

@@ -460,8 +460,8 @@ class PubmedGAT(torch.nn.Module):
             else:
                 self.norms.append(torch.nn.Identity())
         
-        # Output layer (8 heads for Pubmed, as in original)
-        self.convs.append(GATv2Conv(self.dim_h * heads, dim_out, heads=8))
+        # Output layer (8 heads for Pubmed, averaged so output dim = dim_out)
+        self.convs.append(GATv2Conv(self.dim_h * heads, dim_out, heads=8, concat=False))
 
     def forward(self, x, edge_index):
         # Apply all layers except the last

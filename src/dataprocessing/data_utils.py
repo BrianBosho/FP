@@ -131,7 +131,12 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     torch.cuda.empty_cache()
 
     if mode == "page_rank":
-        # PageRank returns SparseTensor, convert to torch.sparse_coo_tensor
+        if n_nodes > 50000:
+            raise ValueError(
+                f"page_rank mode builds a dense {n_nodes}x{n_nodes} matrix and is "
+                f"not suitable for graphs with >50k nodes. Use 'random_walk' or "
+                f"'chebyshev_diffusion' instead."
+            )
         sparse_tensor = get_personalized_pagerank_matrix(edge_index, n_nodes, alpha=alpha)
         row, col = sparse_tensor.storage.row(), sparse_tensor.storage.col()
         values = sparse_tensor.storage.value()
