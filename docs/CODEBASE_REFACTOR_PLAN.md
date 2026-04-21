@@ -216,7 +216,7 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 
 - [x] **A0 (decision)**: Pick canonical directories
   - [x] Canonical run output root chosen (`runs/` recommended)
-  - [ ] Canonical data root chosen (`data/` or `datasets/`)
+  - [x] Canonical data root chosen (`datasets/` — symlink to /home/shared-space/fedgnn-datasets)
 - [x] **A1**: Standardize generated output roots in configs/docs
   - [x] Document where outputs go and what is generated vs tracked
 - [x] **A2**: Make default output paths repo-local (no `../results/...` defaults)
