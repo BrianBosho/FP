@@ -1,0 +1,40 @@
+# Publication-oriented defaults.
+#
+# This config is intentionally separate from base.yaml so legacy runs remain
+# reproducible while new paper experiments opt into the scientifically safer
+# behavior by default.
+
+num_clients: [10]
+num_rounds: 10
+epochs: 3
+beta: [1.0]
+datasets: [Cora]
+data_loading: [zero_hop]
+models: [GCN]
+use_pe: [false]
+save_results: true
+results_dir: runs/publication
+
+# Research-production FL defaults
+aggregation: fedavg_weighted
+bn_fl_strategy: fedbn
+experiment_seed: 0
+
+# Evaluation/provenance defaults
+global_eval_uses_fp: true
+global_eval_pe_mode: global_compute
+feature_prop_relative_tolerance: true
+force_chebyshev_for_large_graphs: true
+log_feature_prop_energy: false
+
+# Large-graph stability defaults
+normalize: l2
+rfp_qr_max_nodes: 50000
+feature_prop_device: cpu
+keep_data_on_gpu: false
+client_num_gpus: null
+ray_num_gpus: null
+
+# Local/offline-friendly tracking default; override when publishing W&B runs.
+use_wandb: false
+wandb_mode: disabled

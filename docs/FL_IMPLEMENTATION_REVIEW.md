@@ -13,16 +13,16 @@ Concrete fixes are suggested at the end; they are designed to be
 backward‑compatible per project convention.
 
 **Status refresh (2026-04-21):** This review remains valid as historical
-context, but several items are now partially implemented or have changed shape.
-Use `FL_PERFORMANCE_CHECKLIST.md` as the tracker and
-`FL_FIX_IMPLEMENTATION_PLAN.md` as the current implementation plan. Important
-refresh notes:
+context. The performance-impacting checklist items have since been addressed;
+use `FL_PERFORMANCE_CHECKLIST.md` as the tracker and
+`FL_FIX_IMPLEMENTATION_PLAN.md` for the implementation trail. Important refresh
+notes:
 
-- B1 weighted FedAvg has an opt-in implementation, but `aggregation: "mean"`
-  remains the default.
-- C5 seed plumbing is partial: partitioning, server model init, client training,
-  and per-client RFP read `experiment_seed`, but defaults/repetition/global-PE
-  gaps remain.
+- B1 weighted FedAvg is implemented. `conf/base.yaml` keeps
+  `aggregation: "mean"` for legacy reproduction, while `conf/publication.yaml`
+  opts new paper runs into `aggregation: fedavg_weighted`.
+- C5 seed plumbing now reaches partitioning, server model initialization,
+  client training, per-client/global RFP, and repetition-derived seeds.
 - The old `page_rank` `current_node` `NameError` appears fixed, but the current
   implementation is still dense and not publication-scale.
 - Summary directory resolution has been improved through

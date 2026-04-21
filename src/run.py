@@ -229,8 +229,26 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
             print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
         print(f"===========================\n")
     
+    def _client_num_gpus():
+        if torch.device(device).type != "cuda":
+            return 0
+        configured = cfg.get("client_num_gpus", None) if cfg else None
+        if configured is not None:
+            return float(configured)
+        concurrency = cfg.get("max_concurrent_clients", len(clients_data)) if cfg else len(clients_data)
+        try:
+            concurrency = int(concurrency) if concurrency else len(clients_data)
+        except (TypeError, ValueError):
+            concurrency = len(clients_data)
+        return 1.0 / max(1, concurrency)
+
+    client_num_gpus = _client_num_gpus()
+    if debug:
+        print(f"Client Ray num_gpus reservation: {client_num_gpus}")
+
     # IMPORTANT: Pass the SUBGRAPH to each client, not the full graph
-    return [FLClient.remote(client_subgraph, dataset, i, cfg, device, model_type) 
+    client_actor = FLClient.options(num_gpus=client_num_gpus)
+    return [client_actor.remote(client_subgraph, dataset, i, cfg, device, model_type)
             for i, client_subgraph in enumerate(clients_data)]
 
 def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False, config = None):
@@ -477,6 +495,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                 normalize=cfg.get("normalize", "qr"),
                 device=str(DEVICE),
                 seed=int(pe_seed) if pe_seed is not None else None,
+                qr_max_nodes=cfg.get("rfp_qr_max_nodes", 50000),
             )
             orig_features = torch.nn.functional.normalize(base_features.to(DEVICE), p=2, dim=1)
             rfp_norm = torch.nn.functional.normalize(rfp, p=2, dim=1) * 0.5
@@ -619,8 +638,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     try:
         # Initialize Ray with memory management settings
         # RAY_REDIS_ADDRESS is set per process in the script
+        ray_num_gpus = cfg.get("ray_num_gpus", None)
+        if ray_num_gpus is None:
+            ray_num_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 0
         ray.init(
-            num_gpus=1,
+            num_gpus=int(ray_num_gpus),
             ignore_reinit_error=True,
             object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
             _system_config={

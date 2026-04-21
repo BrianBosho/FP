@@ -397,11 +397,10 @@ def run_experiments(args):
                             # Final GC round after CUDA cleanup
                             gc.collect()
                             
-                            # Give CUDA time to fully release resources before reinitializing
-                            time.sleep(1)
-                            
-                            # Reinitialize Ray for next experiment
-                            ray.init(ignore_reinit_error=True)
+                            # Do not reinitialize Ray here. main_experiment()
+                            # owns ray.init()/ray.shutdown(), and the bench
+                            # harness provides full subprocess isolation for
+                            # publication sweeps.
                             
                             # Add duration to the result
                             result["duration"] = {

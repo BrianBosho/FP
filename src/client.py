@@ -19,9 +19,9 @@ DEFAULT_NUM_NEIGHBORS = [10, 10, 10]
 OGBN_ARXIV_BATCH_SIZE = 2048 # Smaller batch size for ogbn-arxiv
 OGBN_ARXIV_NUM_NEIGHBORS = [25, 25]  # Increased from 10 to reduce variance while avoiding OOM
 
-# Use minimal GPU allocation (0.01) to give workers GPU visibility without reserving memory
-# This allows multiple actors to share the same GPU while keeping data on CPU when idle
-@ray.remote(num_gpus=1/10)
+# Default to no GPU reservation; src.run.initialize_clients applies a
+# config-driven num_gpus override via FLClient.options(...).
+@ray.remote(num_gpus=0)
 class FLClient:
     def __init__(self, data, dataset, client_id, cfg, device, model_type="GCN"):
         # Clear any existing CUDA cache and perform garbage collection

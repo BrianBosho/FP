@@ -128,11 +128,13 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         pe_r = 64
         pe_P = 16
         normalize = "qr"
+        rfp_qr_max_nodes = 50000
         
         if config is not None:
             pe_r = config.get("pe_r", pe_r)
             pe_P = config.get("pe_P", pe_P)
             normalize = config.get("normalize", normalize)
+            rfp_qr_max_nodes = config.get("rfp_qr_max_nodes", rfp_qr_max_nodes)
         
         pe_seed = None
         if config is not None and config.get("experiment_seed") is not None:
@@ -147,6 +149,7 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
             normalize=normalize,
             device=device,
             seed=pe_seed,
+            qr_max_nodes=rfp_qr_max_nodes,
         )
         orig_features = F.normalize(data.x.to(device), p=2, dim=1)
         rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5  # use same rfp_alpha as clients

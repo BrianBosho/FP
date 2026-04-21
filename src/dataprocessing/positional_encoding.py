@@ -29,7 +29,8 @@ def generate_rfp_encoding(edge_index: Tensor, num_nodes: int,
                           r: int = 64, P: int = 16,
                           normalize: str = "qr",
                           device: str = "cpu",
-                          seed: int = None) -> Tensor:
+                          seed: int = None,
+                          qr_max_nodes: int = 50000) -> Tensor:
     """Generate Random Feature Propagation positional encodings.
 
     ``seed`` is a backward-compatible opt-in.  When ``None`` (the default), the
@@ -37,6 +38,13 @@ def generate_rfp_encoding(edge_index: Tensor, num_nodes: int,
     preserves the historical behavior.  When an int is provided, a local
     ``torch.Generator`` is seeded with it so RFP is reproducible across runs.
     """
+    if normalize == "qr" and qr_max_nodes is not None and num_nodes > int(qr_max_nodes):
+        print(
+            f"[RFP] normalize='qr' on {num_nodes} nodes is expensive; using "
+            f"normalize='l2' because num_nodes > rfp_qr_max_nodes={qr_max_nodes}."
+        )
+        normalize = "l2"
+
     edge_index = edge_index.to(device)
     edge_index_norm, edge_weight = get_symmetrically_normalized_adjacency(edge_index, num_nodes)
     adj = SparseTensor(row=edge_index_norm[0], col=edge_index_norm[1],

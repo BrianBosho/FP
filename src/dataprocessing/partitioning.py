@@ -175,6 +175,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         pe_r = config.get("pe_r", pe_r)
         pe_P = config.get("pe_P", pe_P)
         normalize = config.get("normalize", "qr")
+        rfp_qr_max_nodes = config.get("rfp_qr_max_nodes", 50000)
         num_iterations = config.get("num_iterations", 50)
         fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
         if config.get("debug", False):
@@ -200,6 +201,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             fp_tolerance = 1e-3
     else:
         normalize = "qr"
+        rfp_qr_max_nodes = 50000
         num_iterations = 50
         fp_tolerance = 1e-3
 
@@ -321,6 +323,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 normalize=normalize,
                 device=DEVICE,
                 seed=rfp_seed,
+                qr_max_nodes=rfp_qr_max_nodes,
             )
             orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
             rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5

@@ -70,8 +70,8 @@ python scripts/bench/run_variant.py \
     --override lr=0.1
 ```
 
-When FedAvg-weighted aggregation lands behind a config flag (see
-`docs/FL_PERFORMANCE_CHECKLIST.md` item **B1**), the *candidate* run becomes:
+FedAvg-weighted aggregation is available behind `aggregation=fedavg_weighted`.
+For an A/B comparison against a legacy mean baseline, the *candidate* run is:
 
 ```bash
 python scripts/bench/run_variant.py \
@@ -87,8 +87,8 @@ Forced per-seed:
 * `repetitions` — forced to 1. Cross-seed variance is produced by running
   separate subprocesses, not by the inner `repetitions` loop. This also keeps
   the per-seed timing meaningful.
-* `experiment_seed` — passed through as a config key for any future code that
-  plumbs seeding through partitioning / training (currently ignored by `src/`).
+* `experiment_seed` — passed through to partitioning, model initialization,
+  client training, and RFP generation.
 
 ### What gets captured
 
@@ -133,16 +133,11 @@ to matplotlib.
 
 ## Notes, caveats, and known limitations
 
-* **Seeding is only partially plumbed today.** In the current `src/`:
-  * partitioning uses a hardcoded `np.random.seed(123)`,
-  * full-batch training has no explicit seed,
-  * RFP generation is unseeded.
-
-  Running N seeds today therefore produces real variance in the training
-  trajectory but *not* in the data partition.  This is checklist item **C5** in
-  `docs/FL_PERFORMANCE_CHECKLIST.md`.  The harness already writes
-  `experiment_seed` into each seed's config so that when C5 lands, the
-  variance actually materializes end-to-end — no harness change needed.
+* **Seeding is now end-to-end for the main experiment path.** The harness writes
+  `experiment_seed` into each seed config; `src/` uses it for partitioning,
+  server model initialization, client training, per-client RFP, and global PE.
+  Keep `repetitions: 1` in this harness so each subprocess maps cleanly to one
+  seed.
 
 * **Each seed runs in its own subprocess.** This isolates Ray and CUDA state
   between seeds and makes `run_experiments`'s internal `ray.shutdown()` /
@@ -151,12 +146,12 @@ to matplotlib.
   larger than the `cora_minimal` smoke test.
 
 * **Memory optimization knobs travel with the config.** Keys like
-  `feature_prop_device`, `keep_data_on_gpu`, and `max_concurrent_clients` are
+  `feature_prop_device`, `keep_data_on_gpu`, `max_concurrent_clients`,
+  `client_num_gpus`, and `ray_num_gpus` are
   preserved from the base config and can be overridden per variant, so a
   memory-only change can be A/B tested the same way as a correctness fix.
 
 * **The comparison is variant-level, not seed-paired.** We use Welch's t-test
-  rather than a paired test because seed N in variant A and seed N in variant B
-  see the same partition (once C5 lands, they'll also share training
-  randomness), but the current code does not guarantee pairing across all
-  stochastic sources.  Switch to a paired test if/when you make that guarantee.
+  rather than a paired test. Seed N in variant A and seed N in variant B are
+  intended to share partition/model/training/RFP seeds, but variant-level
+  failures can still make sample sizes asymmetric.

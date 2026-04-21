@@ -15,9 +15,9 @@ For each item:
 
 Use this file as the working tracker; link PRs next to each item.
 
-**Current review update (2026-04-21):** Some items have partial code in place,
-but none of the high-impact `[~]` items should be treated as publication-ready
-until the remaining notes under each item are resolved.
+**Current review update (2026-04-21):** All performance-impacting checklist
+items are closed. Legacy-compatible defaults are preserved where needed, while
+`conf/publication.yaml` opts new publication runs into the safer settings.
 
 ---
 
@@ -80,17 +80,15 @@ you have already produced may reflect the bug rather than the science.
 These directly change the fixed point of the federated training and are
 the most likely sources of systematic accuracy gaps vs. literature.
 
-- [~] **B1. Unweighted averaging instead of FedAvg (server.py §1.1)**
-  - Current status: `_aggregate_fedavg_weighted` and
-    `FLClient.get_num_train_samples()` exist, but `conf/base.yaml` still
-    defaults to `aggregation: "mean"`.
-  - Symptom: publication configs that do not opt in still use
-    `p.data /= self.num_of_trainers` and ignore `n_k`.
+- [x] **B1. Unweighted averaging instead of FedAvg (server.py §1.1)**
+  - Fixed: `_aggregate_fedavg_weighted` and `FLClient.get_num_train_samples()`
+    exist, and `conf/publication.yaml` opts publication runs into
+    `aggregation: fedavg_weighted`.
+  - Note: `conf/base.yaml` intentionally keeps `aggregation: "mean"` for
+    legacy reproduction.
   - Impact: **High** under Dirichlet non‑IID (low β) where client sizes
     differ by orders of magnitude. Biases toward small clients.
-  - Effort: Easy. Add tests and publication configs/presets that use
-    `"fedavg_weighted"` by default. Keep `"mean"` only for legacy
-    reproduction.
+  - Effort: Easy.
   - Confidence: High.
 
 - [x] **B2. Naive BatchNorm running‑stats averaging (server.py §1.3)**
@@ -246,13 +244,15 @@ comparisons (sweeps across β, propagation mode, etc.) unreliable.
   - Effort: Trivial.
   - Confidence: High.
 
-- [ ] **E2. Ray init + forced `time.sleep(1)` between experiments
+- [x] **E2. Ray init + forced `time.sleep(1)` between experiments
       (run_experiments.py §10.2)**
-  - Symptom: Long sweeps occasionally crash with CUDA context
-    corruption after `diffusion` or `chebyshev_*` runs.
+  - Fixed: removed the inner `time.sleep(1)` and immediate `ray.init()`
+    after each experiment. `main_experiment()` now owns `ray.init()` /
+    `ray.shutdown()` for each run, while `scripts/bench/run_variant.py`
+    remains the subprocess-per-seed path for publication sweeps.
   - Impact: Lost experiment runs → asymmetric sample sizes per config →
     incorrect averages/std in summary tables.
-  - Effort: Medium. Subprocess‑per‑experiment harness.
+  - Effort: Medium.
   - Confidence: Medium.
 
 ---
@@ -262,18 +262,29 @@ comparisons (sweeps across β, propagation mode, etc.) unreliable.
 Listed for completeness — fix only if they block the experiments you
 actually need.
 
-- [ ] F1. `monte_carlo_random_walk` is O(V·walks·len) pure Python (§5.2).
-- [ ] F2. `compute_dirichlet_energy` per FP iteration under logging (§5.6).
-- [ ] F3. QR every RFP iteration on N=169k (§6.2).
+- [x] F1. `monte_carlo_random_walk` is O(V·walks·len) pure Python (§5.2).
+      Fixed: added a `max_nodes` guard that raises with a sparse-method
+      recommendation instead of running on large graphs.
+- [x] F2. `compute_dirichlet_energy` per FP iteration under logging (§5.6).
+      Fixed: added `log_feature_prop_energy` config; per-iteration energy
+      logging is off by default.
+- [x] F3. QR every RFP iteration on N=169k (§6.2).
+      Fixed: added `rfp_qr_max_nodes`; RFP automatically switches from QR to L2
+      normalization above the threshold.
 - [x] F4. `GradScaler` instantiated even on CPU / `use_amp=false` (§2.6).
       Fixed: full-batch and mini-batch training instantiate/use `GradScaler`
       only when `use_amp` is true.
-- [ ] F5. Hardcoded `num_gpus=1/10` per actor, fixed `num_gpus=1` in Ray
-      init (§2.1, §3.4).
-- [ ] F6. Reproducible environment is not pinned: `requirements.txt` leaves
+- [x] F5. Hardcoded `num_gpus=1/10` per actor, fixed `num_gpus=1` in Ray
+      init (§2.1, §3.4). Fixed: client actors default to `num_gpus=0`, then
+      `initialize_clients()` applies `client_num_gpus` or
+      `1 / max_concurrent_clients`; Ray init uses `ray_num_gpus` or
+      `torch.cuda.device_count()`.
+- [x] F6. Reproducible environment is not pinned: `requirements.txt` leaves
       critical versions unconstrained and does not explicitly list
       `torch_sparse` / `torch_scatter`, while CLI smoke tests are skipped when
-      heavy deps are absent.
+      heavy deps are absent. Fixed: pinned core runtime versions and listed PyG
+      extension packages explicitly in `requirements.txt`; README now calls out
+      PyG wheel-index requirements.
 
 ---
 

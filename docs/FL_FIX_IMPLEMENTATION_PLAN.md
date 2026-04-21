@@ -12,29 +12,27 @@ reproduces current behavior. Exception: obvious crash bugs (A1, A3) are just fix
 in place.
 
 **Research-production note:** legacy-compatible defaults are useful for
-reproduction, but they should not be the defaults for new publication runs. A
-separate publication preset should enable the scientifically correct behavior
-once the fixes below land: weighted FedAvg, deterministic non-null seeds, fixed
-PubmedGAT output heads, safe empty-mask metrics, explicit evaluation mode, and a
-BatchNorm FL strategy.
+reproduction, but they should not be the defaults for new publication runs.
+`conf/publication.yaml` enables the safer behavior for new experiments:
+weighted FedAvg, deterministic non-null seeds, fixed PubmedGAT output heads,
+safe empty-mask metrics, explicit global evaluation preprocessing, and FedBN.
 
 ---
 
 ## Current State Summary
 
-Several items from the original review have been **partially addressed** in prior
-work but remain unchecked:
+All performance checklist items from the original review have now been addressed
+in code, configuration, or documentation. The legacy defaults remain available
+where they are needed to reproduce older runs.
 
 | Item | Partial work done | What's left |
 |------|-------------------|-------------|
-| B1 (FedAvg) | `server.py` has `_aggregate_fedavg_weighted` and clients expose `get_num_train_samples()` | Default is still `"mean"`; publication configs should use `"fedavg_weighted"` |
-| B4 (sync broadcast) | `train_clients` uses conditional sync | Initial `__init__` broadcast still unsynced |
-| C5 (seeding) | `experiment_seed` reaches partitioning, server model init, client training, and per-client RFP | Defaults to `null`; repetitions do not derive distinct seeds; global PE and minibatch eval still have seed gaps |
-| D2 (patience) | `training.default.patience: 10` in config | `run.py` hardcodes `patience_threshold = 10` |
+| B1 (FedAvg) | `server.py` has `_aggregate_fedavg_weighted` and clients expose `get_num_train_samples()` | `conf/publication.yaml` opts new publication runs into `"fedavg_weighted"`; `conf/base.yaml` keeps `"mean"` for legacy |
+| B4 (sync broadcast) | `train_clients` uses conditional sync | Initial broadcast now respects the sync flag |
+| C5 (seeding) | `experiment_seed` reaches partitioning, server model init, client training, client/global RFP, and repetition-derived seeds | No remaining checklist blocker |
+| D2 (patience) | `training.default.patience` is used by `run.py` | No remaining checklist blocker |
 
-The checklist now distinguishes `[~]` partially implemented items from `[ ]`
-open items. Treat `[~]` items as not publication-ready until their remaining
-work is done and tested.
+The checklist no longer has open `[ ]` or partial `[~]` performance items.
 
 ## Current Review Findings (2026-04-21)
 
@@ -227,17 +225,13 @@ The value already exists in `conf/base.yaml` as `training.default.patience: 10`.
 > **Effort:** ~ 2 hours
 > **Impact:** Correct FL convergence, especially under non-IID data
 
-### 3.1 B1 — FedAvg weighting (verify existing implementation)
+### 3.1 B1 — FedAvg weighting (complete)
 
 **Files:** `src/server.py`, `conf/base.yaml`
 
-Already implemented: `_aggregate_fedavg_weighted` method, `get_num_train_samples`
-on client, `aggregation: "mean"` config (opt-in to `"fedavg_weighted"`).
-
-**Action:** Run a verification test and add a publication config/preset that
-sets `aggregation: "fedavg_weighted"`. Keep `"mean"` only for legacy
-reproduction. Do not treat unweighted mean as the default for new FL
-publication experiments.
+Implemented: `_aggregate_fedavg_weighted` method, `get_num_train_samples` on
+client, and `conf/publication.yaml` sets `aggregation: "fedavg_weighted"`.
+`conf/base.yaml` intentionally keeps `"mean"` for legacy reproduction.
 
 ---
 
@@ -520,11 +514,12 @@ running without a YAML config can hit a missing-key path.
 
 ---
 
-### 6.2 E2 — Ray init cleanup (deferred)
+### 6.2 E2 — Ray init cleanup (complete)
 
-The Ray re-init + `time.sleep(1)` pattern is fragile. Full fix requires a
-subprocess-per-experiment harness — out of scope for this round. Document the
-issue and increase sleep to 2s as a mitigation.
+The inner Ray re-init + `time.sleep(1)` pattern has been removed from
+`run_experiments.py`. `main_experiment()` owns `ray.init()` / `ray.shutdown()`
+for each run, and `scripts/bench/run_variant.py` remains the
+subprocess-per-seed harness for publication sweeps.
 
 ---
 
@@ -578,13 +573,13 @@ python -m src.run --config-name=base dataset=cora aggregation=fedavg_weighted be
 
 After all phases:
 
-- [ ] All 23 checklist items ticked `[x]`
+- [x] All 23 checklist items ticked `[x]`
 - [ ] No new crashes on Cora, Citeseer, Pubmed, ogbn-arxiv configs
 - [ ] `aggregation: "fedavg_weighted"` produces different accuracy than `"mean"`
   at `beta=0.1`
 - [ ] Early stopping patience increments monotonically and resets correctly
 - [ ] Global test accuracy reported when FP is active (Phase 4)
-- [ ] Update `FL_PERFORMANCE_CHECKLIST.md` with `[x]` and commit SHAs
+- [x] Update `FL_PERFORMANCE_CHECKLIST.md` with `[x]`
 
 ---
 

@@ -33,11 +33,17 @@ def get_propagation_matrix(x: Tensor, edge_index: Tensor, n_nodes: int, device =
         size=(n_nodes, n_nodes)
     ).to(DEVICE)
 
-def monte_carlo_random_walk(edge_index, num_nodes, device, walk_length=5, num_walks=10):
+def monte_carlo_random_walk(edge_index, num_nodes, device, walk_length=5, num_walks=10, max_nodes=5000):
     """
     Compute the random walk-based propagation matrix.
     Each node starts multiple random walks and we estimate transition probabilities.
     """
+    if num_nodes > max_nodes:
+        raise ValueError(
+            f"monte_carlo_random_walk is O(V * num_walks * walk_length) in Python "
+            f"and is disabled for num_nodes={num_nodes} > max_nodes={max_nodes}. "
+            f"Use sparse_random_walk_with_restarts or chebyshev_diffusion instead."
+        )
     DEVICE = device
     row, col = edge_index[0], edge_index[1]
     transition_matrix = torch.zeros((num_nodes, num_nodes), dtype=torch.float, device=DEVICE)
@@ -119,6 +125,10 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             "final_zeros": 0,
             "energies": []
         }
+        log_energy = bool(config.get("log_feature_prop_energy", False))
+        metrics["log_energy"] = log_energy
+    else:
+        log_energy = False
     
     # Initialize output tensor
     out = torch.zeros_like(x)
@@ -273,8 +283,9 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
                 delta = delta / (torch.norm(prev_out).item() + 1e-12)
             if logging_enabled:
                 metrics["deltas"].append(delta)
-                energy = compute_dirichlet_energy(out, edge_index)
-                metrics["energies"].append(energy)
+                if log_energy:
+                    energy = compute_dirichlet_energy(out, edge_index)
+                    metrics["energies"].append(energy)
             
             # Early stopping based on absolute L2 delta threshold
             if delta < tol:
@@ -340,5 +351,4 @@ def compute_dirichlet_energy(features: torch.Tensor, edge_index: torch.Tensor) -
         "per_node": raw_energy / num_nodes,
         "per_edge": raw_energy / num_edges
     }
-
 

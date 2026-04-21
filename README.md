@@ -16,6 +16,10 @@ python -m src.experiments.run_experiments --config conf/cora_config.yaml
 
 That's it! The experiment will train a federated GNN model and save results automatically.
 
+For publication-oriented runs, start from `conf/publication.yaml`. It keeps
+legacy defaults separate while enabling weighted FedAvg, explicit seeding,
+FedBN, global preprocessing checks, and large-graph stability guards.
+
 ## Overview
 
 Federated Learning enables training machine learning models across multiple decentralized clients without sharing raw data. This implementation focuses on federated training of Graph Neural Networks on graph-structured data.
@@ -46,6 +50,12 @@ cd federated-gnn
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+`requirements.txt` pins the core runtime versions used by this project and
+lists the PyG extension packages (`torch-scatter`, `torch-sparse`) explicitly.
+Those extensions need wheels matching your PyTorch/CUDA build; if pip attempts
+to compile them locally, install from the matching wheel index at
+https://data.pyg.org/whl/.
 
 ## Running Experiments
 
@@ -388,17 +398,19 @@ Total GPU Usage: 37GB / 48GB
 
 ### Root Causes Identified
 
-1. **Ray GPU Reservation (`@ray.remote(num_gpus=1/10)`)**  
-   **Problem**: Ray pre-allocates GPU memory for each actor, even when idle  
-   **Solution**: Remove GPU reservation  
+1. **Ray GPU Reservation**
+   **Problem**: fixed fractional GPU reservations can pre-allocate GPU memory
+   for idle actors.
+   **Solution**: client actors default to no GPU reservation and
+   `src.run.initialize_clients()` applies a config-driven reservation.
    ```python
-   # Before
-   @ray.remote(num_gpus=1/10)
+   @ray.remote(num_gpus=0)
    class FLClient:
-   
-   # After  
-   @ray.remote  # No GPU reservation
-   class FLClient:
+   ```
+   ```yaml
+   # null => 1 / max_concurrent_clients when training on CUDA
+   client_num_gpus: null
+   ray_num_gpus: null  # null => torch.cuda.device_count()
    ```
 
 2. **Feature Propagation on GPU**  
@@ -628,4 +640,4 @@ nvidia-smi
 Based on your nvidia-smi output:
 - **Total GPU Memory:** 49,152 MiB (49 GB)
 - **Per Experiment:** ~6-7 GB
-- **Safe Parallel Limit:** 2-3 experiments 
+- **Safe Parallel Limit:** 2-3 experiments
