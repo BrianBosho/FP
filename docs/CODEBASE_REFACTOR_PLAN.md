@@ -264,36 +264,41 @@ Use this section as the execution tracker. Each phase has a **gate** (“done wh
 - [x] **C3**: Centralize paths + configuration helpers
   - [x] Single module for repo root / config resolution / output roots
   - [x] No more `..`-based output pathing (in `src/`)
-- [ ] **C4**: Move code incrementally (one domain at a time)
-  - [ ] `utils` migrated to `src/fedgnn/utils` as source of truth (currently partly wrapped)
-  - [ ] `dataprocessing` migrated to `src/fedgnn/data` as source of truth (currently wrapped)
-  - [ ] `models` migrated to `src/fedgnn/models` as source of truth (currently wrapped)
-  - [ ] `client/server/run/experiments` migrated to `src/fedgnn/fl` and
-        `src/fedgnn/experiments` as source of truth (currently wrapped)
-- [ ] **C5 (recommended)**: Add minimal tests for invariants
+- [x] **C4**: Move code incrementally (one domain at a time)
+  - [x] `utils` migrated to `src/fedgnn/utils` as source of truth (real impl; wrappers verified)
+  - [x] `dataprocessing` migrated to `src/fedgnn/data` as source of truth (real impl; wrappers verified)
+  - [x] `models` migrated to `src/fedgnn/models` as source of truth (real impl; wrappers verified)
+  - [x] `client/server/run/experiments` migrated to `src/fedgnn/fl` and
+        `src/fedgnn/experiments` as source of truth (real impl; wrappers verified)
+- [x] **C5 (recommended)**: Add minimal tests for invariants
   - [x] Config load/merge test
   - [x] Output directory creation/path resolution test
   - [x] CLI parse/help smoke test
+  - [x] Fedgnn core imports verified (utils, data, models, fl, experiments)
+  - [x] Legacy `src.*` wrappers verified as thin (all re-export from `fedgnn.*`)
+  - [x] Legacy entrypoints smoke-tested and working
 
 **Phase C done when**
-- [ ] New code lives under `src/<pkg_name>/` with clean imports.
-- [ ] Legacy `src.*` modules are thin wrappers importing from `fedgnn.*`, not
+- [x] New code lives under `src/<pkg_name>/` with clean imports.
+- [x] Legacy `src.*` modules are thin wrappers importing from `fedgnn.*`, not
       the other way around.
-- [ ] Legacy entrypoints still work unchanged.
+- [x] Legacy entrypoints still work unchanged.
 
 ### Phase D checklist — Notebooks + analysis consolidation
 
 - [x] **D1**: Notebook policy enforced
   - [x] Notebooks live in `notebooks/` (tracked)
   - [x] Notebook outputs go to `runs/` (ignored) unless explicitly curated
-- [ ] **D2**: Promote reusable analysis logic into modules
+- [x] **D2**: Promote reusable analysis logic into modules
   - [x] Shared parsing/plotting utilities are importable python modules
-- [ ] **D3 (optional)**: Curated export path
+  - [x] `fedgnn/analysis/` contains results, training_logs, plots, tables (13 functions)
+  - [x] Notebooks already import from `fedgnn.analysis.*`
+- [x] **D3 (optional)**: Curated export path
   - [x] `reports/` exists (tracked) only for intentionally curated artifacts
 
 **Phase D done when**
-- [ ] Notebooks run end-to-end without generating tracked junk.
-- [ ] Analysis is mostly code-in-modules, not notebook copy/paste.
+- [x] Notebooks run end-to-end without generating tracked junk.
+- [x] Analysis is mostly code-in-modules, not notebook copy/paste.
 
 ## Execution checklist (recommended order)
 

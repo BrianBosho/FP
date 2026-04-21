@@ -1,0 +1,20 @@
+# Small test configuration for Cora
+datasets:
+   - Cora
+results_dir: results/test_small
+use_wandb: false
+
+# Small experiment parameters
+num_clients: [5]
+num_rounds: 2
+beta: [1.0]
+lr: 0.5
+optimizer: SGD
+data_loading: [full]
+models: [GCN]
+hop: 1
+use_pe: [false]
+repetitions: 1
+
+# Minimal config to verify things work
+save_results: true
