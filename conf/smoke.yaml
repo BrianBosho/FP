@@ -1,0 +1,27 @@
+# Minimal smoke config to validate the runtime wiring.
+# Designed to be fast and deterministic; avoids wandb and heavy sweeps.
+
+datasets: ["Cora"]
+data_loading: ["zero_hop"]
+models: ["GCN"]
+
+num_clients: [1]
+num_rounds: 1
+epochs: 1
+beta: [1]
+lr: 0.1
+optimizer: "SGD"
+decay: 0.0
+
+results_dir: "runs/smoke"
+save_results: false
+repetitions: 1
+
+debug: false
+use_wandb: false
+wandb_mode: "disabled"
+
+# Prefer CPU preprocessing for portability
+feature_prop_device: "cpu"
+max_concurrent_clients: 1
+

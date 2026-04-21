@@ -1,0 +1,50 @@
+# Minimal Cora config for end-to-end validation + A/B baselines.
+# Leaves conf/cora_config.yaml (the full sweep) untouched.
+#
+# Run:
+#   python -m src.experiments.run_experiments --config conf/cora_minimal.yaml
+#
+# Trims from cora_config.yaml:
+#   num_rounds      200 -> 50
+#   data_loading    [diffusion, full, zero_hop, adjacency] -> [zero_hop]  (1 instead of 4)
+#   models          [GCN, GAT] -> [GCN]                                   (1 instead of 2)
+#   num_clients     [10] -> [10]
+#   repetitions     3   -> 1
+#   use_pe          [True] -> [False]  (skips positional encoding preproc)
+#   wandb disabled to avoid network/setup issues
+# Total combinations: 1 loader x 1 model x 2 betas x 1 clients x 1 rep = 2 runs per seed.
+
+datasets:
+  - Cora
+results_dir: runs/cora_minimal
+
+# Keep wandb off for quick runs
+wandb: false
+use_wandb: false
+wandb_mode: disabled
+
+num_clients: [10]
+num_rounds: 50
+epochs: 2
+# β=10000 is near-IID; β=1 is non-IID-ish (more heterogeneous)
+beta: [10000, 1]
+lr: 0.5
+optimizer: SGD
+data_loading: [zero_hop]
+models: [GCN]
+hop: 1
+use_pe: [False]
+repetitions: 1
+
+# Keep memory light: no minibatching, small model, CPU preprocessing
+max_concurrent_clients: 10
+feature_prop_device: cpu
+keep_data_on_gpu: false
+
+# Same GCN architecture override as cora_config.yaml for consistency 
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"

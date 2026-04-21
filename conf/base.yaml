@@ -11,6 +11,33 @@ fulltraining_flag: false
 save_results: true
 repetitions: 5
 
+# Federated aggregation strategy (B1 / backward-compatible opt-in):
+#   "mean"             -> simple unweighted average across clients (existing behavior)
+#   "fedavg_weighted"  -> weight each client's params by |D_k| / sum_k |D_k|
+#                         where |D_k| = number of training samples on client k
+# Anything other than "fedavg_weighted" falls through to the mean path.
+aggregation: "mean"
+
+# Global experiment seed (C5 / backward-compatible opt-in):
+#   null              -> preserve legacy seeding (partition=123, minibatch=42,
+#                        full-batch & RFP unseeded).  This is the current behavior.
+#   <int>             -> seeds the partitioner, RFP, and per-client training.
+#                        Per-client training seed = experiment_seed + client_id.
+experiment_seed: null
+
+# Per-FL-round convergence logging (backward-compatible opt-in):
+#   log_per_round: true   -> record {round, avg_client_val_acc, avg_client_val_loss,
+#                            best_eval_acc_so_far, patience} into
+#                            results_data["rounds"][i]["round_history"].  Cheap
+#                            (metrics are already computed by Server.train_clients).
+#   log_per_round: false  -> preserve legacy behavior (no per-round history
+#                            recorded in JSON; only the final repetition summary).
+log_per_round: true
+#
+# Optional: also run a *global* test on the full graph after each FL round.
+# Adds one evaluate pass per round, so keep it off for large graphs.
+log_global_test_per_round: false
+
 # Debug configuration
 debug: false  # Set to true to enable verbose debug output
 

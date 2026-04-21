@@ -23,13 +23,19 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-def train(model, data, epochs, optimizer, criterion, writer, use_amp=False):
+def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed=None):
+    # C5: seed is opt-in.  None preserves the previous behavior (full-batch
+    # training did not seed anything).  When an int is provided, seed the
+    # global RNGs so dropout and any other stochastic layers are reproducible.
+    if seed is not None:
+        set_seed(int(seed))
+
     if isinstance(model, VanillaGNN):
         adjacency = to_dense_adj(data.edge_index)[0]
         adjacency += torch.eye(len(adjacency), device=adjacency.device)
     else:
         adjacency = None
-    
+
     training_losses = []
     training_accuracies = []
     torch.cuda.empty_cache()
@@ -134,7 +140,7 @@ def test(model, data):
         acc = int(correct) / int(data.test_mask.sum())
     return acc
 
-def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False):
+def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False, seed=None):
     """
     Train the model using mini-batches to reduce memory consumption
     
@@ -155,9 +161,12 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         loss_list: List of training losses
         acc_list: List of training accuracies
     """
-    # Set seed for deterministic neighbor sampling
-    set_seed(42)
-    
+    # C5: seed is opt-in.  Default (None) preserves the historical behavior of
+    # always seeding with 42 so neighbor sampling is deterministic.  When an
+    # int is provided, that seed is used instead -- this lets the bench harness
+    # vary stochasticity across runs while keeping each run reproducible.
+    set_seed(int(seed) if seed is not None else 42)
+
     training_losses = []
     training_accuracies = []
     

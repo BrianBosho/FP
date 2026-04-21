@@ -205,6 +205,15 @@ class FLClient:
         self.validation_losses = []
         self.client_id = client_id
 
+        # C5: experiment-level seed (opt-in).  None -> preserve legacy
+        # unseeded/42-hardcoded training behavior.  Duck-typed .get so this
+        # works for both plain dicts and OmegaConf DictConfigs.
+        try:
+            _es = cfg.get("experiment_seed", None) if hasattr(cfg, "get") else None
+            self.experiment_seed = None if _es is None else int(_es)
+        except (TypeError, ValueError):
+            self.experiment_seed = None
+
     def _move_optimizer_state(self, device):
         """Move optimizer state tensors to the requested device."""
         for state in self.optimizer.state.values():
@@ -259,29 +268,40 @@ class FLClient:
     def train_client(self):
         # Move to device for training (memory clearing removed for performance)
         self._move_to_device(self.target_device)
-        
+
+        # C5: derive a per-client training seed if experiment_seed is set.
+        # None preserves legacy behavior (train() does nothing;
+        # train_with_minibatch() seeds 42 as it always did).
+        client_seed = (
+            None
+            if self.experiment_seed is None
+            else int(self.experiment_seed) + int(self.client_id)
+        )
+
         try:
             if self.use_minibatch:
                 loss, acc, loss_list, acc_list = train_with_minibatch(
-                    self.model, 
-                    self.data, 
-                    self.epochs, 
-                    self.optimizer, 
-                    self.criterion, 
-                    self.writer, 
+                    self.model,
+                    self.data,
+                    self.epochs,
+                    self.optimizer,
+                    self.criterion,
+                    self.writer,
                     batch_size=self.batch_size,
                     num_neighbors=self.num_neighbors,
-                    use_amp=self.use_amp
+                    use_amp=self.use_amp,
+                    seed=client_seed,
                 )
             else:
                 loss, acc, loss_list, acc_list = train(
-                    self.model, 
-                    self.data, 
-                    self.epochs, 
-                    self.optimizer, 
-                    self.criterion, 
+                    self.model,
+                    self.data,
+                    self.epochs,
+                    self.optimizer,
+                    self.criterion,
                     self.writer,
-                    use_amp=self.use_amp
+                    use_amp=self.use_amp,
+                    seed=client_seed,
                 )
             
             for loss_item in loss_list:
@@ -371,6 +391,25 @@ class FLClient:
             self._move_to_device(self.cpu_device)
             self._clear_memory()
             return 0.0  # or appropriate default value
+
+    def get_num_train_samples(self) -> int:
+        """B1: number of training samples this client owns.
+
+        Used by the server when ``aggregation == "fedavg_weighted"`` to weight
+        each client's parameter contribution by ``|D_k| / sum_k |D_k|``.
+        Falls back to 0 if the data has no ``train_mask`` so the server can
+        gracefully revert to uniform averaging in pathological cases.
+        """
+        try:
+            tm = getattr(self.data, "train_mask", None)
+            if tm is None:
+                return 0
+            # train_mask is typically a bool tensor; handle range/list just in case.
+            if hasattr(tm, "sum"):
+                return int(tm.sum().item())
+            return int(sum(1 for _ in tm))
+        except Exception:
+            return 0
 
     def get_params(self) -> dict:
         # Memory optimization: Move model to CPU before extracting parameters

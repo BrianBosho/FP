@@ -28,13 +28,28 @@ def normalize_features(x: Tensor, method: str = "l2") -> Tensor:
 def generate_rfp_encoding(edge_index: Tensor, num_nodes: int,
                           r: int = 64, P: int = 16,
                           normalize: str = "qr",
-                          device: str = "cpu") -> Tensor:
+                          device: str = "cpu",
+                          seed: int = None) -> Tensor:
+    """Generate Random Feature Propagation positional encodings.
+
+    ``seed`` is a backward-compatible opt-in.  When ``None`` (the default), the
+    random feature matrix is drawn from the ambient, unseeded RNG -- this
+    preserves the historical behavior.  When an int is provided, a local
+    ``torch.Generator`` is seeded with it so RFP is reproducible across runs.
+    """
     edge_index = edge_index.to(device)
     edge_index_norm, edge_weight = get_symmetrically_normalized_adjacency(edge_index, num_nodes)
     adj = SparseTensor(row=edge_index_norm[0], col=edge_index_norm[1],
                        value=edge_weight, sparse_sizes=(num_nodes, num_nodes)).to(device)
 
-    x = torch.randn(num_nodes, r, device=device)
+    if seed is None:
+        x = torch.randn(num_nodes, r, device=device)
+    else:
+        # CPU generator is universally supported; randn on CPU and then move to
+        # avoid "generator expected a device but got ..." on older torch builds.
+        g = torch.Generator(device="cpu")
+        g.manual_seed(int(seed))
+        x = torch.randn(num_nodes, r, generator=g).to(device)
     rfp_trajectory = [x]
 
     for _ in range(P):

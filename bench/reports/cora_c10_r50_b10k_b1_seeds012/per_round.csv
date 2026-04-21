@@ -1,0 +1,13 @@
+variant,seed,dataset,data_loading_option,model_type,num_clients,beta,hop,use_pe,fulltraining_flag,round,global_result,client_result
+baseline,0,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.763,0.6151080119408399
+baseline,0,Cora,zero_hop,GCN,10,1,1,False,False,1,0.759,0.661960319791732
+baseline,1,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.754,0.589529314009791
+baseline,1,Cora,zero_hop,GCN,10,1,1,False,False,1,0.787,0.6802012006498546
+baseline,2,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.772,0.6099201308148887
+baseline,2,Cora,zero_hop,GCN,10,1,1,False,False,1,0.785,0.6674194167055558
+fedavg_weighted,0,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.763,0.6109827223933773
+fedavg_weighted,0,Cora,zero_hop,GCN,10,1,1,False,False,1,0.753,0.6523645542635494
+fedavg_weighted,1,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.758,0.5931114845757233
+fedavg_weighted,1,Cora,zero_hop,GCN,10,1,1,False,False,1,0.784,0.6720419652825905
+fedavg_weighted,2,Cora,zero_hop,GCN,10,10000,1,False,False,1,0.773,0.6120244027480137
+fedavg_weighted,2,Cora,zero_hop,GCN,10,1,1,False,False,1,0.788,0.6677677858707334

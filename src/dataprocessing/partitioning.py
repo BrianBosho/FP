@@ -9,21 +9,25 @@ import torch.nn.functional as F
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float) -> list:
+def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float,
+                              seed: int = 123) -> list:
     """
     Partition data using Dirichlet distribution for label distribution across clients.
-    
+
     Args:
         labels: Node labels
         N: Total number of nodes
         K: Number of classes
         n_parties: Number of clients
         beta: Dirichlet concentration parameter
+        seed: RNG seed for the Dirichlet draw.  Defaults to 123 to preserve the
+              historical behavior; callers should pass ``experiment_seed`` from
+              the config to vary partitions across runs.
     """
     min_size = 0
     min_require_size = 10
     split_data_indexes = []
-    np.random.seed(123)
+    np.random.seed(int(seed))
 
     while min_size < min_require_size:
         idx_batch = [[] for _ in range(n_parties)]
@@ -195,13 +199,23 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         normalize = "qr"
         num_iterations = 50
         fp_tolerance = 1e-3
-    
+
+    # C5: experiment-level seed.  None/absent preserves the legacy hardcoded
+    # 123 partition seed.  When an int is provided (via cfg.experiment_seed
+    # threaded from run.py / the bench harness), we use it for both the
+    # Dirichlet draw and RFP generation so variance across runs is real.
+    experiment_seed = None
+    if config is not None:
+        experiment_seed = config.get("experiment_seed")
+    partition_seed = 123 if experiment_seed is None else int(experiment_seed)
+
     labels = data.y.cpu().numpy()
     N = len(labels)
     K = len(np.unique(labels))
     initial_graph_de = compute_dirichlet_energy(data.x, data.edge_index)
 
-    split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta)
+    split_data_indexes = label_dirichlet_partition(labels, N, K, num_clients, beta,
+                                                   seed=partition_seed)
     initial_subgraphs = [create_subgraph(data, indices, device) for indices in split_data_indexes]
 
     clients_data = []
@@ -293,13 +307,17 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         # Step 2: Then Positional Encoding (if requested)
         if use_pe:
             clients_data[i].original_feature_dim = clients_data[i].x.size(1)
+            # Per-client RFP seed keeps encodings distinct across clients but
+            # reproducible across runs when experiment_seed is set.
+            rfp_seed = None if experiment_seed is None else int(experiment_seed) + int(i)
             rfp = generate_rfp_encoding(
                 edge_index=clients_data[i].edge_index,
                 num_nodes=clients_data[i].num_nodes,
-                r=pe_r, 
+                r=pe_r,
                 P=pe_P,
                 normalize=normalize,
-                device=DEVICE
+                device=DEVICE,
+                seed=rfp_seed,
             )
             orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
             rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5

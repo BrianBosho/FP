@@ -39,6 +39,16 @@ class Server():
         if self.max_concurrent_clients == 0:
             self.max_concurrent_clients = None
 
+        # B1: aggregation strategy.  Default "mean" preserves the previous
+        # simple-average behavior exactly; "fedavg_weighted" weights by the
+        # number of training samples per client, which is the FedAvg rule
+        # from McMahan et al.  Any unrecognized value falls back to "mean".
+        self.aggregation = str(self.cfg.get("aggregation", "mean")).lower()
+        if self.aggregation not in ("mean", "fedavg_weighted"):
+            print(f"[Server] Unknown aggregation={self.aggregation!r}; falling back to 'mean'.")
+            self.aggregation = "mean"
+        print(f"[Server] Aggregation strategy: {self.aggregation}")
+
         # print input dim of the model
         if hasattr(self, 'cfg') and self.cfg.get("debug", False):
             print(f"Input dim of the model in server: {self.model.dim_in}")
@@ -70,6 +80,109 @@ class Server():
         return all_results
         
     @torch.no_grad()
+    def _aggregate_mean(self, clients) -> None:
+        """Legacy unweighted-mean aggregation.  Preserved byte-for-byte so runs
+        without ``aggregation: fedavg_weighted`` behave exactly as before."""
+        params = [client.get_params.remote() for client in clients]
+        self.zero_params()
+        self.zero_buffers()
+
+        while True:
+            ready, left = ray.wait(params, num_returns=1, timeout=None)
+            if ready:
+                for t in ready:
+                    params_dict = ray.get(t)
+                    # Aggregate parameters
+                    for p, mp in zip(params_dict['params'], self.model.parameters()):
+                        mp.data += p.to(self.device)
+
+                    # Aggregate buffers (e.g., BatchNorm running stats)
+                    # Only aggregate floating point buffers (skip num_batches_tracked, etc.)
+                    for b, mb in zip(params_dict['buffers'], self.model.buffers()):
+                        if b.dtype.is_floating_point:
+                            mb.data += b.to(self.device)
+                        else:
+                            # For non-float buffers (like num_batches_tracked), just copy from first client
+                            if self.num_of_trainers == 1 or mb.sum() == 0:
+                                mb.data = b.to(self.device)
+
+                    # Memory optimization: Explicitly delete params_dict after use
+                    # to free GPU memory immediately after aggregation
+                    del params_dict
+            params = left
+            if not params:
+                break
+
+        # Average parameters
+        for p in self.model.parameters():
+            p.data /= self.num_of_trainers
+
+        # Average buffers (only floating point ones)
+        for b in self.model.buffers():
+            if b.dtype.is_floating_point:
+                b.data /= self.num_of_trainers
+
+    @torch.no_grad()
+    def _aggregate_fedavg_weighted(self, clients) -> None:
+        """FedAvg-style weighted aggregation.
+
+        Each client's parameters are scaled by ``|D_k| / sum_k |D_k|`` where
+        ``|D_k|`` is the number of training samples that client owns.  This is
+        the aggregation rule from McMahan et al. (2017) -- the existing
+        ``_aggregate_mean`` above collapses to this only when every client
+        has the same sample count.
+
+        If every client reports 0 training samples (pathological, shouldn't
+        happen in practice), we fall back to uniform weights to avoid
+        division-by-zero, matching the legacy behavior in that degenerate case.
+
+        Buffers (e.g. BatchNorm running stats) are weighted with the same
+        client weights for floating-point buffers; non-float buffers (e.g.
+        ``num_batches_tracked``) retain the legacy "copy-from-first" rule.
+        """
+        # Fetch sample counts in deterministic client order.
+        sample_counts = ray.get([c.get_num_train_samples.remote() for c in clients])
+        total = int(sum(sample_counts))
+        if total <= 0:
+            weights = [1.0 / len(clients)] * len(clients)
+            print("[Server] fedavg_weighted: all clients report 0 samples; using uniform weights.")
+        else:
+            weights = [float(n) / float(total) for n in sample_counts]
+
+        if bool(self.cfg.get("debug", False)):
+            print(f"[Server] fedavg_weighted: sample_counts={sample_counts}, "
+                  f"weights={[round(w, 4) for w in weights]}")
+
+        # Map each param-future back to its client weight so we can keep the
+        # streaming ray.wait loop (memory-efficient for large models / many
+        # clients) while still applying the correct per-client weight.
+        param_futures = [c.get_params.remote() for c in clients]
+        weight_by_future = {fut: w for fut, w in zip(param_futures, weights)}
+
+        self.zero_params()
+        self.zero_buffers()
+
+        remaining = list(param_futures)
+        while remaining:
+            ready, remaining = ray.wait(remaining, num_returns=1, timeout=None)
+            for t in ready:
+                w = weight_by_future[t]
+                params_dict = ray.get(t)
+
+                for p, mp in zip(params_dict['params'], self.model.parameters()):
+                    mp.data += w * p.to(self.device)
+
+                for b, mb in zip(params_dict['buffers'], self.model.buffers()):
+                    if b.dtype.is_floating_point:
+                        mb.data += w * b.to(self.device)
+                    else:
+                        if self.num_of_trainers == 1 or mb.sum() == 0:
+                            mb.data = b.to(self.device)
+
+                del params_dict
+        # No post-division: weights already sum to 1.
+
+    @torch.no_grad()
     def train_clients(self, current_global_epoch: int) -> list:
         clients = self.clients
         
@@ -87,44 +200,10 @@ class Server():
             
             # Memory clearing removed for performance (happens naturally with Python GC)
 
-        params = [client.get_params.remote() for client in clients]
-        self.zero_params()
-        self.zero_buffers()
-        
-        while True:
-            ready, left = ray.wait(params, num_returns=1, timeout=None)
-            if ready:
-                for t in ready:
-                    params_dict = ray.get(t)
-                    # Aggregate parameters
-                    for p, mp in zip(params_dict['params'], self.model.parameters()):
-                        mp.data += p.to(self.device)
-                    
-                    # Aggregate buffers (e.g., BatchNorm running stats)
-                    # Only aggregate floating point buffers (skip num_batches_tracked, etc.)
-                    for b, mb in zip(params_dict['buffers'], self.model.buffers()):
-                        if b.dtype.is_floating_point:
-                            mb.data += b.to(self.device)
-                        else:
-                            # For non-float buffers (like num_batches_tracked), just copy from first client
-                            if self.num_of_trainers == 1 or mb.sum() == 0:
-                                mb.data = b.to(self.device)
-                    
-                    # Memory optimization: Explicitly delete params_dict after use
-                    # to free GPU memory immediately after aggregation
-                    del params_dict
-            params = left
-            if not params:
-                break
-
-        # Average parameters
-        for p in self.model.parameters():
-             p.data /= self.num_of_trainers
-        
-        # Average buffers (only floating point ones)
-        for b in self.model.buffers():
-            if b.dtype.is_floating_point:
-                b.data /= self.num_of_trainers
+        if self.aggregation == "fedavg_weighted":
+            self._aggregate_fedavg_weighted(clients)
+        else:
+            self._aggregate_mean(clients)
         
         # Broadcast params with sync=True when using batched training to ensure consistency
         use_sync = self.max_concurrent_clients and self.max_concurrent_clients < len(clients)

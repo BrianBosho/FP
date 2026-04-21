@@ -73,6 +73,11 @@ results.csv
 *.xlsx
 
 ############################
+# Generated per-run bench configs (hardcoded absolute paths, machine-specific)
+############################
+/conf/bench/
+
+############################
 # Allow-list exceptions
 ############################
 !artifacts/

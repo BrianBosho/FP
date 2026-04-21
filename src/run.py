@@ -324,8 +324,21 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"Full graph staying on CPU to save GPU memory")
         print("===========================\n")
     input_dim = clients_data[0].x.size(1)
-    
+
     rounds = cfg['num_rounds']
+
+    # C5: if experiment_seed is set, seed the global RNGs right before the
+    # server-side model is instantiated so that the initial weights (which
+    # get broadcast to every client at round -1 via Server.__init__) are
+    # deterministic.  No-op when experiment_seed is None (default / legacy).
+    _es = cfg.get("experiment_seed") if hasattr(cfg, "get") else None
+    if _es is not None:
+        try:
+            from src.train import set_seed as _set_seed
+            _set_seed(int(_es))
+        except Exception as _e:
+            print(f"[run] Warning: failed to apply experiment_seed={_es!r}: {_e}")
+
     model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name, cfg)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
     server = Server(clients, model, device, cfg)
@@ -336,23 +349,72 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         patience = 0
         patience_threshold = 10
         best_eval_loss = float('inf')
-        
+
+        # Per-FL-round convergence history (backward-compatible opt-in).  The
+        # metrics recorded here are already computed by Server.train_clients,
+        # so `log_per_round: true` is free.  `log_global_test_per_round: true`
+        # adds one extra full-graph test pass per round -- off by default.
+        log_per_round = bool(cfg.get("log_per_round", False))
+        log_global_test_per_round = bool(cfg.get("log_global_test_per_round", False))
+        round_history = []
+        early_stopped_at = None
+
         _t_train_start = time.time()
         for i in range(rounds):
+            _t_round_start = time.time()
             results = server.train_clients(i)
             train_results.append(results[0])
             avg_eval_acc = results[1]
             avg_eval_loss = results[2]
-            if avg_eval_acc > best_eval_acc:
+
+            improved_acc = avg_eval_acc > best_eval_acc
+            improved_loss = avg_eval_loss < best_eval_loss
+            if improved_acc:
                 best_eval_acc = avg_eval_acc
                 patience = 0
-            elif avg_eval_loss < best_eval_loss:
+            elif improved_loss:
                 best_eval_loss = avg_eval_loss
                 patience = 0
             else:
                 patience += 1
+
+            if log_per_round:
+                def _to_float(x):
+                    if hasattr(x, "detach") and hasattr(x, "cpu"):
+                        try:
+                            return float(x.detach().cpu().item())
+                        except Exception:
+                            return float("nan")
+                    try:
+                        return float(x)
+                    except Exception:
+                        return float("nan")
+
+                import math as _math
+                _best_loss = float(best_eval_loss)
+                if _math.isinf(_best_loss) or _math.isnan(_best_loss):
+                    _best_loss = None  # keep JSON standards-compliant
+                rec = {
+                    "fl_round": int(i),
+                    "avg_client_val_acc": _to_float(avg_eval_acc),
+                    "avg_client_val_loss": _to_float(avg_eval_loss),
+                    "best_eval_acc_so_far": float(best_eval_acc),
+                    "best_eval_loss_so_far": _best_loss,
+                    "patience": int(patience),
+                    "round_time_s": round(time.time() - _t_round_start, 3),
+                }
+                if log_global_test_per_round:
+                    try:
+                        _global_acc = server.test_global_model(data)
+                        rec["global_test_acc"] = _to_float(_global_acc)
+                    except Exception as _gt_e:
+                        rec["global_test_acc"] = None
+                        rec["global_test_error"] = repr(_gt_e)
+                round_history.append(rec)
+
             if patience >= patience_threshold:
                 print(f"Early stopping triggered at round {i}")
+                early_stopped_at = i
                 break
         _train_secs = time.time() - _t_train_start
         if debug:
@@ -416,7 +478,19 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"The average client test results: {average_results}")
         print(f"The final global test results: {test_results}")
 
-        return test_results, average_results
+        # Extra per-repetition summary (backward-compatible: legacy callers that
+        # only unpack (global, client) still work because the two extra values
+        # are ignored when the caller does a 2-tuple unpack inside a try.  The
+        # in-tree caller (``main_experiment`` below) has been updated to accept
+        # all four values.
+        run_extras = {
+            "round_history": round_history,
+            "rounds_executed": len(train_results),
+            "early_stopped_at": early_stopped_at,
+            "training_time_s": round(_train_secs, 3),
+            "partition_time_s": round(_partition_secs, 3),
+        }
+        return test_results, average_results, run_extras
     finally:
         # Clean up resources
         for client in clients:
@@ -538,7 +612,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 log_memory_usage("before experiment")
                 clear_memory_aggressive()
                 
-                global_results, client_results = run_with_server(
+                _rws_out = run_with_server(
                     dataset_name, 
                     clients_num, 
                     beta, 
@@ -550,6 +624,14 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     fulltraining_flag=fulltraining_flag,
                 
                 )
+                # Backward-compatible unpack: ``run_with_server`` now returns a
+                # 3-tuple ``(global, client, run_extras)``.  If an older fork
+                # returns the legacy 2-tuple we still work.
+                if isinstance(_rws_out, tuple) and len(_rws_out) >= 3:
+                    global_results, client_results, run_extras = _rws_out[0], _rws_out[1], _rws_out[2] or {}
+                else:
+                    global_results, client_results = _rws_out
+                    run_extras = {}
                 
                 # Clear memory after experiment
                 log_memory_usage("after experiment")
@@ -565,10 +647,21 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 if debug:
                     print(f"Round {i+1} is complete")
                 
-                results_data["rounds"].append({
+                rep_record = {
                     "round": i+1,
                     "global_result": float(global_results),
-                    "client_result": float(client_results)                })
+                    "client_result": float(client_results),
+                }
+                # Embed per-FL-round convergence curve + timing if the inner
+                # loop recorded one.  Keeps legacy key shape intact.
+                if run_extras:
+                    if run_extras.get("round_history"):
+                        rep_record["round_history"] = run_extras["round_history"]
+                    for _k in ("rounds_executed", "early_stopped_at",
+                               "training_time_s", "partition_time_s"):
+                        if _k in run_extras:
+                            rep_record[_k] = run_extras[_k]
+                results_data["rounds"].append(rep_record)
                 
                 # Log individual run results before finishing (only if wandb is enabled)
                 if use_wandb and wandb.run is not None:

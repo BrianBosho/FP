@@ -1,0 +1,18 @@
+{
+  "baseline": "bench/runs/baseline_20260421_110341_cora_c10_r50_b10k_b1_seeds012",
+  "candidate": "bench/runs/fedavg_weighted_20260421_110953_cora_c10_r50_b10k_b1_seeds012",
+  "baseline_variant": "baseline",
+  "candidate_variant": "fedavg_weighted",
+  "baseline_git": {
+    "commit": "6e6aa11bd66005ac6008f75a8d1c6b0140eb5a6c",
+    "dirty": true,
+    "branch": "main"
+  },
+  "candidate_git": {
+    "commit": "6e6aa11bd66005ac6008f75a8d1c6b0140eb5a6c",
+    "dirty": true,
+    "branch": "main"
+  },
+  "num_experiment_keys": 2,
+  "generated_at": "20260421_111722"
+}
