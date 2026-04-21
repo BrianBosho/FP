@@ -132,71 +132,62 @@ the most likely sources of systematic accuracy gaps vs. literature.
 
 This is the biggest subtle source of wrong numbers on FP + PE experiments.
 
-- [ ] **C1. Feature propagation applied per‑client, but
+- [x] **C1. Feature propagation applied per‑client, but
       `test_global_model` uses unprocessed `data.x` (run.py §3.3 /
       partitioning.py §4.5)**
-  - Symptom: clients train on propagated features; the global evaluator
-    receives raw features. Global test acc systematically
-    under‑represents what the model has learned.
+  - Fixed: added `global_eval_uses_fp` config. When true, the global graph is
+    feature-propagated before `test_global_model`; when false, a warning marks
+    the legacy mismatch.
   - Impact: **High** for all FP modes (`adjacency`, `diffusion`,
     `chebyshev_*`, `random_walk`). Likely explains part of the gap
     between client‑average and global accuracy in your tables.
-  - Effort: Medium. Two options, both behind a flag
-    `global_eval_uses_client_preprocessing`:
-    1. Recompute FP on the global graph before `test_global_model`.
-    2. Stop reporting `test_global_model` when FP is on, or mark it as
-       "mismatched" in summaries.
+  - Effort: Medium.
   - Confidence: High.
 
-- [ ] **C2. Positional encodings computed locally per client AND again
+- [x] **C2. Positional encodings computed locally per client AND again
       globally — different PE for the same node (positional_encoding.py
       §6.1, run.py §3.3)**
-  - Symptom: RFP is computed from the subgraph edge_index on clients
-    and from the global edge_index for `data` on the server. Same node,
-    different PE.
+  - Fixed: added `global_eval_pe_mode`. The legacy `"local"` mode is explicit;
+    `"global_compute"` recomputes seeded full-graph RFP for global eval and
+    replaces the existing PE block instead of appending a second block.
   - Impact: **High** whenever `use_pe: true`. Clients train on a
     structure‑dependent feature that the global test set does not
     reproduce.
-  - Effort: Medium. Options:
-    1. Compute RFP once globally, extract per‑client rows (leaks
-       structural info — acceptable if the threat model allows it).
-    2. Keep local PEs, report only client‑local test metrics.
-    3. Document the mismatch explicitly in the paper.
+  - Effort: Medium.
   - Confidence: High.
 
-- [ ] **C3. `fulltraining_flag=True` causes cross‑client label leakage
+- [x] **C3. `fulltraining_flag=True` causes cross‑client label leakage
       (partitioning.py §4.4)**
-  - Symptom: k‑hop expanded subgraph keeps all masks from the global
-    graph, including masks of nodes owned by other clients. A client
-    optimizes over labels it does not own.
+  - Fixed: `conf/base.yaml` now labels this as an oracle baseline and
+    `partition_data()` prints a runtime warning when enabled.
   - Impact: Inflates accuracy. **High** if used as your "federated"
     condition; acceptable as an oracle baseline if labelled as such.
-  - Effort: Medium. Rename the baseline to `oracle_khop`, disallow it
-    under strict FL, or restrict masks to the owning client.
+  - Effort: Medium.
   - Confidence: High.
 
-- [ ] **C4. Macro‑average of per‑client test accuracies reported as if
+- [x] **C4. Macro‑average of per‑client test accuracies reported as if
       it were global (run.py §3.2)**
-  - Symptom: `average_results = sum(client_test_results)/len(...)` — a
-    macro average biased when client test sizes are imbalanced.
+  - Fixed: logs client-local macro accuracy and client-local micro accuracy
+    weighted by each client's test-node count. Macro aggregation is now
+    `nan`-aware.
   - Impact: Medium — numbers are not "wrong" but they are not what most
     FL papers mean by "test accuracy".
-  - Effort: Easy. Also log `global_test_acc_micro` = weighted by client
-    test size.
+  - Effort: Easy.
   - Confidence: High.
 
-- [~] **C5. Train/eval seed inconsistency masks true variance
+- [x] **C5. Train/eval seed inconsistency masks true variance
       (train.py §2.5)**
-  - Current status: `experiment_seed` reaches partitioning, server model
-    initialization, client training, and per-client RFP. Remaining gaps:
-    default is `null`; repetitions do not derive distinct seeds; mini-batch
-    eval/test still call `set_seed(42)`; global PE is not seeded; result JSON
-    does not record all seed values.
+  - Fixed: `experiment_seed` reaches partitioning, server model init,
+    client training, per-client RFP, and global PE. Repetitions derive
+    `experiment_seed + run_idx`, mini-batch eval/test no longer reseed to 42
+    unless an explicit seed is provided, and per-repetition seed provenance is
+    recorded in result JSON.
+  - Note: `experiment_seed: null` remains the legacy default for backward
+    compatibility; publication configs should set it explicitly.
   - Impact: **High on reported std**. Reported `std` is training‑noise
     only; partition variance hidden. Given how sensitive FL is to
     partitioning, the true std is likely much larger.
-  - Effort: Medium. Derive per‑repetition `seed + run_idx`, avoid RNG mutation
-    in evaluation, seed global PE, and save seed provenance.
+  - Effort: Medium.
   - Confidence: High.
 
 ---
@@ -206,11 +197,13 @@ This is the biggest subtle source of wrong numbers on FP + PE experiments.
 These do not produce a wrong number, but they make fair comparisons
 between configs/datasets very hard.
 
-- [ ] **D1. Hardcoded gradient clipping at `max_norm=1.0` (train.py §2.7)**
+- [x] **D1. Hardcoded gradient clipping at `max_norm=1.0` (train.py §2.7)**
+  - Fixed: added `grad_clip_norm` config and threaded it through full-batch and
+    mini-batch training. `null`/non-positive values disable clipping.
   - Impact: Under SGD with lr=0.5 (Cora / Citeseer defaults) this
     suppresses gradient magnitude significantly and interacts strongly
     with normalization choices.
-  - Effort: Trivial. Expose `grad_clip_norm` in `base.yaml`, default 1.0.
+  - Effort: Trivial.
   - Confidence: Medium.
 
 - [x] **D2. `patience_threshold=10` hardcoded (run.py)**
@@ -220,24 +213,23 @@ between configs/datasets very hard.
   - Effort: Trivial. Expose `patience` in config.
   - Confidence: Medium.
 
-- [ ] **D3. FP convergence tolerance never triggers on large graphs
+- [x] **D3. FP convergence tolerance never triggers on large graphs
       (data_utils.py §5.5)**
-  - Symptom: `delta = torch.norm(out - prev_out)` on ogbn‑arxiv never
-    falls below `tol=1e-6`; FP always runs `num_iterations` even after
-    converging numerically per‑node.
+  - Fixed: added `feature_prop_relative_tolerance`. When enabled, convergence
+    uses `||out - prev_out|| / (||prev_out|| + eps)`.
   - Impact: No accuracy impact, but burns compute that distorts
     efficiency comparisons across propagation modes (see §E below).
-  - Effort: Easy. Normalize the delta: `delta / ||prev_out|| + eps`, or
-    use L∞ per‑node.
+  - Effort: Easy.
   - Confidence: High.
 
-- [ ] **D4. `diffusion_kernel` first‑order fallback for N>50k is not
+- [x] **D4. `diffusion_kernel` first‑order fallback for N>50k is not
       a diffusion (propagation_functions.py §5.4)**
-  - Symptom: `I - tL` for `t≥1` is not PSD — the "diffusion" mode on
-    large graphs is actually a single‑step Jacobi smoother.
+  - Fixed: added `force_chebyshev_for_large_graphs` (default true) and redirect
+    large-graph `diffusion`/`diffusion_kernel` requests to Chebyshev with a
+    warning.
   - Impact: Medium on ogbn‑arxiv diffusion experiments — the "diffusion"
     numbers do not measure what the name says.
-  - Effort: Easy. Force Chebyshev path for N>50k and warn if `t≥1`.
+  - Effort: Easy.
   - Confidence: High.
 
 ---
@@ -247,12 +239,11 @@ between configs/datasets very hard.
 These do not change any single run's number, but they make side‑by‑side
 comparisons (sweeps across β, propagation mode, etc.) unreliable.
 
-- [ ] **E1. `use_pe` list/scalar inconsistency in
+- [x] **E1. `use_pe` list/scalar inconsistency in
       `run_experiments.py` (§9.1)**
-  - Symptom: scalar `use_pe: true` crashes the sweep loop; the in-memory
-    default config also omits `use_pe`, so running without a YAML config can
-    hit a missing-key path.
-  - Effort: Trivial. Wrap the same way as `num_clients`, `beta`, etc.
+  - Fixed: added `use_pe` to the in-memory default config and normalized
+    scalar/list sweep axes through a shared `as_list()` helper.
+  - Effort: Trivial.
   - Confidence: High.
 
 - [ ] **E2. Ray init + forced `time.sleep(1)` between experiments
@@ -274,7 +265,9 @@ actually need.
 - [ ] F1. `monte_carlo_random_walk` is O(V·walks·len) pure Python (§5.2).
 - [ ] F2. `compute_dirichlet_energy` per FP iteration under logging (§5.6).
 - [ ] F3. QR every RFP iteration on N=169k (§6.2).
-- [ ] F4. `GradScaler` instantiated even on CPU / `use_amp=false` (§2.6).
+- [x] F4. `GradScaler` instantiated even on CPU / `use_amp=false` (§2.6).
+      Fixed: full-batch and mini-batch training instantiate/use `GradScaler`
+      only when `use_amp` is true.
 - [ ] F5. Hardcoded `num_gpus=1/10` per actor, fixed `num_gpus=1` in Ray
       init (§2.1, §3.4).
 - [ ] F6. Reproducible environment is not pinned: `requirements.txt` leaves
