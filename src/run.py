@@ -429,6 +429,59 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         if debug:
             print(f"\nAll model parameters are identical: {are_params_identical}")
 
+        # C1: Apply FP to global graph before test_global_model if configured
+        fp_modes = {"adjacency", "diffusion", "chebyshev_diffusion", "chebyshev-diffusion",
+                    "chebyshev_diffusion_operator", "chebyshev-diffusion-operator",
+                    "random_walk", "page_rank", "propagation"}
+        fp_mode = data_loading_option.replace("-", "_") if isinstance(data_loading_option, str) else data_loading_option
+        if cfg.get("global_eval_uses_fp", False) and data_loading_option in fp_modes:
+            from src.dataprocessing.data_utils import propagate_features
+            print(f"[C1] Applying {fp_mode} FP to global graph before test_global_model")
+            data.x = propagate_features(
+                data.x, data.edge_index,
+                mask=torch.ones(data.x.size(0), dtype=torch.bool),
+                device=DEVICE,
+                num_iterations=cfg.get("num_iterations", 80),
+                mode=fp_mode,
+                alpha=cfg.get("alpha", 0.5),
+                config=cfg,
+            )
+        elif data_loading_option in fp_modes:
+            print(f"[C1] Warning: global test uses raw features while clients train on "
+                  f"propagated features (mode={data_loading_option}). "
+                  f"Set global_eval_uses_fp: true to fix.")
+
+        # C2: Recompute PE on global graph if configured
+        use_pe_val = cfg.get("use_pe")
+        try:
+            from omegaconf import ListConfig
+            pe_sequence_types = (list, tuple, ListConfig)
+        except Exception:
+            pe_sequence_types = (list, tuple)
+        if isinstance(use_pe_val, pe_sequence_types):
+            use_pe_val = use_pe_val[0] if use_pe_val else False
+        if cfg.get("global_eval_pe_mode", "local") == "global_compute" and use_pe_val:
+            from src.dataprocessing.positional_encoding import generate_rfp_encoding
+            pe_seed = cfg.get("experiment_seed")
+            print(f"[C2] Recomputing RFP on global graph before test_global_model")
+            original_feature_dim = getattr(data, "original_feature_dim", None)
+            if original_feature_dim is None and clients_data and hasattr(clients_data[0], "original_feature_dim"):
+                original_feature_dim = int(clients_data[0].original_feature_dim)
+            if original_feature_dim is not None and data.x.size(1) > int(original_feature_dim):
+                base_features = data.x[:, :int(original_feature_dim)]
+            else:
+                base_features = data.x
+            rfp = generate_rfp_encoding(
+                data.edge_index, data.num_nodes,
+                r=cfg.get("pe_r", 64), P=cfg.get("pe_P", 16),
+                normalize=cfg.get("normalize", "qr"),
+                device=str(DEVICE),
+                seed=int(pe_seed) if pe_seed is not None else None,
+            )
+            orig_features = torch.nn.functional.normalize(base_features.to(DEVICE), p=2, dim=1)
+            rfp_norm = torch.nn.functional.normalize(rfp, p=2, dim=1) * 0.5
+            data.x = torch.cat([orig_features, rfp_norm], dim=1)
+
         # Evaluate: ensure consistency for single-client runs by testing both on the same global graph
         # Use batched testing when max_concurrent_clients is set to avoid memory issues
         max_concurrent = cfg.get("max_concurrent_clients", None)
@@ -472,9 +525,36 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         final_round = rounds  # Use the total number of rounds as the step
         log_test_metrics(test_results, client_test_results, current_global_epoch=final_round)
         
-        average_results = sum(client_test_results) / len(client_test_results)
-        print(f"The average client test results: {average_results}")
-        print(f"The final global test results: {test_results}")
+        def _metric_to_float(value):
+            if hasattr(value, "detach") and hasattr(value, "cpu"):
+                value = value.detach().cpu().item()
+            return float(value)
+
+        client_test_values = []
+        for result in client_test_results:
+            try:
+                client_test_values.append(_metric_to_float(result))
+            except Exception:
+                client_test_values.append(float('nan'))
+
+        average_results = float(np.nanmean(client_test_values)) if client_test_values else float('nan')
+
+        # C4: also compute micro-averaged accuracy weighted by test set size
+        total_correct = 0
+        total_test_nodes = 0
+        for acc, td in zip(client_test_values, test_data):
+            try:
+                n = int(td.test_mask.sum())
+            except Exception:
+                n = 0
+            if n > 0 and not np.isnan(acc):
+                total_test_nodes += n
+                total_correct += acc * n
+        global_test_acc_micro = total_correct / total_test_nodes if total_test_nodes > 0 else float('nan')
+
+        print(f"Client test acc (macro): {average_results:.4f}")
+        print(f"Client test acc (micro): {global_test_acc_micro:.4f}")
+        print(f"Global test acc: {test_results}")
 
         # Extra per-repetition summary (backward-compatible: legacy callers that
         # only unpack (global, client) still work because the two extra values
@@ -487,6 +567,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             "early_stopped_at": early_stopped_at,
             "training_time_s": round(_train_secs, 3),
             "partition_time_s": round(_partition_secs, 3),
+            "client_test_acc_micro": float(global_test_acc_micro),
         }
         return test_results, average_results, run_extras
     finally:
@@ -507,7 +588,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
     
     if debug:
         print(f"DEVICE: {DEVICE}")
-    repetitions = cfg.get("repetitions", 1),
+    repetitions = cfg.get("repetitions", 1)
     num_iterations = cfg.get("num_iterations", 50)
     
     # Adjust clients_num based on dataset to avoid OOM
@@ -578,7 +659,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "pe_P": cfg.get("pe_P"),
                     "normalize": cfg.get("normalize"),
                     "run_index": i+1,
-                    "num_iterations": cfg.get("num_iterations")
+                    "num_iterations": cfg.get("num_iterations"),
+                    "experiment_seed": cfg.get("experiment_seed"),
                 }
                 # Get wandb configuration from cfg
                 use_wandb = cfg.get("use_wandb", True)  # Default to True for backward compatibility
@@ -595,6 +677,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     use_wandb=use_wandb
                 )
                 current_cfg = cfg.copy()
+
+                # C5: derive per-repetition seed from experiment_seed
+                base_seed = cfg.get("experiment_seed")
+                if base_seed is not None:
+                    current_cfg["experiment_seed"] = int(base_seed) + i
                 
                 # Only process wandb config if wandb is enabled and initialized
                 if use_wandb and wandb.run is not None:
@@ -649,6 +736,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     "round": i+1,
                     "global_result": float(global_results),
                     "client_result": float(client_results),
+                    "experiment_seed": current_cfg.get("experiment_seed"),
                 }
                 # Embed per-FL-round convergence curve + timing if the inner
                 # loop recorded one.  Keeps legacy key shape intact.
@@ -656,7 +744,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                     if run_extras.get("round_history"):
                         rep_record["round_history"] = run_extras["round_history"]
                     for _k in ("rounds_executed", "early_stopped_at",
-                               "training_time_s", "partition_time_s"):
+                               "training_time_s", "partition_time_s",
+                               "client_test_acc_micro"):
                         if _k in run_extras:
                             rep_record[_k] = run_extras[_k]
                 results_data["rounds"].append(rep_record)
@@ -681,11 +770,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         print(f"The global test results: {test_results}")
         print(f"The client test results: {client_test_results}")
 
-        average_global_results = np.mean(test_results)
-        average_client_results = np.mean(client_test_results)
+        average_global_results = np.nanmean(test_results)
+        average_client_results = np.nanmean(client_test_results)
 
-        std_global = np.std(test_results)
-        std_client = np.std(client_test_results)
+        std_global = np.nanstd(test_results)
+        std_client = np.nanstd(client_test_results)
 
         print(f"The average global test results: {average_global_results}")
         print(f"The average client test results: {average_client_results}")

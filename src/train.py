@@ -23,7 +23,7 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed=None):
+def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed=None, grad_clip_norm=1.0):
     # C5: seed is opt-in.  None preserves the previous behavior (full-batch
     # training did not seed anything).  When an int is provided, seed the
     # global RNGs so dropout and any other stochastic layers are reproducible.
@@ -40,8 +40,7 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
     training_accuracies = []
     torch.cuda.empty_cache()
 
-    # Initialize GradScaler for mixed precision training
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    scaler = torch.cuda.amp.GradScaler() if use_amp else None
 
     # Add this check before using the model
     if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, GAT_Arxiv):
@@ -71,12 +70,18 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
             out = output
             loss = criterion(out[data.train_mask], data.y[data.train_mask])
         
-        # Backward pass with gradient scaling
-        scaler.scale(loss).backward()
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        scaler.step(optimizer)
-        scaler.update()
+        if use_amp:
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            if grad_clip_norm is not None and grad_clip_norm > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            if grad_clip_norm is not None and grad_clip_norm > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+            optimizer.step()
 
         train_total = data.train_mask.sum().item()
         training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / train_total if train_total > 0 else float('nan')
@@ -140,7 +145,7 @@ def test(model, data):
         acc = int(correct) / test_total if test_total > 0 else float('nan')
     return acc
 
-def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False, seed=None):
+def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batch_size=1024, num_neighbors=[10, 10, 10], use_amp=False, seed=None, grad_clip_norm=1.0):
     """
     Train the model using mini-batches to reduce memory consumption
     
@@ -173,8 +178,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
     # Clear CUDA cache before training
     torch.cuda.empty_cache()
     
-    # Initialize GradScaler for mixed precision training
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    scaler = torch.cuda.amp.GradScaler() if use_amp else None
     
     # Create data loader with neighborhood sampling
     train_idx = data.train_mask.nonzero(as_tuple=True)[0]
@@ -251,14 +255,18 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
             # Backward pass with gradient scaling (outside autocast)
             if batch_train_mask.sum() > 0:
                 try:
-                    scaler.scale(loss).backward()
-                    scaler.unscale_(optimizer)
-                    
-                    # Apply gradient clipping
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                    
-                    scaler.step(optimizer)
-                    scaler.update()
+                    if use_amp:
+                        scaler.scale(loss).backward()
+                        scaler.unscale_(optimizer)
+                        if grad_clip_norm is not None and grad_clip_norm > 0:
+                            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+                        scaler.step(optimizer)
+                        scaler.update()
+                    else:
+                        loss.backward()
+                        if grad_clip_norm is not None and grad_clip_norm > 0:
+                            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+                        optimizer.step()
                     
                     # Calculate training accuracy for this batch
                     train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
@@ -297,12 +305,13 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
     loss, acc = evaluate_with_minibatch(model, data, criterion, batch_size=batch_size, num_neighbors=num_neighbors)
     logging.info(f'Epoch {epochs-1:>3}| Validation Loss: {loss:.3f}, Validation Accuracy: {acc:.3f}')
     
-    return loss, training_accuracies[-1], training_losses, training_accuracies
+    final_train_acc = training_accuracies[-1] if training_accuracies else float('nan')
+    return loss, final_train_acc, training_losses, training_accuracies
 
-def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbors=[10, 10, 10]):
+def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbors=[10, 10, 10], seed=None):
     """Evaluate the model using mini-batches"""
-    # Set seed for deterministic neighbor sampling
-    set_seed(42)
+    if seed is not None:
+        set_seed(seed)
     
     model.eval()
     
@@ -366,15 +375,15 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
                     continue
     
     # Calculate average loss and accuracy
-    avg_loss = total_loss / total if total > 0 else 0
-    avg_acc = correct / total if total > 0 else 0
+    avg_loss = total_loss / total if total > 0 else float('nan')
+    avg_acc = correct / total if total > 0 else float('nan')
     
     return avg_loss, avg_acc
 
-def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]):
+def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10], seed=None):
     """Test the model using mini-batches"""
-    # Set seed for deterministic neighbor sampling
-    set_seed(42)
+    if seed is not None:
+        set_seed(seed)
     
     model.eval()
     
@@ -433,6 +442,6 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
                     continue
     
     # Calculate accuracy
-    acc = correct / total if total > 0 else 0
+    acc = correct / total if total > 0 else float('nan')
     
     return acc

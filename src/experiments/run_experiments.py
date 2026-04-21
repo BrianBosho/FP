@@ -191,7 +191,8 @@ def run_experiments(args):
         "results_dir": "runs/experiments",
         "save_results": False,
         "hop": 1,
-        "fulltraining_flag": False
+        "fulltraining_flag": False,
+        "use_pe": [False],
     }
     
     # If a YAML config is provided, use it as the base configuration
@@ -203,7 +204,7 @@ def run_experiments(args):
         
         # Ensure iteration parameters are lists (check for both list and ListConfig)
         from omegaconf import ListConfig
-        for param in ["num_clients", "beta", "datasets", "data_loading", "models"]:
+        for param in ["num_clients", "beta", "datasets", "data_loading", "models", "use_pe"]:
             if param in cfg and not isinstance(cfg[param], (list, ListConfig)):
                 # lets print param and cfg[param]
                 print(f"param: {param}, cfg[param]: {cfg[param]}")
@@ -251,11 +252,19 @@ def run_experiments(args):
     
     # Extract values for iteration and convert ListConfig to regular Python types
     from omegaconf import OmegaConf
-    client_nums = OmegaConf.to_container(cfg["num_clients"], resolve=True)
-    beta_values = OmegaConf.to_container(cfg["beta"], resolve=True)
-    datasets = OmegaConf.to_container(cfg["datasets"], resolve=True)
-    data_loading_options = OmegaConf.to_container(cfg["data_loading"], resolve=True)
-    model_types = OmegaConf.to_container(cfg["models"], resolve=True)
+
+    def as_list(value):
+        if OmegaConf.is_config(value):
+            value = OmegaConf.to_container(value, resolve=True)
+        if isinstance(value, (list, tuple)):
+            return list(value)
+        return [value]
+
+    client_nums = as_list(cfg["num_clients"])
+    beta_values = as_list(cfg["beta"])
+    datasets = as_list(cfg["datasets"])
+    data_loading_options = as_list(cfg["data_loading"])
+    model_types = as_list(cfg["models"])
     # Resolve results_dir and summary_dir deterministically
     resolved_paths = resolve_results_and_summary_dirs(cfg.get("results_dir"))
     results_dir = str(resolved_paths.results_dir)
@@ -263,7 +272,7 @@ def run_experiments(args):
     save_results = cfg["save_results"]
     hop = cfg["hop"]
     fulltraining_flag = cfg["fulltraining_flag"]
-    use_pe_values = OmegaConf.to_container(cfg["use_pe"], resolve=True)  # Default to no PE if not specified
+    use_pe_values = as_list(cfg.get("use_pe", [False]))  # Default to no PE if not specified
     
     # Ensure Ray is shut down before starting
     try:

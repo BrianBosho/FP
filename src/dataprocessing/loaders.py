@@ -134,13 +134,19 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
             pe_P = config.get("pe_P", pe_P)
             normalize = config.get("normalize", normalize)
         
+        pe_seed = None
+        if config is not None and config.get("experiment_seed") is not None:
+            pe_seed = int(config.get("experiment_seed"))
+
+        data.original_feature_dim = data.x.size(1)
         rfp = generate_rfp_encoding(
             edge_index=data.edge_index,
             num_nodes=data.num_nodes,
             r=pe_r,
             P=pe_P,
             normalize=normalize,
-            device=device
+            device=device,
+            seed=pe_seed,
         )
         orig_features = F.normalize(data.x.to(device), p=2, dim=1)
         rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5  # use same rfp_alpha as clients
@@ -173,7 +179,6 @@ def load_and_split_with_feature_prop(name: str, device, num_clients: int = 10, b
         use_feature_prop=use_feature_prop, 
         full_data=full_data, 
         fulltraining_flag=fulltraining_flag,
-        config=config,
-        num_iterations=num_iterations
+        config=config
     )
     return data, dataset, clients_data, test_data

@@ -180,6 +180,7 @@ class FLClient:
         
         # Setup mixed precision training
         self.use_amp = bool(cfg.get("use_amp", False) and self.target_device.type == "cuda")
+        self.grad_clip_norm = cfg.get("grad_clip_norm", 1.0)
 
         optimizer_type = cfg["optimizer"]
         lr = cfg["lr"]
@@ -291,6 +292,7 @@ class FLClient:
                     num_neighbors=self.num_neighbors,
                     use_amp=self.use_amp,
                     seed=client_seed,
+                    grad_clip_norm=self.grad_clip_norm,
                 )
             else:
                 loss, acc, loss_list, acc_list = train(
@@ -302,6 +304,7 @@ class FLClient:
                     self.writer,
                     use_amp=self.use_amp,
                     seed=client_seed,
+                    grad_clip_norm=self.grad_clip_norm,
                 )
             
             for loss_item in loss_list:

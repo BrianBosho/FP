@@ -394,6 +394,14 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
     out[mask] = x[mask]
     
     num_nodes = x.size(0)
+    if propagation_type == "diffusion_kernel" and num_nodes > 50000:
+        print(
+            f"[feature propagation] propagation_type='diffusion_kernel' on "
+            f"{num_nodes} nodes uses 'chebyshev_diffusion' because the "
+            f"large-graph first-order diffusion fallback is not a valid heat "
+            f"kernel."
+        )
+        propagation_type = "chebyshev_diffusion"
     
     # Compute propagation matrix based on selected type
     if propagation_type == "normalized_adjacency":

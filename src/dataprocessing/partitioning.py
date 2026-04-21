@@ -141,10 +141,13 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
     return communicate_indexes, [], []
 
 
-def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0, 
-                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False, 
-                   mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16, 
+def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0,
+                   use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False,
+                   mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16,
                    config: dict = None) -> tuple[list, list, list]:
+    if fulltraining_flag:
+        print("[C3] WARNING: fulltraining_flag=True — this is an ORACLE baseline that "
+              "includes cross-client label leakage. Do not use as a federated condition.")
     """
     Main partitioning function that handles both feature propagation and positional encoding.
     

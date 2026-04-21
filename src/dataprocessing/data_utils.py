@@ -126,6 +126,20 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
 
     # Compute propagation matrix once
     n_nodes = x.size(0)
+    if config is None:
+        config = {}
+
+    if (
+        mode == "diffusion"
+        and n_nodes > 50000
+        and bool(config.get("force_chebyshev_for_large_graphs", True))
+    ):
+        print(
+            f"[feature propagation] mode='diffusion' on {n_nodes} nodes uses "
+            f"mode='chebyshev_diffusion' because the large-graph first-order "
+            f"diffusion fallback is not a valid heat kernel."
+        )
+        mode = "chebyshev_diffusion"
     
     # Clear memory before intensive matrix operations
     torch.cuda.empty_cache()
@@ -167,8 +181,6 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     elif mode == "diffusion":
         # Diffusion returns SparseTensor, convert to torch.sparse_coo_tensor
         # Use t=1.0 by default (original Taylor series behavior)
-        if config is None:
-            config = {}
         t_diffusion = config.get("diffusion_t", 0.1)
         
         # Clear memory before diffusion kernel computation (memory-intensive)
@@ -206,8 +218,6 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     elif mode == "chebyshev_diffusion" or mode == "chebyshev_diffusion_operator":
         # Use matrix-free Chebyshev approach to avoid memory issues with large graphs
         # This applies Chebyshev diffusion directly without building the full operator matrix
-        if config is None:
-            config = {}
         t = config.get("chebyshev_t", 1)
         K = config.get("chebyshev_k", 5)
         
@@ -259,6 +269,8 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         # Track metrics if logging is enabled and compute delta for convergence
         if prev_out is not None:
             delta = torch.norm(out - prev_out).item()
+            if bool(config.get("feature_prop_relative_tolerance", False)):
+                delta = delta / (torch.norm(prev_out).item() + 1e-12)
             if logging_enabled:
                 metrics["deltas"].append(delta)
                 energy = compute_dirichlet_energy(out, edge_index)
@@ -328,6 +340,5 @@ def compute_dirichlet_energy(features: torch.Tensor, edge_index: torch.Tensor) -
         "per_node": raw_energy / num_nodes,
         "per_edge": raw_energy / num_edges
     }
-
 
 

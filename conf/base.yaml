@@ -7,7 +7,7 @@ lr: 0.5
 optimizer: SGD
 decay: 0.0005
 hop: 1
-fulltraining_flag: false
+fulltraining_flag: false  # WARNING: true = oracle baseline with cross-client label leakage
 save_results: true
 repetitions: 5
 
@@ -62,6 +62,7 @@ auto_minibatch_if_large: false
 batch_size: 1024
 num_neighbors: [10, 10, 10]
 use_amp: false
+grad_clip_norm: 1.0
 max_concurrent_clients: 10  # Number of clients to train in parallel per batch
 
 # Positional encoding settings
@@ -73,7 +74,23 @@ normalize: qr
 # Feature propagation settings
 num_iterations: 80
 feature_prop_tolerance: 1e-6
-feature_prop_device: "cuda"  # Memory optimization: Use CPU for preprocessing to save ~9GB GPU memory
+feature_prop_relative_tolerance: false
+feature_prop_device: "cuda"  # Set to "cpu" to save GPU memory during preprocessing
+
+# Global evaluation preprocessing (C1 / backward-compatible opt-in):
+#   false  -> current behavior: test_global_model uses raw features when FP is
+#             active (mismatch with client training). A one-time warning is logged.
+#   true   -> apply the same feature propagation to the global graph before
+#             test_global_model so the server model sees the same input
+#             distribution as clients.
+global_eval_uses_fp: false
+
+# Global evaluation PE mode (C2 / backward-compatible opt-in):
+#   "local"         -> current behavior: PE computed per-client. Global test may
+#                      see different PEs. Document the mismatch.
+#   "global_compute" -> compute RFP once on the full graph before global eval.
+#                      Aligns train/eval but leaks structural info across clients.
+global_eval_pe_mode: "local"
 
 # GPU Memory Optimization Settings
 keep_data_on_gpu: false  # Keep data on GPU during training to avoid CPU<->GPU transfers
@@ -84,6 +101,7 @@ keep_data_on_gpu: false  # Keep data on GPU during training to avoid CPU<->GPU t
 diffusion_t: 1.0        # Taylor series diffusion time
 chebyshev_k: 5          # Chebyshev polynomial order
 chebyshev_t: 0.9          # Chebyshev diffusion time
+force_chebyshev_for_large_graphs: true
 
 # Model architecture hyperparameters
 # These can be overridden per dataset or per model type
