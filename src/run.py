@@ -347,7 +347,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         train_results = []
         best_eval_acc = 0
         patience = 0
-        patience_threshold = 10
+        patience_threshold = cfg.get("early_stopping_patience", 10)
         best_eval_loss = float('inf')
 
         # Per-FL-round convergence history (backward-compatible opt-in).  The
@@ -367,16 +367,14 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             avg_eval_acc = results[1]
             avg_eval_loss = results[2]
 
-            improved_acc = avg_eval_acc > best_eval_acc
-            improved_loss = avg_eval_loss < best_eval_loss
-            if improved_acc:
+            improved = False
+            if avg_eval_acc > best_eval_acc:
                 best_eval_acc = avg_eval_acc
-                patience = 0
-            elif improved_loss:
+                improved = True
+            if avg_eval_loss < best_eval_loss:
                 best_eval_loss = avg_eval_loss
-                patience = 0
-            else:
-                patience += 1
+                improved = True
+            patience = 0 if improved else patience + 1
 
             if log_per_round:
                 def _to_float(x):
