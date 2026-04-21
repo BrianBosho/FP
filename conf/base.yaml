@@ -11,12 +11,21 @@ fulltraining_flag: false
 save_results: true
 repetitions: 5
 
+# Early stopping patience (number of rounds with no improvement before stopping)
+early_stopping_patience: 10
+
 # Federated aggregation strategy (B1 / backward-compatible opt-in):
 #   "mean"             -> simple unweighted average across clients (existing behavior)
 #   "fedavg_weighted"  -> weight each client's params by |D_k| / sum_k |D_k|
 #                         where |D_k| = number of training samples on client k
 # Anything other than "fedavg_weighted" falls through to the mean path.
 aggregation: "mean"
+
+# BatchNorm FL strategy (B2 / backward-compatible opt-in):
+#   "average"  -> average BN running-mean/var across clients (legacy behavior)
+#   "fedbn"    -> skip BN running stats; only aggregate weight/bias. Clients keep
+#                their own running-mean/var (FedBN from Li et al. 2021).
+bn_fl_strategy: "average"
 
 # Global experiment seed (C5 / backward-compatible opt-in):
 #   null              -> preserve legacy seeding (partition=123, minibatch=42,

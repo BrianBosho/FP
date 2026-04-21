@@ -315,7 +315,7 @@ class FLClient:
                 self._move_to_device(self.cpu_device)
                 self._clear_memory()
             
-            return loss, acc
+            return loss, acc, True
         except Exception as e:
             import traceback
             print(f"Error in client {self.client_id} training: {str(e)}")
@@ -323,7 +323,7 @@ class FLClient:
             # Attempt to free memory and return default values
             self._move_to_device(self.cpu_device)
             self._clear_memory()
-            return 0.0, 0.0
+            return 0.0, 0.0, False
 
     def evaluate(self, criterion):
         # Move to device for evaluation (no memory clearing for performance)
@@ -421,10 +421,12 @@ class FLClient:
         # detach() prevents gradient computation, cpu() moves to CPU
         params_cpu = tuple(p.detach().cpu() for p in self.model.parameters())
         buffers_cpu = tuple(b.detach().cpu() for b in self.model.buffers())
-        
+        buffer_names = tuple(name for name, _ in self.model.named_buffers())
+
         return {
             'params': params_cpu,
-            'buffers': buffers_cpu
+            'buffers': buffers_cpu,
+            'buffer_names': buffer_names
         }
 
     @torch.no_grad()
