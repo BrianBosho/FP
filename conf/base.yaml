@@ -81,12 +81,12 @@ feature_prop_relative_tolerance: false
 log_feature_prop_energy: false
 feature_prop_device: "cuda"  # Set to "cpu" to save GPU memory during preprocessing
 
-# Global evaluation preprocessing (C1 / backward-compatible opt-in):
-#   false  -> current behavior: test_global_model uses raw features when FP is
-#             active (mismatch with client training). A one-time warning is logged.
-#   true   -> apply the same feature propagation to the global graph before
-#             test_global_model so the server model sees the same input
-#             distribution as clients.
+# Global evaluation surface:
+# Multi-client runs evaluate the aggregated server model on the same
+# preprocessed client test graphs used by clients, keeping test inputs on the
+# same distribution as training. Single-client/centralised runs use the full
+# graph. This legacy key is retained for old configs but no longer controls the
+# main evaluation path.
 global_eval_uses_fp: false
 
 # Global evaluation PE mode (C2 / backward-compatible opt-in):
@@ -97,9 +97,10 @@ global_eval_uses_fp: false
 global_eval_pe_mode: "local"
 
 # GPU Memory Optimization Settings
-keep_data_on_gpu: false  # Keep data on GPU during training to avoid CPU<->GPU transfers
-                        # Set to false for large datasets that may run out of GPU memory
-                        # Recommended: true for Cora/Citeseer/Pubmed, false for ogbn-arxiv/ogbn-products
+keep_data_on_gpu: true   # Keep data on GPU during training to avoid CPU<->GPU transfers
+                        # Set to false for large datasets (ogbn-products) that will OOM
+adaptive_device: false  # When true: try GPU first; fall back to CPU on OOM or if rep-1 exceeds threshold
+adaptive_time_threshold_sec: 120  # Seconds — if rep 1 takes longer than this on GPU, switch remaining reps to CPU
 
 # Chebyshev/Diffusion hyperparameters
 diffusion_t: 1.0        # Taylor series diffusion time
@@ -168,13 +169,16 @@ training:
     patience: 10  # Early stopping patience
     
 paths:
-  datasets_dir: "datasets"
+  datasets_dir: "/home/shared-space/fedgnn-datasets"
   planetoid:
-    cora: "datasets/cora"
-    citeseer: "datasets/citeseer"
-    pubmed: "datasets/pubmed"
+    cora: "/home/shared-space/fedgnn-datasets/cora"
+    citeseer: "/home/shared-space/fedgnn-datasets/citeseer"
+    pubmed: "/home/shared-space/fedgnn-datasets/pubmed"
   ogbn:
-    arxiv: "datasets/ogbn_arxiv"
+    arxiv: "/home/shared-space/fedgnn-datasets/ogbn_arxiv"
   amazon:
-    computers: "datasets/amazon/computers"
-    photo: "datasets/amazon/photo"
+    computers: "/home/shared-space/fedgnn-datasets/amazon/computers"
+    photo: "/home/shared-space/fedgnn-datasets/amazon/photo"
+  webkb:
+    texas: "local_datasets/webkb/texas"
+    wisconsin: "local_datasets/webkb/wisconsin"

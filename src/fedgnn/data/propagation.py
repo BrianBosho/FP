@@ -196,7 +196,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         t_diffusion = config.get("diffusion_t", 0.1)
 
         # Clear memory before diffusion kernel computation (memory-intensive)
-        from src.fedgnn.utils.memory_utils import clear_memory_for_diffusion
+        from src.fedgnn.utils.memory import clear_memory_for_diffusion
         clear_memory_for_diffusion()
 
         sparse_tensor = diffusion_kernel(edge_index, n_nodes, device, t=t_diffusion)
@@ -242,7 +242,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         ).to(DEVICE)
 
         # Clear memory before starting Chebyshev iterations
-        from src.fedgnn.utils.memory_utils import clear_memory_for_diffusion
+        from src.fedgnn.utils.memory import clear_memory_for_diffusion
         clear_memory_for_diffusion()
     elif mode == "adjacency":
         # This returns a tuple of (edge_index, edge_weight), convert to sparse tensor

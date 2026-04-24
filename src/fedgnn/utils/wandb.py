@@ -165,11 +165,9 @@ def log_test_metrics(
         "test/global_vs_avg_client_diff": global_test_acc - mean_client_test_acc,
     }
 
-    # Check if wandb is initialized
+    # Check if wandb is initialized.  When use_wandb=false, callers still reach
+    # this helper in some paths; silently skip just like the other log helpers.
     if wandb.run is None:
-        print(
-            f"[WANDB ERROR] wandb.run is None - wandb may not be properly initialized"
-        )
         return
 
     try:

@@ -11,12 +11,12 @@ import torch.nn.functional as F
 # instead of being stored in the src directory. This change is implemented
 # in the GraphDataset class which manages dataset paths.
 
-def load_dataset(name: str, device):
+def load_dataset(name: str, device, config: dict = None):
     """
     Regime 1: Load any supported dataset without partitioning.
     """
     dataset_loader = GraphDataset(device)
-    return dataset_loader.load_dataset(name, device)
+    return dataset_loader.load_dataset(name, device, config=config)
 
 def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, config: dict = None):
     """
@@ -29,7 +29,7 @@ def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, 
         beta: Dirichlet concentration parameter
         config: Configuration dictionary from YAML file (optional)
     """
-    data, dataset = load_dataset(name, device)
+    data, dataset = load_dataset(name, device, config=config)
     clients_data, test_data, split_data_indexes = partition_data(
         data,
         num_clients,
@@ -101,7 +101,7 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         full_data = False
         print(f"Warning: Unrecognized imputation method '{imputation_method}'. Using default (zero imputation).")
 
-    data, dataset = load_dataset(name, device)
+    data, dataset = load_dataset(name, device, config=config)
 
     # Get positional encoding flag from config if available
     use_pe = True
@@ -174,7 +174,7 @@ def load_and_split_with_feature_prop(name: str, device, num_clients: int = 10, b
         fulltraining_flag: Whether to use full training data from k-hop subgraph
         config: Configuration dictionary from YAML file (optional)
     """
-    data, dataset = load_dataset(name, device)
+    data, dataset = load_dataset(name, device, config=config)
     clients_data, test_data, _ = partition_data(
         data,
         num_clients,

@@ -38,6 +38,9 @@ class FLClient:
         # Get GPU memory optimization flag from config
         self.keep_data_on_gpu = cfg.get("keep_data_on_gpu", True)
 
+        # Large-dataset guard: ogbn-products stays on CPU regardless
+        self._large_dataset = False
+
         # Get debug flag from config
         debug = cfg.get("debug", False)
 
@@ -49,7 +52,7 @@ class FLClient:
             print(f"  - Feature shape: {data.x.shape}")
             print(f"  - Data device (before moving): {data.x.device}")
 
-        # Keep a CPU copy always resident; swap to GPU only when actively computing
+        # Keep data on its incoming device; CPU copy only used for device-swap path
         self.data_cpu = data.to(self.cpu_device)
         self.data = self.data_cpu
         self.dataset = dataset
@@ -80,11 +83,14 @@ class FLClient:
         # Get model configuration from config file
         model_config = get_model_config(cfg, model_type, self.dataset_name)
 
+        # ogbn-products stays on CPU (large graph, OOM-prone)
+        _init_device = self.cpu_device if self.dataset_name == "ogbn-products" else self.target_device
+        if self.dataset_name == "ogbn-products":
+            self._large_dataset = True
+
         if model_type == "GCN":
             if self.dataset_name == "ogbn-arxiv":
-                # Use standard GCN with arxiv-specific configuration (unified approach)
                 use_unified_gcn = model_config.get('use_unified_model', True)
-
                 if use_unified_gcn:
                     self.model = GCN(
                         self.input_dim,
@@ -93,9 +99,8 @@ class FLClient:
                         num_layers=model_config.get('num_layers', 3),
                         dropout=model_config.get('dropout', 0.5),
                         normalization=model_config.get('normalization', 'batch')
-                    ).to(self.cpu_device)
+                    ).to(_init_device)
                 else:
-                    # Fallback to GCN_arxiv if explicitly requested
                     self.model = GCN_arxiv(
                         input_dim=self.input_dim,
                         hidden_dim=model_config.get('hidden_dim', 256),
@@ -103,7 +108,7 @@ class FLClient:
                         dropout=model_config.get('dropout', 0.5),
                         num_layers=model_config.get('num_layers', 3),
                         normalization=model_config.get('normalization', 'batch')
-                    ).to(self.cpu_device)
+                    ).to(_init_device)
             elif self.dataset_name == "ogbn-products":
                 products_input_dim = getattr(dataset, "num_features", None) or self.input_dim
                 self.model = GraphSAGEProducts(
@@ -121,14 +126,21 @@ class FLClient:
                     num_layers=model_config.get('num_layers', 2),
                     dropout=model_config.get('dropout', 0.5),
                     normalization=model_config.get('normalization', 'none')
-                ).to(self.cpu_device)
+                ).to(_init_device)
+
+        elif model_type == "GCN_arxiv":
+            self.model = GCN_arxiv(
+                input_dim=self.input_dim,
+                hidden_dim=model_config.get('hidden_dim', 256),
+                output_dim=dataset.num_classes,
+                dropout=model_config.get('dropout', 0.5),
+                num_layers=model_config.get('num_layers', 3),
+                normalization=model_config.get('normalization', 'batch')
+            ).to(_init_device)
 
         elif model_type == "GAT":
             if self.dataset_name == "ogbn-arxiv":
-                # Use GAT_Arxiv with arxiv-specific configuration (similar to GCN_arxiv)
-                # Default to False to use GAT_Arxiv (not unified GAT)
                 use_unified_gat = model_config.get('use_unified_model', False)
-
                 if use_unified_gat:
                     self.model = GAT(
                         self.input_dim,
@@ -138,9 +150,8 @@ class FLClient:
                         dropout=model_config.get('dropout', 0.5),
                         num_layers=model_config.get('num_layers', 3),
                         normalization=model_config.get('normalization', 'batch')
-                    ).to(self.cpu_device)
+                    ).to(_init_device)
                 else:
-                    # Fallback to GAT_Arxiv if explicitly requested
                     self.model = GAT_Arxiv(
                         input_dim=self.input_dim,
                         hidden_dim=model_config.get('hidden_dim', 256),
@@ -150,7 +161,7 @@ class FLClient:
                         normalization=model_config.get('normalization', 'batch'),
                         heads_hidden=model_config.get('heads_hidden', 4),
                         heads_out=model_config.get('heads_out', 6)
-                    ).to(self.cpu_device)
+                    ).to(_init_device)
             elif self.dataset_name == "Pubmed":
                 self.model = PubmedGAT(
                     self.input_dim,
@@ -160,7 +171,7 @@ class FLClient:
                     dropout=model_config.get('dropout', 0.6),
                     num_layers=model_config.get('num_layers', 2),
                     normalization=model_config.get('normalization', 'none')
-                ).to(self.cpu_device)
+                ).to(_init_device)
             else:
                 self.model = GAT(
                     self.input_dim,
@@ -170,7 +181,7 @@ class FLClient:
                     dropout=model_config.get('dropout', 0.6),
                     num_layers=model_config.get('num_layers', 2),
                     normalization=model_config.get('normalization', 'none')
-                ).to(self.cpu_device)
+                ).to(_init_device)
 
         self.epochs = cfg["epochs"]
 
@@ -415,9 +426,10 @@ class FLClient:
             return 0
 
     def get_params(self) -> dict:
-        # Memory optimization: Move model to CPU before extracting parameters
-        # to avoid keeping GPU tensor references alive
-        self._move_to_device(self.cpu_device)
+        # Extract parameters on current device (GPU by default)
+        # Only move to CPU if explicitly configured
+        if not self.keep_data_on_gpu:
+            self._move_to_device(self.cpu_device)
         self.optimizer.zero_grad(set_to_none=True)
 
         # Return CPU tensors to avoid keeping GPU memory references
@@ -434,19 +446,23 @@ class FLClient:
 
     @torch.no_grad()
     def update_params(self, params_dict: dict, current_global_epoch: int) -> None:
-        # Clear memory before parameter update
-        self._clear_memory()
-        self._move_to_device(self.cpu_device)
+        # Update parameters on target device (GPU by default)
+        target = self.target_device if self.keep_data_on_gpu else self.cpu_device
+        
+        if not self.keep_data_on_gpu:
+            self._clear_memory()
+            self._move_to_device(self.cpu_device)
 
         # Update parameters (weights and biases)
         for (p, mp) in zip(params_dict['params'], self.model.parameters()):
-            mp.data.copy_(p.to(self.cpu_device))
+            mp.data.copy_(p.to(target))
 
         # Update buffers (BatchNorm running stats, etc.)
         for (b, mb) in zip(params_dict['buffers'], self.model.buffers()):
-            mb.data.copy_(b.to(self.cpu_device))
+            mb.data.copy_(b.to(target))
 
-        self._clear_memory()
+        if not self.keep_data_on_gpu:
+            self._clear_memory()
 
     def get_loss_acc(self):
         # create a dictionary of training losses and accuracies

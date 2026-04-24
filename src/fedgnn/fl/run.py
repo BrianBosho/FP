@@ -1,5 +1,6 @@
 import torch
 import ray
+import time
 from src.fedgnn.fl.client import FLClient
 from src.fedgnn.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 from src.fedgnn.fl.server import Server
@@ -137,6 +138,21 @@ def instantiate_model(model_type, num_features, num_classes, device, dataset_nam
                   f"dropout={model_config.get('dropout', 0.5)}, "
                   f"normalization={model_config.get('normalization', 'none')})")
             return model.to(DEVICE)
+
+    elif model_type == "GCN_arxiv":
+        model = GCN_arxiv(
+            input_dim=num_features,
+            hidden_dim=model_config.get('hidden_dim', 256),
+            output_dim=num_classes,
+            dropout=model_config.get('dropout', 0.5),
+            num_layers=model_config.get('num_layers', 3),
+            normalization=model_config.get('normalization', 'batch')
+        )
+        print(f"Model: GCN_arxiv(hidden_dim={model_config.get('hidden_dim', 256)}, "
+              f"num_layers={model_config.get('num_layers', 3)}, "
+              f"dropout={model_config.get('dropout', 0.5)}, "
+              f"normalization={model_config.get('normalization', 'batch')})")
+        return model.to(DEVICE)
 
     elif model_type == "GAT":
         if dataset_name == "ogbn-arxiv":
@@ -282,6 +298,42 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
             config=config        )
 
 
+def _test_server_on_test_data(server, test_data):
+    """Evaluate the aggregated server model on preprocessed client test graphs.
+
+    Federated methods train on client-local graph objects whose features may be
+    zeroed, imputed, propagated, or augmented. Testing the aggregated model on
+    those same objects keeps evaluation on the same input distribution as
+    training. Return macro, micro, and per-client accuracies.
+    """
+    values = []
+    total_correct = 0.0
+    total_test_nodes = 0
+
+    for test_graph in test_data:
+        try:
+            acc = server.test_global_model(test_graph)
+            if hasattr(acc, "detach") and hasattr(acc, "cpu"):
+                acc = acc.detach().cpu().item()
+            acc = float(acc)
+        except Exception as exc:
+            print(f"Warning: server test on client graph failed: {exc}")
+            acc = float("nan")
+        values.append(acc)
+
+        try:
+            n_test = int(test_graph.test_mask.sum())
+        except Exception:
+            n_test = 0
+        if n_test > 0 and not np.isnan(acc):
+            total_test_nodes += n_test
+            total_correct += acc * n_test
+
+    macro = float(np.nanmean(values)) if values else float("nan")
+    micro = total_correct / total_test_nodes if total_test_nodes > 0 else float("nan")
+    return macro, micro, values
+
+
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
     DEVICE = device
 
@@ -305,8 +357,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
     )
     _partition_secs = time.time() - _t_partition_start
 
-    # CRITICAL: Ensure full graph is on CPU after preprocessing to free GPU memory
-    data = data.to(torch.device("cpu"))
+    # Move full graph to CPU only when not keeping data on GPU
+    if not cfg.get("keep_data_on_gpu", False):
+        data = data.to(torch.device("cpu"))
 
     # Clear GPU memory after all data preprocessing is complete
     if torch.cuda.is_available():
@@ -421,8 +474,15 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                 }
                 if log_global_test_per_round:
                     try:
-                        _global_acc = server.test_global_model(data)
-                        rec["global_test_acc"] = _to_float(_global_acc)
+                        if len(server.clients) == 1:
+                            _global_acc = server.test_global_model(data)
+                            rec["global_test_acc"] = _to_float(_global_acc)
+                            rec["global_test_surface"] = "full_graph"
+                        else:
+                            _macro, _micro, _ = _test_server_on_test_data(server, test_data)
+                            rec["global_test_acc"] = float(_micro)
+                            rec["global_test_acc_macro"] = float(_macro)
+                            rec["global_test_surface"] = "client_test_graphs"
                     except Exception as _gt_e:
                         rec["global_test_acc"] = None
                         rec["global_test_error"] = repr(_gt_e)
@@ -447,29 +507,9 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         if debug:
             print(f"\nAll model parameters are identical: {are_params_identical}")
 
-        # C1: Apply FP to global graph before test_global_model if configured
-        fp_modes = {"adjacency", "diffusion", "chebyshev_diffusion", "chebyshev-diffusion",
-                    "chebyshev_diffusion_operator", "chebyshev-diffusion-operator",
-                    "random_walk", "page_rank", "propagation"}
-        fp_mode = data_loading_option.replace("-", "_") if isinstance(data_loading_option, str) else data_loading_option
-        if cfg.get("global_eval_uses_fp", False) and data_loading_option in fp_modes:
-            from src.fedgnn.data.data_utils import propagate_features
-            print(f"[C1] Applying {fp_mode} FP to global graph before test_global_model")
-            data.x = propagate_features(
-                data.x, data.edge_index,
-                mask=torch.ones(data.x.size(0), dtype=torch.bool),
-                device=DEVICE,
-                num_iterations=cfg.get("num_iterations", 80),
-                mode=fp_mode,
-                alpha=cfg.get("alpha", 0.5),
-                config=cfg,
-            )
-        elif data_loading_option in fp_modes:
-            print(f"[C1] Warning: global test uses raw features while clients train on "
-                  f"propagated features (mode={data_loading_option}). "
-                  f"Set global_eval_uses_fp: true to fix.")
-
-        # C2: Recompute PE on global graph if configured
+        # C2: Recompute PE on global graph if configured. Multi-client runs no
+        # longer use the raw full graph as their primary global test surface;
+        # the aggregated model is tested on preprocessed client graphs below.
         use_pe_val = cfg.get("use_pe")
         try:
             from omegaconf import ListConfig
@@ -507,13 +547,18 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         use_batched = max_concurrent is not None and max_concurrent > 0
 
         if len(server.clients) == 1:
+            global_test_surface = "full_graph"
             test_results = server.test_global_model(data)
             if use_batched:
                 client_test_results = server.test_clients_batched([data], max_concurrent)
             else:
                 client_test_results = ray.get([client.test.remote(data) for client in server.clients])
         else:
-            test_results = server.test_global_model(data)
+            global_test_surface = "client_test_graphs"
+            global_test_macro, global_test_micro, global_test_values = _test_server_on_test_data(
+                server, test_data
+            )
+            test_results = global_test_micro
             if use_batched:
                 client_test_results = server.test_clients_batched(test_data, max_concurrent)
             else:
@@ -573,7 +618,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
 
         print(f"Client test acc (macro): {average_results:.4f}")
         print(f"Client test acc (micro): {global_test_acc_micro:.4f}")
-        print(f"Global test acc: {test_results}")
+        print(f"Global test acc ({global_test_surface}): {test_results}")
 
         # Extra per-repetition summary (backward-compatible: legacy callers that
         # only unpack (global, client) still work because the two extra values
@@ -587,7 +632,11 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             "training_time_s": round(_train_secs, 3),
             "partition_time_s": round(_partition_secs, 3),
             "client_test_acc_micro": float(global_test_acc_micro),
+            "global_test_surface": global_test_surface,
         }
+        if len(server.clients) > 1:
+            run_extras["global_test_acc_macro"] = float(global_test_macro)
+            run_extras["global_test_client_values"] = global_test_values
         return test_results, average_results, run_extras
     finally:
         # Clean up resources
@@ -597,8 +646,12 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         gc.collect()
 
 def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # DEVICE = torch.device("cpu")
+    # Device configuration: read from config, default to cuda
+    device_cfg = cfg.get("device", "cuda")
+    if device_cfg == "auto":
+        DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        DEVICE = torch.device(device_cfg)
     test_results = []
     client_test_results = []
 
@@ -644,14 +697,19 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         ray.init(
             num_gpus=int(ray_num_gpus),
             ignore_reinit_error=True,
-            object_store_memory=10 * 1024 * 1024 * 1024,  # 10GB for object store
+            object_store_memory=2 * 1024 * 1024 * 1024,  # 2GB per Ray instance
             _system_config={
                 "object_spilling_threshold": 0.8,
                 "max_io_workers": 4,
             }
         )
 
-        for i in range(cfg.get("repetitions", 5)):  # Change 1 to the desired number of repetitions
+        # Adaptive device state — may flip to CPU after rep 0 if OOM or too slow
+        _adaptive = cfg.get("adaptive_device", False)
+        _adaptive_threshold = cfg.get("adaptive_time_threshold_sec", 120)
+        _device_switched = False
+
+        for i in range(cfg.get("repetitions", 5)):
             try:
                 # Clear CUDA cache before each iteration
                 torch.cuda.empty_cache()
@@ -719,21 +777,37 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                 log_memory_usage("before experiment")
                 clear_memory_aggressive()
 
-                _rws_out = run_with_server(
-                    dataset_name,
-                    clients_num,
-                    beta,
-                    data_loading_option,
-                    model_type,
-                    current_cfg,  # Use current_cfg with sweep values
-                    DEVICE,
-                    hop=hop,
-                    fulltraining_flag=fulltraining_flag,
+                _rep_start = time.time()
+                try:
+                    _rws_out = run_with_server(
+                        dataset_name,
+                        clients_num,
+                        beta,
+                        data_loading_option,
+                        model_type,
+                        current_cfg,
+                        DEVICE,
+                        hop=hop,
+                        fulltraining_flag=fulltraining_flag,
+                    )
+                except torch.cuda.OutOfMemoryError:
+                    _gb_free = torch.cuda.get_device_properties(0).total_memory / 1e9
+                    print(f"[OOM] GPU OOM on rep {i+1} (GPU total: {_gb_free:.1f} GB) — failing hard, no CPU fallback")
+                    raise
 
-                )
-                # Backward-compatible unpack: ``run_with_server`` now returns a
-                # 3-tuple ``(global, client, run_extras)``.  If an older fork
-                # returns the legacy 2-tuple we still work.
+                _rep_secs = time.time() - _rep_start
+
+                # After rep 0: check timing and switch to CPU if too slow on GPU
+                if i == 0 and _adaptive and not _device_switched and current_cfg.get("keep_data_on_gpu", False):
+                    if _rep_secs > _adaptive_threshold:
+                        print(f"[adaptive] Rep 1 took {_rep_secs:.0f}s > threshold {_adaptive_threshold}s "
+                              f"— switching to CPU for remaining reps")
+                        cfg["keep_data_on_gpu"] = False
+                        _device_switched = True
+                    else:
+                        print(f"[adaptive] Rep 1 took {_rep_secs:.0f}s — GPU is fast enough, keeping on GPU")
+
+                # Backward-compatible unpack
                 if isinstance(_rws_out, tuple) and len(_rws_out) >= 3:
                     global_results, client_results, run_extras = _rws_out[0], _rws_out[1], _rws_out[2] or {}
                 else:
@@ -767,7 +841,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
                         rep_record["round_history"] = run_extras["round_history"]
                     for _k in ("rounds_executed", "early_stopped_at",
                                "training_time_s", "partition_time_s",
-                               "client_test_acc_micro"):
+                               "client_test_acc_micro", "global_test_surface",
+                               "global_test_acc_macro", "global_test_client_values"):
                         if _k in run_extras:
                             rep_record[_k] = run_extras[_k]
                 results_data["rounds"].append(rep_record)

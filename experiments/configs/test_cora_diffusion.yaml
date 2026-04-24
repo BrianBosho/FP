@@ -1,0 +1,38 @@
+# Simple Cora test: 200 rounds, beta=1, GCN, 10 clients, diffusion
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 200
+beta: [1]
+data_loading: [diffusion]
+models: [GCN]
+use_pe: [false]
+repetitions: 1
+experiment_seed: 42
+results_dir: experiments/results/test
+save_results: true
+hop: 1
+use_wandb: false
+epochs: 1
+early_stopping_patience: 20
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  epochs: 1
+  patience: 20
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

@@ -36,29 +36,29 @@ def parse_arguments():
     parser.add_argument('--decay', type=float, help='Weight decay')
     parser.add_argument('--repetitions', type=int, help='Number of repetitions for each experiment')
     parser.add_argument('--ray_port', type=int, help='Ray port for distributed execution')
+    parser.add_argument('--use_pe', type=lambda x: x.lower() == 'true', help='Enable positional encoding (true/false)')
     return parser.parse_args()
 
 def load_yaml_config(config_path):
     """Load experiment configuration from YAML file with base.yaml merging"""
     return load_config(config_path)
 
-def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, pe_info=None):
+def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, hop=1, use_pe=False):
     """Setup environment variables to redirect CSV output to experiment directory"""
-    # Create experiment directory path
-    experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}_beta{beta_value}_clients{clients_num}"
-    # Add PE info to experiment name if provided
-    if pe_info and pe_info.get("use_pe"):
-        pe_str = f"_pe{pe_info.get('pe_r', 'NA')}_{pe_info.get('pe_P', 'NA')}"
-        experiment_name += pe_str
+    # Create experiment directory path with full config to avoid collisions
+    experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}_beta{beta_value}_clients{clients_num}_hop{hop}"
+    # Add PE indicator to experiment name when enabled
+    if use_pe:
+        experiment_name += "_pe"
 
 
     exp_dir = os.path.join(results_dir, experiment_name)
     os.makedirs(exp_dir, exist_ok=True)
-    
+
     # Set environment variables that will be checked in run_utils.py
     os.environ["EXPERIMENT_RESULTS_DIR"] = exp_dir
     os.environ["EXPERIMENT_TIMESTAMP"] = timestamp
-    
+
     return exp_dir, experiment_name
 
 def copy_training_csv_to_experiment_dir(exp_dir, experiment_name, timestamp):
@@ -241,6 +241,8 @@ def run_experiments(args):
         cfg["fulltraining_flag"] = args.fulltraining_flag
     if args.repetitions is not None:
         cfg["repetitions"] = args.repetitions
+    if args.use_pe is not None:
+        cfg["use_pe"] = [args.use_pe]
 
 
 
@@ -320,7 +322,7 @@ def run_experiments(args):
                             
                             # Setup environment for this experiment
                             exp_dir, experiment_name = setup_environment_for_experiment(
-                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp
+                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=use_pe
                             )
                             
                             # Create a monkey patch for save_results_to_csv in run_utils

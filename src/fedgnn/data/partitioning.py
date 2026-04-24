@@ -279,10 +279,16 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
         # Step 1: Feature Propagation comes first
         if use_feature_prop:
-            # Decide FP device (default CPU; overridable by config)
-            fp_device = torch.device(
-                config.get("feature_prop_device", "cuda") if config is not None else "cuda"
+            # Decide FP device. If a config asks for CUDA on a CPU-only build,
+            # fall back to CPU so smoke/pilot runs fail on real model issues
+            # rather than environment availability.
+            requested_fp_device = (
+                config.get("feature_prop_device", "cpu") if config is not None else "cpu"
             )
+            fp_device = torch.device(requested_fp_device)
+            if fp_device.type == "cuda" and not torch.cuda.is_available():
+                print("feature_prop_device=cuda requested, but CUDA is unavailable; using CPU.")
+                fp_device = torch.device("cpu")
 
             # Move necessary tensors for FP to fp_device
             x_fp = clients_data[i].x.to(fp_device)
@@ -336,23 +342,20 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
         final_subgraphs.append(clients_data[i])
 
-    # CRITICAL: Move all preprocessed data to CPU before returning
-    # This frees GPU memory after preprocessing is complete
-    print(f"Moving all {len(final_subgraphs)} preprocessed subgraphs to CPU to free GPU memory...")
-    cpu_device = torch.device("cpu")
-    for i, subgraph in enumerate(final_subgraphs):
-        final_subgraphs[i] = subgraph.to(cpu_device)
-
-    # Also move initial subgraphs to CPU
-    for i, subgraph in enumerate(initial_subgraphs):
-        initial_subgraphs[i] = subgraph.to(cpu_device)
-
-    # Clear GPU cache after all preprocessing
-    if DEVICE.type == "cuda":
-        torch.cuda.empty_cache()
-        import gc
-        gc.collect()
-        print(f"✓ GPU memory freed after preprocessing - all data now on CPU")
+    keep_on_gpu = config.get("keep_data_on_gpu", False) if config is not None else False
+    if not keep_on_gpu:
+        cpu_device = torch.device("cpu")
+        for i, subgraph in enumerate(final_subgraphs):
+            final_subgraphs[i] = subgraph.to(cpu_device)
+        for i, subgraph in enumerate(initial_subgraphs):
+            initial_subgraphs[i] = subgraph.to(cpu_device)
+        if DEVICE.type == "cuda":
+            torch.cuda.empty_cache()
+            import gc
+            gc.collect()
+        print(f"✓ Subgraphs on CPU after preprocessing")
+    else:
+        print(f"✓ Subgraphs staying on {DEVICE} (keep_data_on_gpu=True)")
 
     if use_feature_prop and config and config.get("debug", False):
         print(f"Feature propagation logs saved to: {json_file}")
