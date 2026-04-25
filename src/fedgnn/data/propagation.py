@@ -73,7 +73,8 @@ def apply_mask(data: Data, split_index: list, subgraph_to_original: dict) -> Ten
 def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
                        num_iterations: int = 50, mode: str = "adjacency",
                        alpha: float = 0.5, client_id=None, log_file=None,
-                       tol: float = 1e-3, config: dict | None = None) -> Tensor:
+                       tol: float = 1e-3, config: dict | None = None,
+                       init_strategy: str = "zero") -> Tensor:
     """
     Improved feature propagation with logging capabilities.
 
@@ -98,6 +99,10 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
         tol: Convergence tolerance
         config: Optional configuration dict; if provided and mode is chebyshev_*,
             reads 'chebyshev_t' and 'chebyshev_k'
+        init_strategy: Initialization strategy for unlabeled nodes
+            - "zero": Current behavior (unlabeled nodes start at 0)
+            - "mean": Unlabeled nodes initialized to mean of labeled features
+            - "neighbor": Unlabeled nodes initialized to average of neighboring labeled features
     """
     DEVICE = device
     x = x.to(DEVICE)
@@ -127,6 +132,7 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             "final_zeros": 0,
             "energies": []
         }
+        metrics["init_strategy"] = init_strategy
         log_energy = bool(config.get("log_feature_prop_energy", False))
         metrics["log_energy"] = log_energy
     else:
@@ -134,6 +140,48 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
 
     # Initialize output tensor
     out = torch.zeros_like(x)
+    out[mask] = x[mask]
+
+    # Apply initialization strategy for unlabeled nodes
+    if init_strategy == "mean" and (~mask).sum() > 0:
+        # Compute mean of labeled features
+        labeled_features = x[mask]
+        mean_features = labeled_features.mean(dim=0)
+        out[~mask] = mean_features
+        if logging_enabled:
+            metrics["initial_zeros"] = (out == 0).all(dim=1).sum().item()
+    elif init_strategy == "neighbor" and (~mask).sum() > 0:
+        # For each unlabeled node, average features from neighboring labeled nodes
+        n_nodes = x.size(0)
+        edge_index_with_loops, _ = get_symmetrically_normalized_adjacency(edge_index, n_nodes)
+        adj_sparse = torch.sparse_coo_tensor(
+            edge_index_with_loops, torch.ones(edge_index_with_loops.size(1), device=DEVICE),
+            size=(n_nodes, n_nodes)
+        ).to(DEVICE)
+
+        # Count labeled neighbors per node
+        labeled_mask = mask.float().unsqueeze(0)  # [1, n_nodes]
+        neighbor_labeled_count = torch.sparse.mm(adj_sparse, labeled_mask.t()).squeeze()  # [n_nodes]
+        neighbor_labeled_count = neighbor_labeled_count.clamp(min=1)  # avoid div by 0
+
+        # Sum features from labeled neighbors
+        labeled_features = x * mask.float().unsqueeze(1)  # zero out unlabeled
+        neighbor_sum = torch.sparse.mm(adj_sparse, labeled_features)  # [n_nodes, feat_dim]
+
+        # Average: only for nodes that actually have labeled neighbors
+        has_labeled_neighbors = neighbor_labeled_count > 0
+        out[has_labeled_neighbors] = neighbor_sum[has_labeled_neighbors] / neighbor_labeled_count[has_labeled_neighbors].unsqueeze(1)
+
+        # Restore labeled nodes to their original features
+        out[mask] = x[mask]
+
+        if logging_enabled:
+            metrics["initial_zeros"] = (out == 0).all(dim=1).sum().item()
+
+        del adj_sparse, labeled_mask, neighbor_labeled_count, neighbor_sum
+        import gc
+        gc.collect()
+    # else: init_strategy == "zero" → no change needed (out already initialized to zeros)
     out[mask] = x[mask]
 
     # Compute propagation matrix once

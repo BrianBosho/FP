@@ -180,6 +180,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         rfp_qr_max_nodes = config.get("rfp_qr_max_nodes", 50000)
         num_iterations = config.get("num_iterations", 50)
         fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
+        init_strategy = config.get("feature_prop_init_strategy", "zero")
         if config.get("debug", False):
             print(f"Tolerance: {fp_tolerance}")
 
@@ -306,7 +307,8 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 client_id=i,
                 log_file=json_file,
                 tol=fp_tolerance,
-                config=config
+                config=config,
+                init_strategy=init_strategy
             )
 
             # Move features back to original DEVICE for training/PE
