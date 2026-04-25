@@ -28,6 +28,7 @@ ehthumbs.db
 # Data directories (local)
 ############################
 /datasets/
+/local_datasets/
 /processed/
 /raw/
 /data/
@@ -87,3 +88,20 @@ results.csv
 # Known misplaced local artifacts (keep `src/` code-only)
 ############################
 src/*.png
+
+############################
+# Experiment scheduler (generated)
+############################
+experiments/scheduler/status.json
+experiments/scheduler/resource_state.json
+experiments/scheduler/STATUS.md
+experiments/scheduler/logs/
+# Un-ignore the scheduler runs tree so result.json can be tracked (overrides runs/ above)
+!experiments/scheduler/runs/
+!experiments/scheduler/runs/*/
+!experiments/scheduler/runs/*/attempt_*/
+experiments/scheduler/runs/*/attempt_*/stdout.log
+experiments/scheduler/runs/*/attempt_*/stderr.log
+experiments/scheduler/runs/*/attempt_*/heartbeat.json
+experiments/scheduler/runs/*/attempt_*/config_snapshot.yaml
+experiments/scheduler/runs/*/attempt_*/wrapper.log

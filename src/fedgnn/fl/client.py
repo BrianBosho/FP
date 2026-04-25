@@ -203,9 +203,16 @@ class FLClient:
             )
 
         if optimizer_type == "SGD":
-            self.optimizer = torch.optim.SGD(
-                self.model.parameters(), lr=lr, weight_decay=weight_decay
-            )
+            momentum = cfg.get("momentum", 0)
+            if momentum > 0:
+                self.optimizer = torch.optim.SGD(
+                    self.model.parameters(), lr=lr, weight_decay=weight_decay,
+                    momentum=momentum
+                )
+            else:
+                self.optimizer = torch.optim.SGD(
+                    self.model.parameters(), lr=lr, weight_decay=weight_decay
+                )
 
 
         self.criterion = torch.nn.NLLLoss()

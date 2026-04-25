@@ -169,7 +169,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         config: Configuration dictionary from YAML file (optional)
     """
     import time, os, json
-    DEVICE = device
+    DEVICE = torch.device(device) if isinstance(device, str) else device
 
     # Update parameters from config if provided (coalesce None to defaults)
     if config is not None:
