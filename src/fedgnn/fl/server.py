@@ -233,6 +233,10 @@ class Server():
         eval_results = self.evaluate_clients()
         log_client_validation_metrics(eval_results, current_global_epoch)
 
+        # Clear memory after each training cycle to prevent accumulation
+        torch.cuda.empty_cache()
+        gc.collect()
+
         def to_cpu_scalar(x):
             if hasattr(x, "detach") and hasattr(x, "cpu"):
                 return x.detach().cpu().item()

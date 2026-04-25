@@ -492,6 +492,13 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                 print(f"Early stopping triggered at round {i}")
                 early_stopped_at = i
                 break
+
+            # Memory clearing every N rounds to prevent accumulation
+            if (i + 1) % 50 == 0:
+                torch.cuda.empty_cache()
+                gc.collect()
+                print(f"  [Memory cleanup at round {i + 1}]")
+
         _train_secs = time.time() - _t_train_start
         if debug:
             print(f"training_time_s: {round(_train_secs, 2)}")
