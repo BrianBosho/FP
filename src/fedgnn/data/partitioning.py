@@ -313,6 +313,9 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             edge_index_fp = clients_data[i].edge_index.to(fp_device)
             original_nodes_mask_fp = original_nodes_mask.to(fp_device)
 
+            # Get alpha from config if provided
+            alpha = config.get("alpha", 0.5) if config is not None else 0.5
+
             # Run FP on fp_device
             x_fp = propagate_features(
                 x_fp,
@@ -321,6 +324,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
                 fp_device,
                 num_iterations=num_iterations,
                 mode=mode,
+                alpha=alpha,
                 client_id=i,
                 log_file=json_file,
                 tol=fp_tolerance,

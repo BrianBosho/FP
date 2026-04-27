@@ -63,10 +63,19 @@ def data_loading_uses_pe(data_loading_option) -> bool:
     return str(data_loading_option).lower() in FEATURE_PROP_DATA_LOADING_OPTIONS
 
 
-def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, hop=1, use_pe=False):
+def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, hop=1, use_pe=False, num_iterations=None, diffusion_t=None, alpha=None):
     """Setup environment variables to redirect CSV output to experiment directory"""
     # Create experiment directory path with full config to avoid collisions
     experiment_name = f"{dataset_name}_{data_loading_option}_{model_type}_beta{beta_value}_clients{clients_num}_hop{hop}"
+    
+    # Add sweep parameters to name if they are part of an ablation
+    if num_iterations is not None:
+        experiment_name += f"_iter{num_iterations}"
+    if diffusion_t is not None:
+        experiment_name += f"_t{diffusion_t}"
+    if alpha is not None:
+        experiment_name += f"_alpha{alpha}"
+        
     # Add PE indicator to experiment name when enabled
     if use_pe:
         experiment_name += "_pe"
@@ -287,6 +296,9 @@ def run_experiments(args):
     datasets = as_list(cfg["datasets"])
     data_loading_options = as_list(cfg["data_loading"])
     model_types = as_list(cfg["models"])
+    num_iterations_values = as_list(cfg.get("num_iterations", [80]))
+    diffusion_t_values = as_list(cfg.get("diffusion_t", [1.0]))
+    alpha_values = as_list(cfg.get("alpha", [0.5]))
     # Resolve results_dir and summary_dir deterministically
     resolved_paths = resolve_results_and_summary_dirs(cfg.get("results_dir"))
     results_dir = str(resolved_paths.results_dir)
@@ -338,65 +350,75 @@ def run_experiments(args):
                     for beta in beta_values:
                         for hop in hop_values:
                             for clients_num in client_nums:
-                                # Generate timestamp for this experiment
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                effective_use_pe = bool(use_pe) and data_loading_uses_pe(data_loading_option)
-                                
-                                # Setup environment for this experiment
-                                exp_dir, experiment_name = setup_environment_for_experiment(
-                                    dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=effective_use_pe
-                                )
-                                
-                                # Create a monkey patch for save_results_to_csv in run_utils
-                                from src.fedgnn.utils.run import save_results_to_csv as original_save_func
-                                
-                                def patched_save_func(results, filename=None):
-                                    # Use the original function but with our custom filename
-                                    csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
-                                    return original_save_func(results, csv_filename)
-                                
-                                # Apply the monkey patch to the imported function
-                                import src.fedgnn.utils.run as run_utils
-                                run_utils.save_results_to_csv = patched_save_func
-                                
-                                # Print experiment header
-                                print(f"\n{'='*80}")
-                                print(f"Running experiment: {experiment_name}")
-                                print(f"{'='*80}")
-                                
-                                # Set Ray port if specified
-                                if hasattr(args, 'ray_port') and args.ray_port:
-                                    # Ray will use the address directly, no need for env var
-                                    pass
-                                
-                                # Create a training configuration for the experiment
-                                training_cfg = cfg.copy()  # Pass all parameters through
-                                training_cfg["beta"] = beta
-                                training_cfg["hop"] = hop
-                                # also overwrite dataset_name, data_loading_option, model_type, clients_num
-                                training_cfg["dataset_name"] = dataset_name
-                                training_cfg["data_loading_option"] = data_loading_option
-                                training_cfg["model_type"] = model_type
-                                training_cfg["clients_num"] = clients_num
-                                training_cfg["use_pe"] = effective_use_pe
-                                training_cfg["requested_use_pe"] = use_pe
-                                training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
-                            
-                                
-                                # Start time measurement
-                                start_time = time.time()
-                                
-                                # Run the experiment
-                                result, output = main_experiment(
-                                    clients_num, 
-                                    beta, 
-                                    data_loading_option, 
-                                    model_type, 
-                                    training_cfg, 
-                                    dataset_name=dataset_name, 
-                                    hop=hop,
-                                    fulltraining_flag=fulltraining_flag
-                                )
+                                for num_iterations in num_iterations_values:
+                                    for diffusion_t in diffusion_t_values:
+                                        for alpha in alpha_values:
+                                            # Generate timestamp for this experiment
+                                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                            effective_use_pe = bool(use_pe) and data_loading_uses_pe(data_loading_option)
+                                            
+                                            # Setup environment for this experiment
+                                            exp_dir, experiment_name = setup_environment_for_experiment(
+                                                dataset_name, data_loading_option, model_type, beta, clients_num, 
+                                                results_dir, timestamp, hop=hop, use_pe=effective_use_pe,
+                                                num_iterations=num_iterations, diffusion_t=diffusion_t, alpha=alpha
+                                            )
+                                            
+                                            # Create a monkey patch for save_results_to_csv in run_utils
+                                            from src.fedgnn.utils.run import save_results_to_csv as original_save_func
+                                            
+                                            def patched_save_func(results, filename=None):
+                                                # Use the original function but with our custom filename
+                                                csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+                                                return original_save_func(results, csv_filename)
+                                            
+                                            # Apply the monkey patch to the imported function
+                                            import src.fedgnn.utils.run as run_utils
+                                            run_utils.save_results_to_csv = patched_save_func
+                                            
+                                            # Print experiment header
+                                            print(f"\n{'='*80}")
+                                            print(f"Running experiment: {experiment_name}")
+                                            print(f"{'='*80}")
+                                            
+                                            # Set Ray port if specified
+                                            if hasattr(args, 'ray_port') and args.ray_port:
+                                                # Ray will use the address directly, no need for env var
+                                                pass
+                                            
+                                            # Create a training configuration for the experiment
+                                            training_cfg = cfg.copy()  # Pass all parameters through
+                                            training_cfg["beta"] = beta
+                                            training_cfg["hop"] = hop
+                                            # also overwrite dataset_name, data_loading_option, model_type, clients_num
+                                            training_cfg["dataset_name"] = dataset_name
+                                            training_cfg["data_loading_option"] = data_loading_option
+                                            training_cfg["model_type"] = model_type
+                                            training_cfg["clients_num"] = clients_num
+                                            training_cfg["use_pe"] = effective_use_pe
+                                            training_cfg["requested_use_pe"] = use_pe
+                                            training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
+                                            
+                                            # Add current sweep parameters to training_cfg
+                                            training_cfg["num_iterations"] = num_iterations
+                                            training_cfg["diffusion_t"] = diffusion_t
+                                            training_cfg["alpha"] = alpha
+                                        
+                                            
+                                            # Start time measurement
+                                            start_time = time.time()
+                                            
+                                            # Run the experiment
+                                            result, output = main_experiment(
+                                                clients_num, 
+                                                beta, 
+                                                data_loading_option, 
+                                                model_type, 
+                                                training_cfg, 
+                                                dataset_name=dataset_name, 
+                                                hop=hop,
+                                                fulltraining_flag=fulltraining_flag
+                                            )
                             
                             # Calculate experiment duration
                             end_time = time.time()
