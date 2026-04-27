@@ -4,8 +4,11 @@
 datasets:
    - Cora
 results_dir: results/IEEE/cora
-# set wandb false
+# Keep W&B off for unattended sweeps. The runtime reads use_wandb/wandb_mode;
+# keep the legacy wandb key only for older helpers.
 wandb: false
+use_wandb: false
+wandb_mode: disabled
 wandb_project: "FGL7-Cora"  # Dataset-specific wandb project
 
 # Cora-specific experiment parameters
@@ -19,6 +22,7 @@ models: [GCN, GAT]
 hop: 1
 use_pe: [True]
 repetitions: 3
+aggregation: fedavg_weighted
 
 # Optional: Override model architecture for Cora experiments
 # Uncomment and modify these to experiment with different architectures
