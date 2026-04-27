@@ -121,6 +121,7 @@ experiments/scheduler/task_status.json
 ############################
 docs/
 memory/
+conf/
 run_cora_splits.sh
 check_r1.sh
 break_cora_config.py
