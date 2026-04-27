@@ -196,7 +196,10 @@ class Server():
         # Bounded concurrency: train K clients at a time
         if self.max_concurrent_clients and self.max_concurrent_clients < len(clients):
             print(f"Training clients in batches of {self.max_concurrent_clients} (total: {len(clients)})")
-            torch.cuda.synchronize() if torch.cuda.is_available() else None
+            try:
+                torch.cuda.synchronize() if torch.cuda.is_available() else None
+            except Exception:
+                pass  # GPU not actually usable; continue on CPU
             train_results = self._train_clients_batched(clients, self.max_concurrent_clients)
         else:
             train_futures = [client.train_client.remote() for client in clients]

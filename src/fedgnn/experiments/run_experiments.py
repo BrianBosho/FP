@@ -390,8 +390,12 @@ def run_experiments(args):
                                 gc.collect()
                             
                             if torch.cuda.is_available():
-                                torch.cuda.empty_cache()
-                                torch.cuda.synchronize()
+                                try:
+                                    torch.cuda.empty_cache()
+                                    torch.cuda.synchronize()
+                                except RuntimeError as e:
+                                    print(f"[run_experiments] WARNING: cuda.synchronize failed ({e}), continuing")
+                                    torch.cuda.empty_cache()
                                 # Reset CUDA memory stats to clear any lingering state from torch_sparse
                                 torch.cuda.reset_peak_memory_stats()
                                 torch.cuda.reset_accumulated_memory_stats()

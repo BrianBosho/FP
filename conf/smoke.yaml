@@ -23,5 +23,6 @@ wandb_mode: "disabled"
 
 # Prefer CPU preprocessing for portability
 feature_prop_device: "cpu"
+device: "cpu"
 max_concurrent_clients: 1
 

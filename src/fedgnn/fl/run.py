@@ -724,7 +724,11 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
 
                 # Force synchronization for memory-intensive operations
                 if torch.cuda.is_available():
-                    torch.cuda.synchronize()
+                    try:
+                        torch.cuda.synchronize()
+                    except RuntimeError as e:
+                        print(f"[run] WARNING: cuda.synchronize failed ({e}), clearing state and continuing")
+                        torch.cuda.empty_cache()
                     torch.cuda.empty_cache()
 
 

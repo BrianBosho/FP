@@ -264,11 +264,13 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
 
         # Aggressive CUDA cleanup to ensure torch_sparse releases its CUDA context
         if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-            torch.cuda.synchronize()
-            # Reset CUDA memory stats to clear any lingering state
-            torch.cuda.reset_peak_memory_stats()
-            torch.cuda.reset_accumulated_memory_stats()
+            try:
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+                torch.cuda.reset_peak_memory_stats()
+                torch.cuda.reset_accumulated_memory_stats()
+            except RuntimeError:
+                pass  # CUDA not actually usable
 
         # Final GC round after CUDA cleanup
         gc.collect()

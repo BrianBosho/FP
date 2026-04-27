@@ -9,11 +9,23 @@ import logging
 from typing import Optional, Union
 
 
+def _safe_synchronize():
+    """Safely synchronize CUDA, ignoring errors if CUDA is in bad state."""
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.synchronize()
+        except RuntimeError:
+            pass
+
+
 def clear_cuda_cache():
     """Basic CUDA cache clearing"""
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
+        try:
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+        except RuntimeError:
+            pass  # CUDA may be in bad state, continue
 
 
 def clear_memory_basic():
@@ -25,12 +37,9 @@ def clear_memory_basic():
 
 def clear_memory_aggressive():
     """Aggressive memory clearing for memory-intensive operations"""
-    # Single efficient clearing round (reduced from 3 for performance)
     clear_cuda_cache()
     gc.collect()
-
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
+    _safe_synchronize()
 
 
 def clear_memory_with_model(
@@ -39,7 +48,6 @@ def clear_memory_with_model(
 ):
     """Clear memory with optional model movement to CPU"""
     if model is not None:
-        # Temporarily move model to CPU to free GPU memory
         original_device = next(model.parameters()).device
         model.cpu()
         clear_memory_aggressive()
@@ -51,28 +59,32 @@ def clear_memory_with_model(
 
 def clear_memory_for_diffusion():
     """Specialized memory clearing for diffusion operations"""
-    # Single efficient clearing round (reduced from 3 for performance)
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        gc.collect()
-        torch.cuda.synchronize()
+        try:
+            torch.cuda.empty_cache()
+            gc.collect()
+            torch.cuda.synchronize()
+        except RuntimeError:
+            torch.cuda.empty_cache()
 
 
 def clear_memory_for_adjacency():
     """Specialized memory clearing for adjacency operations"""
-    # Single efficient clearing round (reduced from aggressive for performance)
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        gc.collect()
-        torch.cuda.synchronize()
+        try:
+            torch.cuda.empty_cache()
+            gc.collect()
+            torch.cuda.synchronize()
+        except RuntimeError:
+            torch.cuda.empty_cache()
 
 
 def log_memory_usage(stage: str = ""):
     """Log current memory usage"""
     if torch.cuda.is_available():
-        allocated = torch.cuda.memory_allocated() / 1024**3  # GB
-        cached = torch.cuda.memory_reserved() / 1024**3  # GB
-        max_allocated = torch.cuda.max_memory_allocated() / 1024**3  # GB
+        allocated = torch.cuda.memory_allocated() / 1024**3
+        cached = torch.cuda.memory_reserved() / 1024**3
+        max_allocated = torch.cuda.max_memory_allocated() / 1024**3
         logging.info(
             f"Memory {stage} - Allocated: {allocated:.2f}GB, "
             f"Cached: {cached:.2f}GB, Max: {max_allocated:.2f}GB"
