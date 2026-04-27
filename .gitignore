@@ -105,3 +105,25 @@ experiments/scheduler/runs/*/attempt_*/stderr.log
 experiments/scheduler/runs/*/attempt_*/heartbeat.json
 experiments/scheduler/runs/*/attempt_*/config_snapshot.yaml
 experiments/scheduler/runs/*/attempt_*/wrapper.log
+
+############################
+# Experiment artifacts
+############################
+experiments/configs/
+experiments/results/
+experiments/logs/
+experiments/*.md
+experiments/scheduler/queue.json
+experiments/scheduler/task_status.json
+
+############################
+# Docs and run artifacts
+############################
+docs/
+memory/
+run_cora_splits.sh
+check_r1.sh
+break_cora_config.py
+diagnose_diffusion.py
+experiment_runner_phase1.zip
+test.ipynb

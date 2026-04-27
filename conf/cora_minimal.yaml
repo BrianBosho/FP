@@ -38,6 +38,7 @@ repetitions: 1
 aggregation: fedavg_weighted
 
 # Keep memory light: no minibatching, small model, CPU preprocessing
+device: cpu
 max_concurrent_clients: 10
 feature_prop_device: cpu
 keep_data_on_gpu: false
