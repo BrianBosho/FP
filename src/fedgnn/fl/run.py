@@ -659,6 +659,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
         DEVICE = torch.device(device_cfg)
+    using_cuda_device = DEVICE.type == "cuda"
     test_results = []
     client_test_results = []
 
@@ -700,7 +701,7 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         # RAY_REDIS_ADDRESS is set per process in the script
         ray_num_gpus = cfg.get("ray_num_gpus", None)
         if ray_num_gpus is None:
-            ray_num_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 0
+            ray_num_gpus = torch.cuda.device_count() if using_cuda_device and torch.cuda.is_available() else 0
         ray.init(
             num_gpus=int(ray_num_gpus),
             ignore_reinit_error=True,
@@ -719,11 +720,12 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         for i in range(cfg.get("repetitions", 5)):
             try:
                 # Clear CUDA cache before each iteration
-                torch.cuda.empty_cache()
+                if using_cuda_device and torch.cuda.is_available():
+                    torch.cuda.empty_cache()
                 gc.collect()
 
                 # Force synchronization for memory-intensive operations
-                if torch.cuda.is_available():
+                if using_cuda_device and torch.cuda.is_available():
                     try:
                         torch.cuda.synchronize()
                     except RuntimeError as e:

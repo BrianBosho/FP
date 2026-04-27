@@ -411,16 +411,18 @@ def run_experiments(args):
                             for _ in range(3):
                                 gc.collect()
                             
-                            if torch.cuda.is_available():
+                            device_cfg = str(training_cfg.get("device", cfg.get("device", "cuda"))).lower()
+                            cleanup_cuda = device_cfg != "cpu" and torch.cuda.is_available()
+                            if cleanup_cuda:
                                 try:
                                     torch.cuda.empty_cache()
                                     torch.cuda.synchronize()
+                                    # Reset CUDA memory stats to clear any lingering state from torch_sparse
+                                    torch.cuda.reset_peak_memory_stats()
+                                    torch.cuda.reset_accumulated_memory_stats()
                                 except RuntimeError as e:
                                     print(f"[run_experiments] WARNING: cuda.synchronize failed ({e}), continuing")
                                     torch.cuda.empty_cache()
-                                # Reset CUDA memory stats to clear any lingering state from torch_sparse
-                                torch.cuda.reset_peak_memory_stats()
-                                torch.cuda.reset_accumulated_memory_stats()
                             
                             # Final GC round after CUDA cleanup
                             gc.collect()
