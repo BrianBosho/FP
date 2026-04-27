@@ -87,6 +87,7 @@ class Server():
     def _aggregate_mean(self, clients) -> None:
         """Unweighted-mean aggregation with optional FedBN support."""
         fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
+        active_count = len(clients)
         params = [client.get_params.remote() for client in clients]
         self.zero_params()
         self.zero_buffers()
@@ -117,11 +118,12 @@ class Server():
                 break
 
         for p in self.model.parameters():
-            p.data /= self.num_of_trainers
+            p.data /= active_count
 
-        for b in self.model.buffers():
-            if b.dtype.is_floating_point:
-                b.data /= self.num_of_trainers
+        buf_names = tuple(name for name, _ in self.model.named_buffers())
+        for b, name in zip(self.model.buffers(), buf_names):
+            if b.dtype.is_floating_point and not (fedbn and self._is_bn_running_stat(name)):
+                b.data /= active_count
 
     @torch.no_grad()
     def _aggregate_fedavg_weighted(self, clients) -> None:
@@ -208,13 +210,13 @@ class Server():
         # B5: filter failed clients from aggregation
         active_clients = []
         active_results = []
-        for client, result in zip(clients, train_results):
+        for client_idx, (client, result) in enumerate(zip(clients, train_results)):
             success = result[2] if len(result) > 2 else True
             if success:
                 active_clients.append(client)
                 active_results.append(result)
             else:
-                print(f"[Server] Client {client.client_id} failed; excluding from aggregation")
+                print(f"[Server] Client {client_idx} failed; excluding from aggregation")
 
         if len(active_clients) < len(clients):
             print(f"[Server] Aggregating {len(active_clients)}/{len(clients)} clients")
@@ -320,7 +322,8 @@ class Server():
     def broadcast_params(self, current_global_epoch: int, sync=False) -> None:
         params_dict = {
             'params': tuple(self.model.parameters()),
-            'buffers': tuple(self.model.buffers())
+            'buffers': tuple(self.model.buffers()),
+            'buffer_names': tuple(name for name, _ in self.model.named_buffers()),
         }
         futures = []
         for trainer in self.clients:

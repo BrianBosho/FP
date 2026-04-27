@@ -373,7 +373,7 @@ class FLClient:
             # Attempt to free memory
             self._move_to_device(self.cpu_device)
             self._clear_memory()
-            return 0.0  # or appropriate default value
+            return float('inf'), 0.0
 
     def test(self, data=None):
         # Move to device for testing (no memory clearing for performance)
@@ -464,8 +464,16 @@ class FLClient:
         for (p, mp) in zip(params_dict['params'], self.model.parameters()):
             mp.data.copy_(p.to(target))
 
-        # Update buffers (BatchNorm running stats, etc.)
-        for (b, mb) in zip(params_dict['buffers'], self.model.buffers()):
+        fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
+        buffer_names = params_dict.get(
+            'buffer_names',
+            tuple(name for name, _ in self.model.named_buffers())
+        )
+
+        # Update buffers. FedBN keeps BatchNorm running stats local to each client.
+        for (b, mb, name) in zip(params_dict['buffers'], self.model.buffers(), buffer_names):
+            if fedbn and ("running_mean" in name or "running_var" in name):
+                continue
             mb.data.copy_(b.to(target))
 
         if not self.keep_data_on_gpu:
