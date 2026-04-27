@@ -125,6 +125,9 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             "mode": mode,
             "alpha": alpha,
             "deltas": [],
+            "residuals": [],
+            "norm_drifts": [],
+            "variances": [],
             "iterations": 0,
             "converged": False,
             "runtime": 0,
@@ -307,6 +310,9 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
     else:
         raise ValueError(f"Unknown propagation mode: {mode}")
 
+    # Initial stats for diagnostics
+    initial_norm = torch.norm(out).item() + 1e-12
+
     # Track previous iteration for convergence
     prev_out = None
     iter_count = 0
@@ -322,13 +328,31 @@ def propagate_features(x: Tensor, edge_index: Tensor, mask: Tensor, device,
             # Use standard sparse matrix multiplication for other modes
             new_out = torch.sparse.mm(adj, out)
 
+        # Compute Step for Residual diagnostic
+        # Residual = ||P*out - out|| on unknown nodes
+        if logging_enabled:
+            step = new_out - out
+            residual = torch.norm(step[~mask]).item() if (~mask).any() else 0.0
+            metrics["residuals"].append(residual)
+
         # Combine with original features (weighted combination)
         out = alpha * new_out + (1 - alpha) * out
 
         # Reset original known features
         out[mask] = x[mask]
 
-        # Track metrics if logging is enabled and compute delta for convergence
+        # Track diagnostics if logging is enabled
+        if logging_enabled:
+            # Norm Drift
+            current_norm = torch.norm(out).item()
+            metrics["norm_drifts"].append(current_norm / initial_norm)
+            
+            # Feature Variance (proxy for over-smoothing)
+            # Use variance across nodes, averaged over feature dimensions
+            var = torch.var(out, dim=0).mean().item()
+            metrics["variances"].append(var)
+
+        # Compute delta for convergence
         if prev_out is not None:
             delta = torch.norm(out - prev_out).item()
             if bool(config.get("feature_prop_relative_tolerance", False)):
