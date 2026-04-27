@@ -292,7 +292,7 @@ def run_experiments(args):
     results_dir = str(resolved_paths.results_dir)
     cfg["results_dir"] = results_dir
     save_results = cfg["save_results"]
-    hop = cfg["hop"]
+    hop_values = as_list(cfg.get("hop", 1))
     fulltraining_flag = cfg["fulltraining_flag"]
     use_pe_values = as_list(cfg.get("use_pe", [False]))  # Default to no PE if not specified
     
@@ -327,7 +327,7 @@ def run_experiments(args):
     print(f"- Model Types: {model_types}")
     print(f"- Results Directory: {results_dir}")
     print(f"- Save Detailed Results: {save_results}")
-    print(f"- Hop: {hop}")
+    print(f"- Hop: {hop_values}")
     print(f"- Full Training Flag: {fulltraining_flag}")
     
     # Run experiments for each combination
@@ -336,65 +336,67 @@ def run_experiments(args):
             for data_loading_option in data_loading_options:
                 for model_type in model_types:
                     for beta in beta_values:
-                        for clients_num in client_nums:
-                            # Generate timestamp for this experiment
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            effective_use_pe = bool(use_pe) and data_loading_uses_pe(data_loading_option)
+                        for hop in hop_values:
+                            for clients_num in client_nums:
+                                # Generate timestamp for this experiment
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                effective_use_pe = bool(use_pe) and data_loading_uses_pe(data_loading_option)
+                                
+                                # Setup environment for this experiment
+                                exp_dir, experiment_name = setup_environment_for_experiment(
+                                    dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=effective_use_pe
+                                )
+                                
+                                # Create a monkey patch for save_results_to_csv in run_utils
+                                from src.fedgnn.utils.run import save_results_to_csv as original_save_func
+                                
+                                def patched_save_func(results, filename=None):
+                                    # Use the original function but with our custom filename
+                                    csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
+                                    return original_save_func(results, csv_filename)
+                                
+                                # Apply the monkey patch to the imported function
+                                import src.fedgnn.utils.run as run_utils
+                                run_utils.save_results_to_csv = patched_save_func
+                                
+                                # Print experiment header
+                                print(f"\n{'='*80}")
+                                print(f"Running experiment: {experiment_name}")
+                                print(f"{'='*80}")
+                                
+                                # Set Ray port if specified
+                                if hasattr(args, 'ray_port') and args.ray_port:
+                                    # Ray will use the address directly, no need for env var
+                                    pass
+                                
+                                # Create a training configuration for the experiment
+                                training_cfg = cfg.copy()  # Pass all parameters through
+                                training_cfg["beta"] = beta
+                                training_cfg["hop"] = hop
+                                # also overwrite dataset_name, data_loading_option, model_type, clients_num
+                                training_cfg["dataset_name"] = dataset_name
+                                training_cfg["data_loading_option"] = data_loading_option
+                                training_cfg["model_type"] = model_type
+                                training_cfg["clients_num"] = clients_num
+                                training_cfg["use_pe"] = effective_use_pe
+                                training_cfg["requested_use_pe"] = use_pe
+                                training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
                             
-                            # Setup environment for this experiment
-                            exp_dir, experiment_name = setup_environment_for_experiment(
-                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=effective_use_pe
-                            )
-                            
-                            # Create a monkey patch for save_results_to_csv in run_utils
-                            from src.fedgnn.utils.run import save_results_to_csv as original_save_func
-                            
-                            def patched_save_func(results, filename=None):
-                                # Use the original function but with our custom filename
-                                csv_filename = os.path.join(exp_dir, f"training_{experiment_name}_{timestamp}.csv")
-                                return original_save_func(results, csv_filename)
-                            
-                            # Apply the monkey patch to the imported function
-                            import src.fedgnn.utils.run as run_utils
-                            run_utils.save_results_to_csv = patched_save_func
-                            
-                            # Print experiment header
-                            print(f"\n{'='*80}")
-                            print(f"Running experiment: {experiment_name}")
-                            print(f"{'='*80}")
-                            
-                            # Set Ray port if specified
-                            if hasattr(args, 'ray_port') and args.ray_port:
-                                # Ray will use the address directly, no need for env var
-                                pass
-                            
-                            # Create a training configuration for the experiment
-                            training_cfg = cfg.copy()  # Pass all parameters through
-                            training_cfg["beta"] = beta
-                            # also overwrite dataset_name, data_loading_option, model_type, clients_num
-                            training_cfg["dataset_name"] = dataset_name
-                            training_cfg["data_loading_option"] = data_loading_option
-                            training_cfg["model_type"] = model_type
-                            training_cfg["clients_num"] = clients_num
-                            training_cfg["use_pe"] = effective_use_pe
-                            training_cfg["requested_use_pe"] = use_pe
-                            training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
-                        
-                            
-                            # Start time measurement
-                            start_time = time.time()
-                            
-                            # Run the experiment
-                            result, output = main_experiment(
-                                clients_num, 
-                                beta, 
-                                data_loading_option, 
-                                model_type, 
-                                training_cfg, 
-                                dataset_name=dataset_name, 
-                                hop=hop,
-                                fulltraining_flag=fulltraining_flag
-                            )
+                                
+                                # Start time measurement
+                                start_time = time.time()
+                                
+                                # Run the experiment
+                                result, output = main_experiment(
+                                    clients_num, 
+                                    beta, 
+                                    data_loading_option, 
+                                    model_type, 
+                                    training_cfg, 
+                                    dataset_name=dataset_name, 
+                                    hop=hop,
+                                    fulltraining_flag=fulltraining_flag
+                                )
                             
                             # Calculate experiment duration
                             end_time = time.time()
