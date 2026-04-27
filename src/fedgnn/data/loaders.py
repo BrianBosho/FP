@@ -11,6 +11,21 @@ import torch.nn.functional as F
 # instead of being stored in the src directory. This change is implemented
 # in the GraphDataset class which manages dataset paths.
 
+try:
+    from omegaconf import ListConfig
+    _SEQUENCE_TYPES = (list, tuple, ListConfig)
+except Exception:
+    _SEQUENCE_TYPES = (list, tuple)
+
+
+def _as_bool(value) -> bool:
+    """Coerce scalar or one-item config sequences into a boolean."""
+    if isinstance(value, _SEQUENCE_TYPES):
+        value = value[0] if value else False
+    if isinstance(value, str):
+        return value.lower() in {"true", "1", "yes", "on"}
+    return bool(value)
+
 def load_dataset(name: str, device, config: dict = None):
     """
     Regime 1: Load any supported dataset without partitioning.
@@ -108,7 +123,7 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
     if config is not None:
         use_pe = config.get("use_pe", use_pe)
 
-    use_pe = use_feature_prop and use_pe
+    use_pe = use_feature_prop and _as_bool(use_pe)
 
     # Pass config to partition_data
     clients_data, test_data, _ = partition_data(

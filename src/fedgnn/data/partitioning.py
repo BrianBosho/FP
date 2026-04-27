@@ -11,6 +11,21 @@ import torch.nn.functional as F
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+try:
+    from omegaconf import ListConfig
+    _SEQUENCE_TYPES = (list, tuple, ListConfig)
+except Exception:
+    _SEQUENCE_TYPES = (list, tuple)
+
+
+def _as_bool(value) -> bool:
+    """Coerce scalar or one-item config sequences into a boolean."""
+    if isinstance(value, _SEQUENCE_TYPES):
+        value = value[0] if value else False
+    if isinstance(value, str):
+        return value.lower() in {"true", "1", "yes", "on"}
+    return bool(value)
+
 def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float,
                               seed: int = 123) -> list:
     """
@@ -184,6 +199,8 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         if config.get("debug", False):
             print(f"Tolerance: {fp_tolerance}")
 
+        use_pe = _as_bool(use_pe)
+
         # If keys exist but are None (e.g., from wandb config), fallback to defaults
         if normalize is None:
             normalize = "qr"
@@ -234,7 +251,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
     else:
         clients_data = initial_subgraphs
 
-    use_pe = use_feature_prop and use_pe
+    use_pe = use_feature_prop and _as_bool(use_pe)
 
     # Setup logging if needed
     if use_feature_prop:

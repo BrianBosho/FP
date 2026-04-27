@@ -43,6 +43,26 @@ def load_yaml_config(config_path):
     """Load experiment configuration from YAML file with base.yaml merging"""
     return load_config(config_path)
 
+FEATURE_PROP_DATA_LOADING_OPTIONS = {
+    "page_rank",
+    "random_walk",
+    "diffusion",
+    "difussion",
+    "efficient",
+    "adjacency",
+    "propagation",
+    "chebyshev_diffusion",
+    "chebyshev-diffusion",
+    "chebyshev_diffusion_operator",
+    "chebyshev-diffusion-operator",
+}
+
+
+def data_loading_uses_pe(data_loading_option) -> bool:
+    """Return whether a data-loading mode can actually apply positional encodings."""
+    return str(data_loading_option).lower() in FEATURE_PROP_DATA_LOADING_OPTIONS
+
+
 def setup_environment_for_experiment(dataset_name, data_loading_option, model_type, beta_value, clients_num, results_dir, timestamp, hop=1, use_pe=False):
     """Setup environment variables to redirect CSV output to experiment directory"""
     # Create experiment directory path with full config to avoid collisions
@@ -319,10 +339,11 @@ def run_experiments(args):
                         for clients_num in client_nums:
                             # Generate timestamp for this experiment
                             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            effective_use_pe = bool(use_pe) and data_loading_uses_pe(data_loading_option)
                             
                             # Setup environment for this experiment
                             exp_dir, experiment_name = setup_environment_for_experiment(
-                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=use_pe
+                                dataset_name, data_loading_option, model_type, beta, clients_num, results_dir, timestamp, hop=hop, use_pe=effective_use_pe
                             )
                             
                             # Create a monkey patch for save_results_to_csv in run_utils
@@ -355,7 +376,8 @@ def run_experiments(args):
                             training_cfg["data_loading_option"] = data_loading_option
                             training_cfg["model_type"] = model_type
                             training_cfg["clients_num"] = clients_num
-                            training_cfg["use_pe"] = use_pe
+                            training_cfg["use_pe"] = effective_use_pe
+                            training_cfg["requested_use_pe"] = use_pe
                             training_cfg["repetitions"] = cfg.get("repetitions", 1)  # Default to 1 if not specified
                         
                             
@@ -433,7 +455,7 @@ def run_experiments(args):
                                 f"{std_global:.4f}",
                                 duration_formatted,
                                 hop,
-                                use_pe,
+                                effective_use_pe,
                             ])
                             
                             # Save results if requested
@@ -472,7 +494,8 @@ def run_experiments(args):
                                     "formatted": duration_formatted
                                 },
                                 "hop": hop,
-                                "use_pe": use_pe,
+                                "use_pe": effective_use_pe,
+                                "requested_use_pe": use_pe,
                             })
         
     # Save summary results to the summary directory
