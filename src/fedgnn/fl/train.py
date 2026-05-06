@@ -23,10 +23,29 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed=None, grad_clip_norm=1.0):
-    # C5: seed is opt-in.  None preserves the previous behavior (full-batch
-    # training did not seed anything).  When an int is provided, seed the
-    # global RNGs so dropout and any other stochastic layers are reproducible.
+def _model_device(model):
+    return next(model.parameters()).device
+
+
+def _seed_node_count(batch):
+    """NeighborLoader places target seed nodes first in each sampled batch."""
+    return int(getattr(batch, "batch_size", batch.num_nodes))
+
+
+def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed=None, grad_clip_norm=1.0,
+               struct_reg_lambda=0.0, struct_reg_warmup_rounds=0):
+    """
+    Train a GNN model with optional structural consistency regularization.
+    
+    Structural regularization: L_struct = lambda * ||h_first - x_fp||^2
+    where h_first is the hidden representation after the first GNN layer,
+    and x_fp are the propagated (imputed) node features.
+    
+    This encourages the first-layer hidden representation to be consistent
+    with the propagated feature structure, preventing FP from overwhelming
+    discriminative learning.
+    """
+    # C5: seed is opt-in.
     if seed is not None:
         set_seed(int(seed))
 
@@ -40,79 +59,120 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
     training_accuracies = []
     torch.cuda.empty_cache()
 
-    scaler = torch.cuda.amp.GradScaler() if use_amp else None
+    scaler = torch.amp.GradScaler("cuda") if use_amp else None
 
-    # Add this check before using the model
-    if isinstance(model, GCN_arxiv) or isinstance(model, GraphSAGEProducts) or isinstance(model, GAT_Arxiv):
-        # Ensure edge_index has correct format
-        if data.edge_index.dim() != 2 or data.edge_index.size(0) != 2:
-            raise ValueError(f"Edge index has incorrect format: {data.edge_index.shape}")
-        # Ensure x has correct format
-        if data.x.dim() != 2:
-            raise ValueError(f"Node features have incorrect format: {data.x.shape}")
-
-    for epoch in range(epochs):
-        # Training phase
-        model.train()
-        optimizer.zero_grad()
-
-        # Use autocast for mixed precision
-        with torch.cuda.amp.autocast(enabled=use_amp):
-            if isinstance(model, VanillaGNN):
-                output = model(data.x, adjacency)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv)):
-                output = model(data.x, data.edge_index)
-            elif isinstance(model, MLP):
-                output = model(data.x)
-            else:
-                raise ValueError("Unknown model")
-
-            out = output
-            loss = criterion(out[data.train_mask], data.y[data.train_mask])
-
-        if use_amp:
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            if grad_clip_norm is not None and grad_clip_norm > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
-            scaler.step(optimizer)
-            scaler.update()
+    # ── Structural regularization: register forward hook on first GNN layer ──────
+    hook_handle = None
+    first_layer_output = None
+    if struct_reg_lambda > 0:
+        # Find first message-passing layer by name heuristic (works for GCN, GAT, GraphSAGE)
+        first_layer = None
+        first_layer_name = None
+        for name, module in model.named_modules():
+            module_str = type(module).__name__
+            # Skip output classification layer (goes to dim_out)
+            if hasattr(model, 'dim_out') and hasattr(module, 'out_features') and module.out_features == model.dim_out:
+                continue
+            # Skip input embedding layer for GAT/GATConv
+            if 'emb' in name.lower() or 'embedding' in name.lower():
+                continue
+            if any(x in module_str for x in ('Conv', 'GATConv', 'SAGEConv', 'SGConv', 'GCNConv')):
+                first_layer = module
+                first_layer_name = name
+                break
+        
+        if first_layer is not None:
+            def hook_fn(module, input, output):
+                nonlocal first_layer_output
+                first_layer_output = output
+            hook_handle = first_layer.register_forward_hook(hook_fn)
+            print(f"[A3 struct reg] Registered hook on first layer: {first_layer_name} ({type(first_layer).__name__})")
         else:
-            loss.backward()
-            if grad_clip_norm is not None and grad_clip_norm > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
-            optimizer.step()
+            print(f"[A3 struct reg] WARNING: Could not find first layer — struct reg disabled.")
+            struct_reg_lambda = 0.0  # disable if no hook possible
+    
+    try:
+        for epoch in range(epochs):
+            # Training phase
+            model.train()
+            optimizer.zero_grad()
+            first_layer_output = None  # reset each epoch
 
-        train_total = data.train_mask.sum().item()
-        training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / train_total if train_total > 0 else float('nan')
-        training_losses.append(loss.item())
-        training_accuracies.append(training_acc)
+            # Use autocast for mixed precision
+            with torch.amp.autocast("cuda", enabled=use_amp):
+                if isinstance(model, VanillaGNN):
+                    output = model(data.x, adjacency)
+                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv, SparseVanillaGNN)):
+                    output = model(data.x, data.edge_index)
+                elif isinstance(model, MLP):
+                    output = model(data.x)
+                else:
+                    raise ValueError("Unknown model")
 
-        if writer is not None:
-            writer.add_scalar('Loss/train', loss, epoch)
-            writer.add_scalar('Accuracy/train', training_acc, epoch)
+                out = output
+                task_loss = criterion(out[data.train_mask], data.y[data.train_mask])
+                total_loss = task_loss
 
-        # Validation phase for monitoring only
-        val_loss, val_acc = evaluate(model, data, criterion)
+                # ── A3: Structural consistency regularization ────────────────────
+                # L_struct = lambda * ||h_first - x_fp||^2
+                if struct_reg_lambda > 0 and epoch >= struct_reg_warmup_rounds and first_layer_output is not None:
+                    x_fp = data.x  # propagated features stored in data.x
+                    h_first = first_layer_output
+                    # Mean-pooled over feature dimension for per-node regularizer
+                    struct_loss = torch.mean((h_first - x_fp) ** 2)
+                    total_loss = task_loss + struct_reg_lambda * struct_loss
+                elif struct_reg_lambda > 0 and first_layer_output is None and epoch >= struct_reg_warmup_rounds:
+                    # Hook didn't fire — fallback silently
+                    pass
 
-        if writer is not None:
-            writer.add_scalar('Loss/val', val_loss, epoch)
-            writer.add_scalar('Accuracy/val', val_acc, epoch)
+            loss = total_loss  # for logging (includes struct reg contribution)
 
-        logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
+            if use_amp:
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+                if grad_clip_norm is not None and grad_clip_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                loss.backward()
+                if grad_clip_norm is not None and grad_clip_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip_norm)
+                optimizer.step()
 
+            train_total = data.train_mask.sum().item()
+            training_acc = (torch.argmax(out[data.train_mask], dim=1) == data.y[data.train_mask]).sum().item() / train_total if train_total > 0 else float('nan')
+            training_losses.append(loss.item())
+            training_accuracies.append(training_acc)
 
-    # Final validation
-    final_val_loss, final_val_acc = evaluate(model, data, criterion)
+            if writer is not None:
+                writer.add_scalar('Loss/train', loss, epoch)
+                writer.add_scalar('Accuracy/train', training_acc, epoch)
 
-    return final_val_loss, training_acc, training_losses, training_accuracies
+            # Validation phase for monitoring only
+            val_loss, val_acc = evaluate(model, data, criterion)
+
+            if writer is not None:
+                writer.add_scalar('Loss/val', val_loss, epoch)
+                writer.add_scalar('Accuracy/val', val_acc, epoch)
+
+            logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
+
+        # Final validation
+        final_val_loss, final_val_acc = evaluate(model, data, criterion)
+
+        return final_val_loss, training_acc, training_losses, training_accuracies
+    finally:
+        # Always remove hook to prevent memory leaks
+        if hook_handle is not None:
+            hook_handle.remove()
 
 def evaluate(model, data, criterion):
     model.eval()
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
+        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT, SparseVanillaGNN)):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
@@ -131,7 +191,7 @@ def test(model, data):
     with torch.no_grad():
         if isinstance(model, VanillaGNN):
             output = model(data.x, to_dense_adj(data.edge_index)[0])
-        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
+        elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT, SparseVanillaGNN)):
             output = model(data.x, data.edge_index)
         elif isinstance(model, MLP):
             output = model(data.x)
@@ -177,7 +237,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
     # Clear CUDA cache before training
     torch.cuda.empty_cache()
 
-    scaler = torch.cuda.amp.GradScaler() if use_amp else None
+    scaler = torch.amp.GradScaler("cuda") if use_amp else None
 
     # Create data loader with neighborhood sampling
     train_idx = data.train_mask.nonzero(as_tuple=True)[0]
@@ -188,7 +248,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
         num_neighbors=num_neighbors,
         batch_size=batch_size,
         input_nodes=train_idx,
-        shuffle=False
+        shuffle=True
     )
 
     model.train()
@@ -206,53 +266,39 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
 
             optimizer.zero_grad()
 
-            # Move batch to device
-            batch = batch.to(data.x.device)
+            # Move only the sampled batch to the model device.
+            batch = batch.to(_model_device(model))
 
             # Debug information - print batch dimensions
             logging.debug(f"Batch size: {batch.num_nodes}, Features dim: {batch.x.size()}, Edge dim: {batch.edge_index.size()}")
 
             # Use autocast for mixed precision
-            with torch.cuda.amp.autocast(enabled=use_amp):
+            with torch.amp.autocast("cuda", enabled=use_amp):
                 # Forward pass depending on model type
                 if isinstance(model, VanillaGNN):
                     # For vanilla GNN, convert to dense adjacency for the batch
                     adj = to_dense_adj(batch.edge_index)[0]
                     adj = adj + torch.eye(len(adj), device=adj.device)
                     output = model(batch.x, adj)
-                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv)):
+                elif isinstance(model, (GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv, SparseVanillaGNN)):
                     output = model(batch.x, batch.edge_index)
                 elif isinstance(model, MLP):
                     output = model(batch.x)
                 else:
                     raise ValueError("Unknown model")
 
-                # Compute loss on the batch
-                # Get the original node indices in the batch
-                batch_train_mask = batch.train_mask
-
-                # Add safety check for the batch mask
-                if not hasattr(batch, 'train_mask') or batch.train_mask is None:
-                    logging.warning("Batch is missing train_mask attribute")
-                    continue
-
-                # Check for indices out of bound
-                if torch.any(batch.train_mask) and batch_train_mask.shape[0] != batch.num_nodes:
-                    logging.warning(f"Mask shape mismatch: train_mask: {batch_train_mask.shape[0]}, batch nodes: {batch.num_nodes}")
-                    # Correct the shape if possible
-                    batch_train_mask = batch_train_mask[:batch.num_nodes]
-
-                # Ensure we're only computing loss on training nodes
-                if batch_train_mask.sum() > 0:
+                # Compute loss only on target seed nodes, not sampled neighbors.
+                seed_count = _seed_node_count(batch)
+                if seed_count > 0:
                     try:
-                        loss = criterion(output[batch_train_mask], batch.y[batch_train_mask])
+                        loss = criterion(output[:seed_count], batch.y[:seed_count])
                     except RuntimeError as e:
                         logging.error(f"Error in mini-batch training: {str(e)}")
-                        logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
+                        logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, seed_count: {seed_count}")
                         continue
 
             # Backward pass with gradient scaling (outside autocast)
-            if batch_train_mask.sum() > 0:
+            if seed_count > 0:
                 try:
                     if use_amp:
                         scaler.scale(loss).backward()
@@ -268,10 +314,10 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                         optimizer.step()
 
                     # Calculate training accuracy for this batch
-                    train_acc = (torch.argmax(output[batch_train_mask], dim=1) == batch.y[batch_train_mask]).sum().item() / batch_train_mask.sum().item()
+                    train_acc = (torch.argmax(output[:seed_count], dim=1) == batch.y[:seed_count]).sum().item() / seed_count
 
                     # Weight loss and accuracy by number of nodes in batch
-                    batch_node_count = batch_train_mask.sum().item()
+                    batch_node_count = seed_count
                     epoch_loss += loss.item() * batch_node_count
                     epoch_acc += train_acc * batch_node_count
                     num_batches += 1
@@ -281,7 +327,7 @@ def train_with_minibatch(model, data, epochs, optimizer, criterion, writer, batc
                     del batch
                 except RuntimeError as e:
                     logging.error(f"Error in mini-batch training: {str(e)}")
-                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_train_mask.shape}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, seed_count: {seed_count}")
                     # Clear memory on error
                     torch.cuda.empty_cache()
                     continue
@@ -330,47 +376,34 @@ def evaluate_with_minibatch(model, data, criterion, batch_size=1024, num_neighbo
 
     with torch.no_grad():
         for batch in val_loader:
-            batch = batch.to(data.x.device)
+            batch = batch.to(_model_device(model))
 
             # Forward pass
             if isinstance(model, VanillaGNN):
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT, SparseVanillaGNN)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)
             else:
                 raise ValueError("Unknown model")
 
-            # Get validation mask for this batch
-            batch_val_mask = batch.val_mask
-
-            # Add safety check for the batch mask
-            if not hasattr(batch, 'val_mask') or batch.val_mask is None:
-                logging.warning("Batch is missing val_mask attribute")
-                continue
-
-            # Check for indices out of bound
-            if torch.any(batch.val_mask) and batch_val_mask.shape[0] != batch.num_nodes:
-                logging.warning(f"Mask shape mismatch: val_mask: {batch_val_mask.shape[0]}, batch nodes: {batch.num_nodes}")
-                # Correct the shape if possible
-                batch_val_mask = batch_val_mask[:batch.num_nodes]
-
-            if batch_val_mask.sum() > 0:
+            seed_count = _seed_node_count(batch)
+            if seed_count > 0:
                 try:
                     # Compute loss
-                    loss = criterion(output[batch_val_mask], batch.y[batch_val_mask])
-                    total_loss += loss.item() * batch_val_mask.sum().item()
+                    loss = criterion(output[:seed_count], batch.y[:seed_count])
+                    total_loss += loss.item() * seed_count
 
                     # Compute accuracy
-                    pred = torch.argmax(output[batch_val_mask], dim=1)
-                    correct += (pred == batch.y[batch_val_mask]).sum().item()
-                    total += batch_val_mask.sum().item()
+                    pred = torch.argmax(output[:seed_count], dim=1)
+                    correct += (pred == batch.y[:seed_count]).sum().item()
+                    total += seed_count
                 except RuntimeError as e:
                     logging.error(f"Error in mini-batch evaluation: {str(e)}")
-                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_val_mask.shape}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, seed_count: {seed_count}")
                     continue
 
     # Calculate average loss and accuracy
@@ -401,43 +434,30 @@ def test_with_minibatch(model, data, batch_size=1024, num_neighbors=[10, 10, 10]
 
     with torch.no_grad():
         for batch in test_loader:
-            batch = batch.to(data.x.device)
+            batch = batch.to(_model_device(model))
 
             # Forward pass
             if isinstance(model, VanillaGNN):
                 adj = to_dense_adj(batch.edge_index)[0]
                 adj = adj + torch.eye(len(adj), device=adj.device)
                 output = model(batch.x, adj)
-            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT)):
+            elif isinstance(model, (GCN, GAT, GCN_arxiv, GAT_Arxiv, GraphSAGEProducts, PubmedGAT, SparseVanillaGNN)):
                 output = model(batch.x, batch.edge_index)
             elif isinstance(model, MLP):
                 output = model(batch.x)
             else:
                 raise ValueError("Unknown model")
 
-            # Get test mask for this batch
-            batch_test_mask = batch.test_mask
-
-            # Add safety check for the batch mask
-            if not hasattr(batch, 'test_mask') or batch.test_mask is None:
-                logging.warning("Batch is missing test_mask attribute")
-                continue
-
-            # Check for indices out of bound
-            if torch.any(batch.test_mask) and batch_test_mask.shape[0] != batch.num_nodes:
-                logging.warning(f"Mask shape mismatch: test_mask: {batch_test_mask.shape[0]}, batch nodes: {batch.num_nodes}")
-                # Correct the shape if possible
-                batch_test_mask = batch_test_mask[:batch.num_nodes]
-
-            if batch_test_mask.sum() > 0:
+            seed_count = _seed_node_count(batch)
+            if seed_count > 0:
                 try:
                     # Compute accuracy
-                    pred = torch.argmax(output[batch_test_mask], dim=1)
-                    correct += (pred == batch.y[batch_test_mask]).sum().item()
-                    total += batch_test_mask.sum().item()
+                    pred = torch.argmax(output[:seed_count], dim=1)
+                    correct += (pred == batch.y[:seed_count]).sum().item()
+                    total += seed_count
                 except RuntimeError as e:
                     logging.error(f"Error in mini-batch testing: {str(e)}")
-                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, mask shape: {batch_test_mask.shape}")
+                    logging.error(f"Batch info - nodes: {batch.num_nodes}, output shape: {output.shape}, seed_count: {seed_count}")
                     continue
 
     # Calculate accuracy

@@ -4,6 +4,7 @@ from src.fedgnn.models import GCN, GAT, VanillaGNN, MLP, GCN_arxiv, GraphSAGEPro
 import torch
 import sys
 import gc
+from src.fedgnn.data.shard_cache import is_shard_ref
 from src.fedgnn.utils.memory import (
     clear_memory_basic, clear_memory_aggressive,
     clear_memory_for_diffusion, clear_memory_for_adjacency,
@@ -29,8 +30,23 @@ class FLClient:
         gc.collect()
 
         self.cfg = cfg
-        self.DEVICE = device
-        self.target_device = torch.device(device)
+        if is_shard_ref(data):
+            print(f"[Client {client_id}] Loading shard from {data.path}")
+            data = data.load()
+
+        # Resolve device string lazily: Ray workers may not see CUDA at
+        # deserialization time even if the driver did.  Check again here.
+        _device_str = str(device)
+        import os
+        print(f"[Client {client_id}] CVD={os.environ.get('CUDA_VISIBLE_DEVICES','?')} "
+              f"torch.cuda.is_available={torch.cuda.is_available()} "
+              f"torch.cuda.device_count={torch.cuda.device_count() if torch.cuda.is_available() else 0} "
+              f"requested_device={_device_str}")
+        if _device_str in ("cuda", "cuda:0") and not torch.cuda.is_available():
+            print(f"[Client {client_id}] WARNING: CUDA requested but not available in worker, falling back to CPU")
+            _device_str = "cpu"
+        self.DEVICE = _device_str
+        self.target_device = torch.device(_device_str)
         self.cpu_device = torch.device("cpu")
         self.current_device = self.cpu_device
         self.data_gpu = None
@@ -192,6 +208,9 @@ class FLClient:
         # Setup mixed precision training
         self.use_amp = bool(cfg.get("use_amp", False) and self.target_device.type == "cuda")
         self.grad_clip_norm = cfg.get("grad_clip_norm", 1.0)
+        # A3: Structural consistency regularization
+        self.struct_reg_lambda = cfg.get("struct_reg_lambda", 0.0)
+        self.struct_reg_warmup_rounds = cfg.get("struct_reg_warmup_rounds", 0)
 
         optimizer_type = cfg["optimizer"]
         lr = cfg["lr"]
@@ -267,6 +286,27 @@ class FLClient:
         self.data = self.data_gpu
         self.current_device = device
 
+    def _move_for_compute(self, device):
+        """Move state for a train/eval call.
+
+        Full-batch training needs the whole client graph on the compute device.
+        NeighborLoader training keeps graph data on CPU and moves sampled
+        batches inside the train/eval loop.
+        """
+        if not self.use_minibatch:
+            self._move_to_device(device)
+            return
+
+        device = torch.device(device)
+        if device.type == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA device requested but not available")
+
+        self.model.to(device)
+        self._move_optimizer_state(device)
+        self.data = self.data_cpu
+        self.data_gpu = None
+        self.current_device = device
+
     def _clear_memory(self):
         """Helper method to clear CUDA memory and perform garbage collection"""
         clear_memory_basic()
@@ -285,8 +325,8 @@ class FLClient:
             clear_memory_basic()
 
     def train_client(self):
-        # Move to device for training (memory clearing removed for performance)
-        self._move_to_device(self.target_device)
+        # Move model/state to device. In mini-batch mode, keep graph data on CPU.
+        self._move_for_compute(self.target_device)
 
         # C5: derive a per-client training seed if experiment_seed is set.
         # None preserves legacy behavior (train() does nothing;
@@ -323,6 +363,8 @@ class FLClient:
                     use_amp=self.use_amp,
                     seed=client_seed,
                     grad_clip_norm=self.grad_clip_norm,
+                    struct_reg_lambda=self.struct_reg_lambda,
+                    struct_reg_warmup_rounds=self.struct_reg_warmup_rounds,
                 )
 
             for loss_item in loss_list:
@@ -347,8 +389,8 @@ class FLClient:
             return 0.0, 0.0, False
 
     def evaluate(self, criterion):
-        # Move to device for evaluation (no memory clearing for performance)
-        self._move_to_device(self.target_device)
+        # Move model/state to device. In mini-batch mode, keep graph data on CPU.
+        self._move_for_compute(self.target_device)
 
         try:
             if self.use_minibatch:
@@ -376,18 +418,18 @@ class FLClient:
             return float('inf'), 0.0
 
     def test(self, data=None):
-        # Move to device for testing (no memory clearing for performance)
-        self._move_to_device(self.target_device)
+        # Move model/state to device. In mini-batch mode, keep graph data on CPU.
+        self._move_for_compute(self.target_device)
 
         # check input dimension of the model itself
         if hasattr(self, 'cfg') and self.cfg.get("debug", False):
             print(f"Input dim of the model: {self.model.dim_in}")
             # print input dim of the data
             print(f"Input dim of the data: {self.data.x.shape[1]}")
-        if data is None:
+        if data is None or is_shard_ref(data):
             data = self.data
         else:
-            data = data.to(self.target_device)
+            data = data if self.use_minibatch else data.to(self.target_device)
 
         try:
             if self.use_minibatch:

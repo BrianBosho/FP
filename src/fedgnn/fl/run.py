@@ -4,6 +4,7 @@ import time
 from src.fedgnn.fl.client import FLClient
 from src.fedgnn.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 from src.fedgnn.fl.server import Server
+from src.fedgnn.data.shard_cache import is_shard_ref
 import pandas as pd
 from src.fedgnn.utils.config import load_config
 from src.fedgnn.utils.wandb import initialize_wandb, log_client_training_metrics, log_test_metrics
@@ -27,7 +28,8 @@ from src.fedgnn.utils.run import (
     compare_model_parameters,
     prepare_results_data,
     compute_experiment_statistics,
-    generate_experiment_output
+    generate_experiment_output,
+    cuda_usable,
 )
 import gc
 from pathlib import Path
@@ -57,6 +59,75 @@ def load_configuration(config_path=None):
         config_path = str(repo_root / "conf" / "base.yaml")
     cfg = load_config(config_path)
     return cfg["num_clients"], cfg["beta"], cfg
+
+
+def ensure_ray_initialized(cfg, using_cuda_device: bool) -> bool:
+    """Initialize Ray once for the current process.
+
+    Returns True when this call created the Ray runtime, False when Ray was
+    already initialized and reused.
+    """
+    if ray.is_initialized():
+        return False
+
+    ray_num_gpus = cfg.get("ray_num_gpus", None)
+    if ray_num_gpus is None:
+        # Default to the visible CUDA device count when the run targets CUDA.
+        # This lets Ray propagate GPU visibility correctly to worker actors.
+        ray_num_gpus = torch.cuda.device_count() if using_cuda_device and torch.cuda.is_available() else 0
+
+    object_store_memory = cfg.get(
+        "ray_object_store_memory_bytes",
+        2 * 1024 * 1024 * 1024,
+    )
+    include_dashboard = bool(cfg.get("ray_include_dashboard", False))
+
+    system_config = {
+        "object_spilling_threshold": float(cfg.get("ray_object_spilling_threshold", 0.8)),
+        "max_io_workers": int(cfg.get("ray_max_io_workers", 4)),
+    }
+
+    init_kwargs = {
+        "num_gpus": int(ray_num_gpus),
+        "ignore_reinit_error": True,
+        "include_dashboard": include_dashboard,
+        "_system_config": system_config,
+    }
+    if object_store_memory:
+        init_kwargs["object_store_memory"] = int(object_store_memory)
+
+    # When using CUDA, explicitly propagate CUDA_VISIBLE_DEVICES to workers.
+    # Ray workers can otherwise start without a visible GPU even when the
+    # driver process sees one.
+    if using_cuda_device:
+        import os
+        visible_gpu_count = int(ray_num_gpus) if int(ray_num_gpus) > 0 else max(1, torch.cuda.device_count())
+        cvd = os.environ.get("CUDA_VISIBLE_DEVICES", ",".join(str(i) for i in range(visible_gpu_count)))
+        init_kwargs["runtime_env"] = {"env_vars": {"CUDA_VISIBLE_DEVICES": cvd}}
+
+    ray.init(**init_kwargs)
+    return True
+
+
+def _resolve_data_loading_device(device, cfg):
+    """Choose a preprocessing device that avoids transient driver-side OOMs."""
+    requested_device = cfg.get("data_loading_device")
+    if requested_device is not None:
+        return torch.device(requested_device)
+
+    resolved_device = torch.device(device)
+    if resolved_device.type != "cuda":
+        return resolved_device
+
+    keep_data_on_gpu = bool(cfg.get("keep_data_on_gpu", False))
+    feature_prop_device = str(cfg.get("feature_prop_device", "cpu")).lower()
+
+    # Unless the run explicitly keeps client data on GPU and also requested GPU
+    # preprocessing, build partitions on CPU. The actors can still move their
+    # local graph to CUDA on demand during training.
+    if keep_data_on_gpu and feature_prop_device == "cuda":
+        return resolved_device
+    return torch.device("cpu")
 
 def instantiate_model(model_type, num_features, num_classes, device, dataset_name="Cora", cfg=None):
     """
@@ -242,21 +313,26 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
         print(f"Full graph size: {full_data.num_nodes} nodes")
         print(f"Number of clients: {len(clients_data)}")
         for i, client_subgraph in enumerate(clients_data):
-            print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
+            if is_shard_ref(client_subgraph):
+                print(
+                    f"Client {i} shard: {client_subgraph.num_nodes} nodes, "
+                    f"{client_subgraph.num_features} features, {client_subgraph.path}"
+                )
+            else:
+                print(f"Client {i} subgraph: {client_subgraph.num_nodes} nodes, {client_subgraph.x.shape[1]} features")
         print(f"===========================\n")
 
     def _client_num_gpus():
-        if torch.device(device).type != "cuda":
+        explicit = cfg.get("client_num_gpus", None) if hasattr(cfg, "get") else None
+        if explicit is not None:
+            return float(explicit)
+
+        resolved_device = torch.device(DEVICE)
+        if resolved_device.type != "cuda":
             return 0
-        configured = cfg.get("client_num_gpus", None) if cfg else None
-        if configured is not None:
-            return float(configured)
-        concurrency = cfg.get("max_concurrent_clients", len(clients_data)) if cfg else len(clients_data)
-        try:
-            concurrency = int(concurrency) if concurrency else len(clients_data)
-        except (TypeError, ValueError):
-            concurrency = len(clients_data)
-        return 1.0 / max(1, concurrency)
+
+        max_concurrent = int(cfg.get("max_concurrent_clients", len(clients_data)) or len(clients_data))
+        return 1.0 / max(1, max_concurrent)
 
     client_num_gpus = _client_num_gpus()
     if debug:
@@ -266,6 +342,25 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
     client_actor = FLClient.options(num_gpus=client_num_gpus)
     return [client_actor.remote(client_subgraph, dataset, i, cfg, device, model_type)
             for i, client_subgraph in enumerate(clients_data)]
+
+
+def _client_data_num_features(client_data) -> int:
+    if is_shard_ref(client_data):
+        return int(client_data.num_features)
+    return int(client_data.x.size(1))
+
+
+def _client_data_test_count(client_data) -> int:
+    if is_shard_ref(client_data):
+        return int(client_data.test_count)
+    try:
+        return int(client_data.test_mask.sum())
+    except Exception:
+        return 0
+
+
+def _load_client_data_if_ref(client_data):
+    return client_data.load() if is_shard_ref(client_data) else client_data
 
 def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False, config = None):
     """
@@ -280,7 +375,7 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
         config: Configuration dictionary from YAML file (optional)
     """
 
-    kh_options = ["page_rank", "random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev-diffusion", "chebyshev_diffusion_operator", "chebyshev-diffusion-operator"]
+    kh_options = ["page_rank", "random_walk", "asymmetric_random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev-diffusion", "chebyshev_diffusion_operator", "chebyshev-diffusion-operator", "appnp", "heat_kernel_exact"]
     if data_loading_option == "full_dataset":
         return load_dataset(dataset_name, device)
     elif data_loading_option == "zero_hop":
@@ -311,8 +406,10 @@ def _test_server_on_test_data(server, test_data):
     total_test_nodes = 0
 
     for test_graph in test_data:
+        loaded_graph = None
         try:
-            acc = server.test_global_model(test_graph)
+            loaded_graph = _load_client_data_if_ref(test_graph)
+            acc = server.test_global_model(loaded_graph)
             if hasattr(acc, "detach") and hasattr(acc, "cpu"):
                 acc = acc.detach().cpu().item()
             acc = float(acc)
@@ -322,12 +419,13 @@ def _test_server_on_test_data(server, test_data):
         values.append(acc)
 
         try:
-            n_test = int(test_graph.test_mask.sum())
+            n_test = _client_data_test_count(test_graph)
         except Exception:
             n_test = 0
         if n_test > 0 and not np.isnan(acc):
             total_test_nodes += n_test
             total_correct += acc * n_test
+        del loaded_graph
 
     macro = float(np.nanmean(values)) if values else float("nan")
     micro = total_correct / total_test_nodes if total_test_nodes > 0 else float("nan")
@@ -336,6 +434,12 @@ def _test_server_on_test_data(server, test_data):
 
 def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
     DEVICE = device
+    clients = []
+    server = None
+    clients_data = None
+    test_data = None
+    data = None
+    model = None
 
     # Get debug flag from config
     debug = cfg.get("debug", False)
@@ -345,12 +449,13 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
 
     import time
     _t_partition_start = time.time()
+    data_loading_device = _resolve_data_loading_device(DEVICE, cfg)
     data, dataset, clients_data, test_data = load_data(
         data_loading_option,
         num_clients,
         beta,
         dataset_name,
-        device=DEVICE,
+        device=data_loading_device,
         hop=hop,
         fulltraining_flag=fulltraining_flag,
         config=cfg,
@@ -371,8 +476,12 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"GPU memory freed after preprocessing")
         # Debug: device and feature dims to ensure tensors are on the expected device
         try:
-            print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
-            print("client[0] feature_dim:", clients_data[0].x.size(1))
+            if is_shard_ref(clients_data[0]):
+                print("client[0] shard:", clients_data[0].path)
+                print("client[0] feature_dim:", clients_data[0].num_features)
+            else:
+                print("client[0] device:", clients_data[0].x.device, clients_data[0].edge_index.device)
+                print("client[0] feature_dim:", clients_data[0].x.size(1))
             print("config.use_pe:", cfg.get("use_pe"), "num_iterations:", cfg.get("num_iterations"), "feature_prop_device:", cfg.get("feature_prop_device"))
             print("data_loading_option:", data_loading_option, "hop:", hop, "num_clients:", num_clients)
         except Exception as _dbg_e:
@@ -383,7 +492,10 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print("\n=== DATA LOADING SUMMARY ===")
         print(f"Full graph: {data.num_nodes} nodes, {data.edge_index.shape[1]} edges")
         print(f"Number of client subgraphs: {len(clients_data)}")
-        print(f"First client subgraph shape: {clients_data[0].x.shape}")
+        if is_shard_ref(clients_data[0]):
+            print(f"First client shard: nodes={clients_data[0].num_nodes}, features={clients_data[0].num_features}")
+        else:
+            print(f"First client subgraph shape: {clients_data[0].x.shape}")
         print(f"Dataset: {dataset}")
         print(f"Device: {DEVICE}")
 
@@ -394,7 +506,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         # data = data.to(DEVICE)
         print(f"Full graph staying on CPU to save GPU memory")
         print("===========================\n")
-    input_dim = clients_data[0].x.size(1)
+    input_dim = _client_data_num_features(clients_data[0])
 
     rounds = cfg['num_rounds']
 
@@ -578,7 +690,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                     print("\n=== DEBUG: Single-client cross-check ===")
                     try:
                         print("Global test nodes:", int(data.test_mask.sum()))
-                        print("Client0 test nodes:", int(test_data[0].test_mask.sum()))
+                        print("Client0 test nodes:", _client_data_test_count(test_data[0]))
                     except Exception as _dbg_e0:
                         print("debug_mask_error:", _dbg_e0)
                     try:
@@ -615,7 +727,7 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         total_test_nodes = 0
         for acc, td in zip(client_test_values, test_data):
             try:
-                n = int(td.test_mask.sum())
+                n = _client_data_test_count(td)
             except Exception:
                 n = 0
             if n > 0 and not np.isnan(acc):
@@ -646,17 +758,35 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             run_extras["global_test_client_values"] = global_test_values
         return test_results, average_results, run_extras
     finally:
-        # Clean up resources
+        # Terminate actors gracefully so their Python-side tensors are released
+        # before Ray tears the worker process down.
         for client in clients:
-            ray.kill(client)
+            try:
+                ray.get(client.__ray_terminate__.remote())
+            except Exception:
+                try:
+                    ray.kill(client, no_restart=True)
+                except Exception:
+                    pass
+        del server, clients, clients_data, test_data, data, model
         torch.cuda.empty_cache()
         gc.collect()
 
-def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dataset_name = "Cora", hop = 1, fulltraining_flag = False):
-    # Device configuration: read from config, default to cuda
-    device_cfg = cfg.get("device", "cuda")
-    if device_cfg == "auto":
-        DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def main_experiment(
+    clients_num,
+    beta,
+    data_loading_option,
+    model_type,
+    cfg,
+    dataset_name = "Cora",
+    hop = 1,
+    fulltraining_flag = False,
+    manage_ray_lifecycle = True,
+):
+    # Device configuration: read from config, default to auto
+    device_cfg = cfg.get("device", "auto")
+    if device_cfg in ("auto", "cuda"):
+        DEVICE = torch.device("cuda" if cuda_usable() else "cpu")
     else:
         DEVICE = torch.device(device_cfg)
     using_cuda_device = DEVICE.type == "cuda"
@@ -696,21 +826,9 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         print(f"Data loading option is {data_loading_option}")
         print(f"Model type is {model_type}")
 
+    ray_was_initialized = ray.is_initialized()
     try:
-        # Initialize Ray with memory management settings
-        # RAY_REDIS_ADDRESS is set per process in the script
-        ray_num_gpus = cfg.get("ray_num_gpus", None)
-        if ray_num_gpus is None:
-            ray_num_gpus = torch.cuda.device_count() if using_cuda_device and torch.cuda.is_available() else 0
-        ray.init(
-            num_gpus=int(ray_num_gpus),
-            ignore_reinit_error=True,
-            object_store_memory=2 * 1024 * 1024 * 1024,  # 2GB per Ray instance
-            _system_config={
-                "object_spilling_threshold": 0.8,
-                "max_io_workers": 4,
-            }
-        )
+        ensure_ray_initialized(cfg, using_cuda_device)
 
         # Adaptive device state — may flip to CPU after rep 0 if OOM or too slow
         _adaptive = cfg.get("adaptive_device", False)
@@ -916,8 +1034,8 @@ def main_experiment(clients_num, beta, data_loading_option, model_type, cfg, dat
         output += f"The standard deviation global is: {std_global}\n"
         output += f"The standard deviation client is: {std_client}\n"
     finally:
-        # Make sure Ray is always shut down
-        ray.shutdown()
+        if ray.is_initialized() and (manage_ray_lifecycle or not ray_was_initialized):
+            ray.shutdown()
         # Final cleanup
         torch.cuda.empty_cache()
         gc.collect()

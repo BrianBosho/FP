@@ -39,6 +39,7 @@ class Server():
         if self.max_concurrent_clients == 0:
             self.max_concurrent_clients = None
 
+
         # B1: aggregation strategy.  Default "mean" preserves the previous
         # simple-average behavior exactly; "fedavg_weighted" weights by the
         # number of training samples per client, which is the FedAvg rule
@@ -235,6 +236,7 @@ class Server():
         self.broadcast_params(current_global_epoch, sync=use_sync)
 
         log_client_training_metrics(active_results, current_global_epoch)
+
         eval_results = self.evaluate_clients()
         log_client_validation_metrics(eval_results, current_global_epoch)
 
