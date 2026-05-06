@@ -4,7 +4,11 @@
 datasets:
    - Cora
 results_dir: results/IEEE/cora
-wandb_project: "FGL4-Cora"  # Dataset-specific wandb project
+
+wandb: false
+use_wandb: false
+wandb_mode: disabled
+# wandb_project: "FGL4-Cora"  # Dataset-specific wandb project
 
 # Cora-specific experiment parameters
 num_clients: [10]
@@ -12,7 +16,7 @@ num_rounds: 200
 beta: [10000]
 lr: 0.5
 optimizer: SGD
-data_loading: [diffusion]
+data_loading: [full]
 models: [GAT]
 hop: 2
-use_pe: [False, True]
+use_pe: [False]

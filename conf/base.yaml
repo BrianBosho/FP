@@ -10,6 +10,7 @@ hop: 1
 fulltraining_flag: false  # WARNING: true = oracle baseline with cross-client label leakage
 save_results: true
 repetitions: 5
+resume_completed: false  # When true, skip condition directories with complete results_*.json files
 
 # Early stopping patience (number of rounds with no improvement before stopping)
 early_stopping_patience: 10
@@ -80,6 +81,9 @@ feature_prop_tolerance: 1e-6
 feature_prop_relative_tolerance: false
 log_feature_prop_energy: false
 feature_prop_device: "cuda"  # Set to "cpu" to save GPU memory during preprocessing
+fp_max_concurrent: 1  # Max clients running FP in parallel. 1=serial (safe default).
+                      # Increase only if GPU memory allows (e.g. 4 on a 24 GB card with small subgraphs).
+                      # Each extra concurrent client holds one full subgraph on fp_device simultaneously.
 
 # Global evaluation surface:
 # Multi-client runs evaluate the aggregated server model on the same
@@ -176,6 +180,7 @@ paths:
     pubmed: "/home/shared-space/fedgnn-datasets/pubmed"
   ogbn:
     arxiv: "/home/shared-space/fedgnn-datasets/ogbn_arxiv"
+    products: "/home/shared-space/fedgnn-datasets/ogbn_products"
   amazon:
     computers: "/home/shared-space/fedgnn-datasets/amazon/computers"
     photo: "/home/shared-space/fedgnn-datasets/amazon/photo"
