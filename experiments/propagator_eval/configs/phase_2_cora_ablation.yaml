@@ -1,0 +1,20 @@
+# Phase 2 — Cora ablation manifest
+# The current intrinsic runner accepts flat grids only.
+# Run each companion config below separately.
+
+phase_name: phase_2_cora_ablation
+runner: intrinsic
+kind: manifest
+
+description: >-
+  Cora-only ablation block used to freeze defaults before scaling beyond Cora.
+  The authoritative runnable configs are the companion files listed below.
+
+companion_configs:
+  - phase_2_cora_ablation_appnp_alpha.yaml
+  - phase_2_cora_ablation_epsilon_cora.yaml
+  - phase_2_cora_ablation_hop_depth.yaml
+
+notes:
+  - Chebyshev K-sweep remains available in legacy ablations_intrinsic.yaml and can be revisited after Cora freeze.
+  - OGBN-Arxiv epsilon stress moves to the scalability phase rather than blocking Cora-first execution.

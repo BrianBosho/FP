@@ -1,0 +1,62 @@
+# Layer 4: Downstream — heterophilic theory-validation (NEW in V2)
+# Three representative operators + zero-hop baseline on Texas and Wisconsin
+# Purpose: validate that low Layer 1 recovery ratio predicts low downstream accuracy gain
+# Run matrix: (3 operators + zero_hop) × 2 datasets × 1 beta × 1 backbone × 5 seeds = 40 runs
+#
+# Operator selection rationale:
+#   adjacency  — Dirichlet minimizer, reference harmonic extension
+#   diffusion  — Dirichlet minimizer, primary method
+#   appnp      — non-Dirichlet (PPR), expected to differ on heterophilic graphs
+#   zero_hop   — baseline for gap-closed computation
+
+operators:
+  - adjacency
+  - diffusion
+  - appnp
+  - zero_hop
+
+datasets:
+  - Texas      # homophily h=0.11
+  - Wisconsin  # homophily h=0.20
+
+beta: [10000]  # IID only — isolates homophily effect from partition effect
+backbones: [GCN]
+seeds: [0, 1, 2, 3, 4]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/downstream
+save_results: true
+use_wandb: false
+
+# FL training settings — WebKB protocol
+num_clients: 10
+num_rounds: 400
+epochs: 3
+early_stopping_patience: 20
+aggregation: fedavg_weighted
+
+# Propagation settings
+num_iterations: 50
+feature_prop_tolerance: 1e-4
+diffusion_t: 0.1
+appnp_alpha: 0.1
+alpha: 0.5
+
+# Model architecture — larger hidden for WebKB (Pei et al. 2020)
+model_architecture:
+  GCN:
+    hidden_dim: 32
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+# WebKB optimizer (Adam, per locked HP table)
+training:
+  lr: 0.01
+  optimizer: Adam
+  weight_decay: 0.0005
+
+# Infrastructure
+feature_prop_device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

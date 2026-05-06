@@ -1,0 +1,54 @@
+# Phase 6 — Heterophily stress test
+# Preserves the existing heterophilic downstream extension.
+
+phase_name: phase_6_heterophily_stress
+runner: downstream
+results_layout: phase_root_legacy_raw
+
+operators:
+  - adjacency
+  - diffusion
+  - appnp
+  - zero_hop
+
+datasets:
+  - Texas
+  - Wisconsin
+
+beta: [10000]
+backbones: [GCN]
+seeds: [0, 1, 2, 3, 4]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_6_heterophily_stress/raw
+save_results: true
+use_wandb: false
+
+num_clients: 10
+num_rounds: 200
+epochs: 3
+early_stopping_patience: 10
+aggregation: fedavg_weighted
+
+num_iterations: 50
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+appnp_alpha: 0.1
+alpha: 0.5
+
+model_architecture:
+  GCN:
+    hidden_dim: 32
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training_per_dataset:
+  Texas:
+    GCN: {optimizer: Adam, lr: 0.01, weight_decay: 0.0005}
+  Wisconsin:
+    GCN: {optimizer: Adam, lr: 0.01, weight_decay: 0.0005}
+
+feature_prop_device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

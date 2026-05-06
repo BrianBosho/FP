@@ -1,0 +1,67 @@
+# Phase 4 — Homophilic reproduction on Citeseer and Pubmed
+# Uses frozen Cora protocol settings once Phase 2 is complete.
+
+phase_name: phase_4_homophilic_reproduction
+runner: downstream
+results_layout: phase_root_legacy_raw
+
+operators:
+  - zero_hop
+  - full
+  - adjacency
+  - asymmetric_random_walk
+  - diffusion
+  - chebyshev_diffusion
+  - appnp
+
+datasets:
+  - Citeseer
+  - Pubmed
+
+beta: [10000, 1]
+backbones: [GCN, GAT]
+seeds: [0, 1, 2, 3, 4]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_4_homophilic_reproduction/raw
+save_results: true
+use_wandb: false
+
+num_clients: 10
+num_rounds: 200
+epochs: 3
+early_stopping_patience: 10
+aggregation: fedavg_weighted
+
+num_iterations: 50
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+chebyshev_k: 5
+chebyshev_t: 0.9
+appnp_alpha: 0.1
+alpha: 0.5
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+  GAT:
+    hidden_dim: 8
+    num_layers: 2
+    num_heads: 8
+    dropout: 0.6
+    normalization: "none"
+
+training_per_dataset:
+  Citeseer:
+    GCN: {optimizer: SGD, lr: 0.5, weight_decay: 0.0005}
+    GAT: {optimizer: Adam, lr: 0.005, weight_decay: 0.0005}
+  Pubmed:
+    GCN: {optimizer: Adam, lr: 0.01, weight_decay: 0.0005}
+    GAT: {optimizer: Adam, lr: 0.01, weight_decay: 0.0005}
+
+feature_prop_device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

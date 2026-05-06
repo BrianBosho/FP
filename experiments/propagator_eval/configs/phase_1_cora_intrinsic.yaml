@@ -1,0 +1,42 @@
+# Phase 1 — Cora intrinsic core
+# Authoritative first execution step.
+# Run matrix: 5 operators × 1 dataset × 2 betas × 3 seeds = 30 runs
+# Companion heat-kernel reference run lives in phase_1_cora_intrinsic_heat_kernel.yaml
+# Active plan uses only β = 10000 and β = 1
+
+phase_name: phase_1_cora_intrinsic
+runner: intrinsic
+results_layout: phase_root_legacy_raw
+
+operators:
+  - adjacency
+  - asymmetric_random_walk
+  - diffusion
+  - chebyshev_diffusion
+  - appnp
+
+datasets:
+  - Cora
+
+beta: [10000, 1]
+seeds: [0, 1, 2]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_1_cora_intrinsic/raw
+save_results: true
+use_wandb: false
+
+num_iterations: 100
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+chebyshev_k: 5
+chebyshev_t: 0.9
+appnp_alpha: 0.1
+alpha: 0.5
+
+intrinsic_eval: true
+log_per_iter: true
+
+num_clients: 10
+feature_prop_device: cuda
+intrinsic_runner_backend: threadpool

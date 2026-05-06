@@ -1,0 +1,37 @@
+# Phase 2 — Cora APPNP alpha sweep
+# Run matrix: 1 operator × 1 dataset × 1 beta × 3 seeds × 3 alpha values = 9 runs
+
+phase_name: phase_2_cora_ablation
+runner: intrinsic
+ablation_family: appnp_alpha
+
+operators:
+  - appnp
+
+datasets:
+  - Cora
+
+beta: [10000]
+seeds: [0, 1, 2]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_2_cora_ablation/raw/appnp_alpha
+save_results: true
+use_wandb: false
+
+num_iterations: 100
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+chebyshev_t: 0.9
+alpha: 0.5
+appnp_alpha: 0.1
+
+# Run separately with CLI overrides:
+# --seed {0,1,2} and appnp_alpha values {0.05, 0.1, 0.2} captured by copying or patching config per batch.
+# This file anchors the family in the new phase layout.
+
+intrinsic_eval: true
+log_per_iter: true
+num_clients: 10
+feature_prop_device: cuda
+intrinsic_runner_backend: threadpool

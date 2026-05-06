@@ -1,0 +1,39 @@
+# Phase 5 — OGBN-Arxiv scalability
+# Intrinsic-focused scalability pass before any optional large-scale downstream sweeps.
+
+phase_name: phase_5_scalability_ogbn_arxiv
+runner: intrinsic
+results_layout: phase_root_legacy_raw
+
+operators:
+  - adjacency
+  - asymmetric_random_walk
+  - diffusion
+  - chebyshev_diffusion
+  - appnp
+
+datasets:
+  - ogbn-arxiv
+
+beta: [10000, 1]
+seeds: [0, 1, 2]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_5_scalability_ogbn_arxiv/raw
+save_results: true
+use_wandb: false
+
+num_iterations: 100
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+chebyshev_k: 5
+chebyshev_t: 0.9
+appnp_alpha: 0.1
+alpha: 0.5
+
+intrinsic_eval: true
+log_per_iter: true
+
+num_clients: 10
+feature_prop_device: cuda
+intrinsic_runner_backend: threadpool

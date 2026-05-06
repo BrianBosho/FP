@@ -1,0 +1,59 @@
+# Intrinsic ablations — operator sensitivity sweeps
+# All Layer 1-3 only (no GNN training). Run after main matrix.
+# Total: 42 runs
+
+# --- K sensitivity: Chebyshev order ---
+# chebyshev_k ∈ {3, 5, 10} on Pubmed, β=10000, 3 seeds = 9 runs
+chebyshev_k_sweep:
+  operator: chebyshev_diffusion
+  datasets: [Pubmed]
+  chebyshev_k: [3, 5, 10]
+  beta: [10000]
+  seeds: [0, 1, 2]
+  hop: 1
+
+# --- α sensitivity: APPNP teleport probability ---
+# appnp_alpha ∈ {0.05, 0.1, 0.2} on Cora, β=10000, 3 seeds = 9 runs
+appnp_alpha_sweep:
+  operator: appnp
+  datasets: [Cora]
+  appnp_alpha: [0.05, 0.1, 0.2]
+  beta: [10000]
+  seeds: [0, 1, 2]
+  hop: 1
+
+# --- ε sensitivity: convergence tolerance ---
+# tolerance ∈ {1e-2, 1e-3, 1e-4} on Cora + OGBN-Arxiv, 3 seeds = 18 runs
+epsilon_sweep:
+  operators: [diffusion]
+  datasets: [Cora, OGBN-Arxiv]
+  feature_prop_tolerance: [1.0e-2, 1.0e-3, 1.0e-4]
+  beta: [10000]
+  seeds: [0, 1, 2]
+  hop: 1
+
+# --- L=2 topology comparison ---
+# hop=1 vs hop=2 for Adj + Diff on Cora, β=10000, 3 seeds = 6 runs
+hop_depth_sweep:
+  operators: [adjacency, diffusion]
+  datasets: [Cora]
+  hop: [1, 2]
+  beta: [10000]
+  seeds: [0, 1, 2]
+
+# Shared propagation settings
+num_iterations: 100
+diffusion_t: 0.1
+chebyshev_t: 0.9
+alpha: 0.5
+
+results_dir: experiments/propagator_eval/results/ablations
+save_results: true
+use_wandb: false
+intrinsic_eval: true
+log_per_iter: true
+
+# Infrastructure
+num_clients: 10
+feature_prop_device: cuda
+intrinsic_runner_backend: threadpool

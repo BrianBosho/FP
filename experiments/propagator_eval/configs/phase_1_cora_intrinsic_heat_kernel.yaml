@@ -1,0 +1,29 @@
+# Phase 1 companion — Cora heat-kernel reference
+# Run matrix: 1 operator × 1 dataset × 1 beta × 1 seed = 1 run
+
+phase_name: phase_1_cora_intrinsic
+runner: intrinsic
+results_layout: phase_root_legacy_raw
+
+operators:
+  - heat_kernel_exact
+
+datasets:
+  - Cora
+
+beta: [10000]
+seeds: [0]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_1_cora_intrinsic/raw
+save_results: true
+use_wandb: false
+
+diffusion_t: 1.0
+num_iterations: 1
+intrinsic_eval: true
+log_per_iter: false
+
+num_clients: 10
+feature_prop_device: cpu
+intrinsic_runner_backend: threadpool

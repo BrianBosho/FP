@@ -1,0 +1,35 @@
+# Phase 2 — Cora hop-depth comparison
+# Run matrix: 2 operators × 1 dataset × 1 beta × 3 seeds × hops {1,2} = 12 logical combinations
+# Recommended execution: one pass for hop=1, one pass for hop=2.
+
+phase_name: phase_2_cora_ablation
+runner: intrinsic
+ablation_family: hop_depth
+
+operators:
+  - adjacency
+  - diffusion
+
+datasets:
+  - Cora
+
+beta: [10000]
+seeds: [0, 1, 2]
+hop: 1
+
+results_dir: experiments/propagator_eval/results/phase_2_cora_ablation/raw/hop_depth
+save_results: true
+use_wandb: false
+
+num_iterations: 100
+feature_prop_tolerance: 1.0e-4
+diffusion_t: 0.1
+alpha: 0.5
+
+# Re-run with hop=2 for the paired comparison.
+
+intrinsic_eval: true
+log_per_iter: true
+num_clients: 10
+feature_prop_device: cuda
+intrinsic_runner_backend: threadpool
