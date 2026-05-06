@@ -8,6 +8,21 @@ import os
 from datetime import datetime
 
 
+def cuda_usable() -> bool:
+    """Return True only if CUDA is both available and actually functional.
+
+    torch.cuda.is_available() can return True on vGPU/display-only configs where
+    compute operations fail at runtime.  This performs a small allocation to verify.
+    """
+    if not torch.cuda.is_available():
+        return False
+    try:
+        torch.zeros(1, device="cuda")
+        return True
+    except RuntimeError:
+        return False
+
+
 def setup_logging(log_dir="logs"):
     """
     Set up logging configuration for experiments
@@ -45,7 +60,8 @@ def log_training_results(train_results, debug=False):
         return
     for i, results in enumerate(train_results):
         print(f"Round {i+1}")
-        for loss, acc in results:
+        for res in results:
+            loss, acc = res[0], res[1]
             print(f"Train Loss: {loss:.3f}, Train Accuracy: {acc:.3f}")
 
 

@@ -500,7 +500,7 @@ class MLP(nn.Module):
         )
 
     def forward(self, x):
-        return self.layers(x)
+        return F.log_softmax(self.layers(x), dim=1)
 
 # Add this new class after the existing VanillaGNN class
 class SparseVanillaGNN(nn.Module):
