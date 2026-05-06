@@ -16,6 +16,9 @@ ENV/
 ############################
 # Editor / OS
 ############################
+.claude/
+.openclaw/
+nano.save
 .vscode/
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
@@ -112,8 +115,11 @@ experiments/scheduler/runs/*/attempt_*/wrapper.log
 experiments/configs/
 experiments/results/
 experiments/logs/
+experiments/output/
+experiments/propagator_eval/.tmp_runner_configs/
 experiments/*.md
 experiments/scheduler/queue.json
+experiments/scheduler/queue_*.json
 experiments/scheduler/task_status.json
 
 ############################
