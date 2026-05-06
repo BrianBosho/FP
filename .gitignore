@@ -19,6 +19,7 @@ ENV/
 .claude/
 .openclaw/
 nano.save
+IDENTITY.md
 .vscode/
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
