@@ -2,6 +2,13 @@
 
 from src.fedgnn.data.datasets import GraphDataset
 from src.fedgnn.data.partitioning import partition_data
+from src.fedgnn.data.shard_cache import (
+    build_cache_payload,
+    get_cache_dir,
+    load_shard_cache,
+    shard_cache_enabled,
+    write_shard_cache,
+)
 from typing import Tuple, List, Optional
 from src.fedgnn.data.positional_encoding import generate_rfp_encoding
 import torch
@@ -45,6 +52,14 @@ def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, 
         config: Configuration dictionary from YAML file (optional)
     """
     data, dataset = load_dataset(name, device, config=config)
+    cache_payload = build_cache_payload(name, "zero_hop", num_clients, beta, 0, False, config)
+    cache_dir = get_cache_dir(name, "zero_hop", num_clients, beta, 0, False, config)
+    if shard_cache_enabled(config):
+        refs = load_shard_cache(cache_dir, cache_payload)
+        if refs is not None:
+            print(f"✓ Loaded {len(refs)} client shards from cache: {cache_dir}")
+            return data, dataset, refs, refs
+
     clients_data, test_data, split_data_indexes = partition_data(
         data,
         num_clients,
@@ -53,6 +68,10 @@ def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, 
         hop=0,
         config=config
     )
+    if shard_cache_enabled(config):
+        refs = write_shard_cache(cache_dir, clients_data, cache_payload)
+        print(f"✓ Wrote {len(refs)} client shards to cache: {cache_dir}")
+        return data, dataset, refs, refs
     return data, dataset, clients_data, test_data
 
 def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: float = 0.5, hop: int = 2, fulltraining_flag: bool = False, imputation_method: str = "zero", propagation_mode: str = "propagation", config: dict = None):
@@ -110,6 +129,18 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         use_feature_prop = True
         full_data = False
         propagation_mode = "chebyshev_diffusion_operator"
+    elif imputation_method == "appnp":
+        use_feature_prop = True
+        full_data = False
+        propagation_mode = "appnp"
+    elif imputation_method == "asymmetric_random_walk":
+        use_feature_prop = True
+        full_data = False
+        propagation_mode = "asymmetric_random_walk"
+    elif imputation_method == "heat_kernel_exact":
+        use_feature_prop = True
+        full_data = False
+        propagation_mode = "heat_kernel_exact"
     else:
         # Default case to handle any unrecognized imputation method
         use_feature_prop = False
@@ -117,6 +148,30 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         print(f"Warning: Unrecognized imputation method '{imputation_method}'. Using default (zero imputation).")
 
     data, dataset = load_dataset(name, device, config=config)
+
+    cache_payload = build_cache_payload(
+        name,
+        imputation_method,
+        num_clients,
+        beta,
+        hop,
+        fulltraining_flag,
+        config,
+    )
+    cache_dir = get_cache_dir(
+        name,
+        imputation_method,
+        num_clients,
+        beta,
+        hop,
+        fulltraining_flag,
+        config,
+    )
+    if shard_cache_enabled(config):
+        refs = load_shard_cache(cache_dir, cache_payload)
+        if refs is not None:
+            print(f"✓ Loaded {len(refs)} client shards from cache: {cache_dir}")
+            return data, dataset, refs, refs
 
     # Get positional encoding flag from config if available
     use_pe = True
@@ -138,6 +193,11 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         mode=propagation_mode,
         config=config
     )
+
+    if shard_cache_enabled(config):
+        refs = write_shard_cache(cache_dir, clients_data, cache_payload)
+        print(f"✓ Wrote {len(refs)} client shards to cache: {cache_dir}")
+        return data, dataset, refs, refs
 
     # If using PE, apply it to the global data for consistency in evaluation
     if use_pe:

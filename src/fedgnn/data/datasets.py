@@ -14,6 +14,27 @@ from pathlib import Path
 
 
 try:
+    from src.fedgnn.utils.run import cuda_usable as _cuda_usable
+except ImportError:
+    def _cuda_usable() -> bool:
+        if not torch.cuda.is_available():
+            return False
+        try:
+            torch.zeros(1, device="cuda")
+            return True
+        except RuntimeError:
+            return False
+
+
+def _resolve_device(device) -> str:
+    """Return a safe device string, falling back to 'cpu' if CUDA isn't functional."""
+    d = str(device)
+    if "cuda" in d and not _cuda_usable():
+        return "cpu"
+    return d
+
+
+try:
     # Preferred when `src/` is importable as a package
     from src.fedgnn.utils.project_paths import find_repo_root as _find_repo_root
 except ImportError:
@@ -71,6 +92,7 @@ class GraphDataset:
             self.config['paths']['planetoid']['citeseer'],
             self.config['paths']['planetoid']['pubmed'],
             self.config['paths']['ogbn']['arxiv'],
+            self.config['paths']['ogbn'].get('products', os.path.join(self.config['paths']['datasets_dir'], 'ogbn_products')),
             self.config['paths']['amazon']['computers'],
             self.config['paths']['amazon']['photo'],
             self.config['paths']['webkb']['texas'],
@@ -97,7 +119,13 @@ class GraphDataset:
         elif name in self.SUPPORTED_DATASETS["facebook"]:
             path = os.path.join(self.config['paths']['datasets_dir'], 'facebook')
         elif name in self.SUPPORTED_DATASETS["ogb"]:
-            path = self.config['paths']['ogbn']['arxiv']
+            if name == "ogbn-products":
+                path = self.config['paths']['ogbn'].get(
+                    'products',
+                    os.path.join(self.config['paths']['datasets_dir'], 'ogbn_products'),
+                )
+            else:
+                path = self.config['paths']['ogbn']['arxiv']
         elif name in self.SUPPORTED_DATASETS["amazon"]:
             if name == "Computers":
                 path = self.config['paths']['amazon']['computers']
@@ -137,7 +165,7 @@ class GraphDataset:
 
     def _load_planetoid(self, name: str, device):
         """Load and process Planetoid dataset."""
-        DEVICE = device
+        DEVICE = _resolve_device(device)
         dataset_path = self._get_dataset_path(name)
         dataset = Planetoid(root=dataset_path, name=name)
         data = dataset[0].to(DEVICE)
@@ -145,7 +173,7 @@ class GraphDataset:
 
     def _load_facebook(self, device = "cuda"):
         """Load and process Facebook dataset."""
-        DEVICE = device
+        DEVICE = _resolve_device(device)
         dataset_path = self._get_dataset_path("FacebookPagePage")
         dataset = FacebookPagePage(root=dataset_path)
         data = dataset[0]
@@ -159,7 +187,7 @@ class GraphDataset:
         """Load and process Amazon Computers/Photo datasets.
         Ensures masks exist, edges are undirected with self-loops, and labels are 1-D.
         """
-        DEVICE = device
+        DEVICE = _resolve_device(device)
         dataset_path = self._get_dataset_path(name)
 
         # Prefer adding masks via AddTrainValTestMask if available; fallback to RandomNodeSplit
@@ -239,7 +267,7 @@ class GraphDataset:
 
     def _load_webkb(self, name: str, device = "cuda", config: Optional[dict] = None):
         """Load Texas/Wisconsin heterophilic WebKB datasets."""
-        DEVICE = device
+        DEVICE = _resolve_device(device)
         dataset_path = self._get_dataset_path(name)
         dataset = WebKB(root=dataset_path, name=name)
         data = dataset[0]
@@ -268,7 +296,7 @@ class GraphDataset:
 
     def _load_ogb(self, name: str, device = "cuda"):
         """Load and process OGB dataset."""
-        DEVICE = device
+        DEVICE = _resolve_device(device)
         dataset_path = self._get_dataset_path(name)
         dataset = PygNodePropPredDataset(name=name, root=dataset_path)
         data = dataset[0]

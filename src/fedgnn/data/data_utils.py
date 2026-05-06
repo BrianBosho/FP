@@ -270,7 +270,8 @@ def chebyshev_expmL_apply(
     X: Tensor,
     t: float = 1.0,
     K: int = 5,
-    device: str = "cuda"
+    device: str = "cuda",
+    Z: "SparseTensor | None" = None,
 ) -> Tensor:
     """
     y ≈ exp(-t L) X using Chebyshev on Z = I - L (spec ∈ [-1,1]).
@@ -286,12 +287,16 @@ def chebyshev_expmL_apply(
         t:          Diffusion time parameter (typical range: 0.2 - 2.0).
         K:          Chebyshev order (typically 3-10; often K<=5 works well).
         device:     "cpu" or "cuda".
+        Z:          Optional prebuilt normalized adjacency SparseTensor (I - L).
+                    When called inside a propagation loop, pass a cached Z to
+                    avoid rebuilding it on every iteration (O(E) per call).
 
     Returns:
         Y ≈ exp(-t L) X  (same shape as X).
     """
     X = X.to(device)
-    Z = _normalized_adjacency(edge_index, num_nodes, device)  # Z = I - L
+    if Z is None:
+        Z = _normalized_adjacency(edge_index, num_nodes, device)  # Z = I - L
 
     # coefficients: c0 = ive(0,t), ck = 2*ive(k,t) for k>=1
     # (ive is exponentially scaled: ive(k,t) = e^{-t} I_k(t))
@@ -421,13 +426,10 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
         adj = diffusion_kernel(edge_index, num_nodes, device, t=diffusion_t)
 
     elif propagation_type == "chebyshev_diffusion" or propagation_type == "chebyshev_diffusion_operator":
-        # Use matrix-free Chebyshev approach (memory efficient)
-        # Create a dummy sparse tensor that will be replaced by direct Chebyshev application
-        adj = torch.sparse_coo_tensor(
-            torch.empty((2, 0), dtype=torch.long, device=device),
-            torch.empty(0, dtype=x.dtype, device=device),
-            size=(num_nodes, num_nodes)
-        ).to(device)
+        # Build Z once; pass it into each chebyshev_expmL_apply call to avoid
+        # the O(E) SparseTensor rebuild that was happening on every iteration.
+        Z_eff_cached = _normalized_adjacency(edge_index, num_nodes, device)
+        adj = None
 
     else:
         raise ValueError(f"Unknown propagation type: {propagation_type}")
@@ -439,8 +441,7 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
     for i in range(num_iterations):
         # Diffuse features
         if propagation_type == "chebyshev_diffusion" or propagation_type == "chebyshev_diffusion_operator":
-            # Use matrix-free Chebyshev diffusion directly
-            new_out = chebyshev_expmL_apply(edge_index, num_nodes, out, t=diffusion_t, K=chebyshev_k, device=device)
+            new_out = chebyshev_expmL_apply(edge_index, num_nodes, out, t=diffusion_t, K=chebyshev_k, device=device, Z=Z_eff_cached)
         else:
             # Use standard sparse matrix multiplication for other modes
             new_out = matmul(adj, out)
@@ -460,6 +461,66 @@ def propagate_features_efficient(x: Tensor, edge_index: Tensor, mask: Tensor, de
         prev_out = out.clone()
 
     return out
+
+
+def get_row_normalized_adjacency(edge_index: Tensor, num_nodes: int) -> tuple[Tensor, Tensor]:
+    """
+    Compute row-normalized (asymmetric) adjacency P = D^{-1}A.
+    Adds self-loops for isolated nodes so they map to themselves.
+    Returns (edge_index, edge_weight) in the same format as get_symmetrically_normalized_adjacency.
+    """
+    device = edge_index.device
+    row, col = edge_index[0], edge_index[1]
+
+    deg = torch_scatter.scatter_add(
+        torch.ones_like(row, dtype=torch.float), row, dim=0, dim_size=num_nodes
+    )
+
+    # Self-loops for isolated nodes (degree 0) so they don't vanish
+    isolated = deg == 0
+    if isolated.any():
+        iso_idx = torch.where(isolated)[0]
+        self_loops = torch.stack([iso_idx, iso_idx], dim=0)
+        edge_index = torch.cat([edge_index, self_loops], dim=1)
+        row, col = edge_index[0], edge_index[1]
+        deg = torch_scatter.scatter_add(
+            torch.ones_like(row, dtype=torch.float), row, dim=0, dim_size=num_nodes
+        )
+
+    edge_weight = 1.0 / deg[row].clamp(min=1.0)
+    return edge_index, edge_weight
+
+
+def heat_kernel_exact(edge_index: Tensor, num_nodes: int, device: str, t: float = 1.0) -> Tensor:
+    """
+    Compute the exact heat kernel H = exp(-t*L) via eigendecomposition.
+    L = I - D^{-1/2} A D^{-1/2} (normalized Laplacian).
+    Only feasible for small graphs; raises if num_nodes > 10000.
+    Returns dense [num_nodes, num_nodes] Tensor.
+    """
+    if num_nodes > 10000:
+        raise ValueError(
+            f"heat_kernel_exact requires O(n^3) eigendecomposition. "
+            f"num_nodes={num_nodes} exceeds safety limit of 10000."
+        )
+
+    edge_index = edge_index.to(device)
+    row, col = edge_index[0], edge_index[1]
+
+    deg = torch_scatter.scatter_add(
+        torch.ones_like(row, dtype=torch.float), row, dim=0, dim_size=num_nodes
+    )
+    deg_inv_sqrt = torch.where(deg > 0, deg.pow(-0.5), torch.zeros_like(deg))
+
+    # Dense normalized Laplacian L = I - D^{-1/2} A D^{-1/2}
+    L = torch.eye(num_nodes, dtype=torch.float, device=device)
+    L[row, col] -= deg_inv_sqrt[row] * deg_inv_sqrt[col]
+
+    eigenvalues, V = torch.linalg.eigh(L)
+    exp_evals = torch.exp(-t * eigenvalues.clamp(min=0.0))
+    H = V @ torch.diag(exp_evals) @ V.mT
+
+    return H
 
 
 # Homophily Measures

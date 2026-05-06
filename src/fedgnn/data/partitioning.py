@@ -7,6 +7,8 @@ from torch_geometric.utils import k_hop_subgraph
 from src.fedgnn.data.propagation import propagate_features, compute_dirichlet_energy
 from src.fedgnn.data.positional_encoding import generate_rfp_encoding
 import torch.nn.functional as F
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from src.fedgnn.utils.run import cuda_usable
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,6 +27,30 @@ def _as_bool(value) -> bool:
     if isinstance(value, str):
         return value.lower() in {"true", "1", "yes", "on"}
     return bool(value)
+
+
+def _attach_client_index_bookkeeping(
+    subgraph: Data,
+    owned_global_ids: torch.Tensor,
+    communicate_global_ids: torch.Tensor,
+    owned_local_ids: torch.Tensor,
+) -> Data:
+    """Attach explicit FedGraph-style index metadata to a client subgraph."""
+    owned_global_ids = owned_global_ids.cpu().long()
+    communicate_global_ids = communicate_global_ids.cpu().long()
+    owned_local_ids = owned_local_ids.cpu().long()
+
+    subgraph.owned_global_ids = owned_global_ids
+    subgraph.communicate_global_ids = communicate_global_ids
+    subgraph.owned_local_ids = owned_local_ids
+    subgraph.remote_local_ids = torch.tensor(
+        sorted(set(range(int(subgraph.num_nodes))) - set(owned_local_ids.tolist())),
+        dtype=torch.long,
+    )
+    subgraph.train_local_ids = subgraph.train_mask.cpu().nonzero(as_tuple=True)[0]
+    subgraph.val_local_ids = subgraph.val_mask.cpu().nonzero(as_tuple=True)[0]
+    subgraph.test_local_ids = subgraph.test_mask.cpu().nonzero(as_tuple=True)[0]
+    return subgraph
 
 def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float,
                               seed: int = 123) -> list:
@@ -85,13 +111,19 @@ def create_subgraph(data: Data, node_indices: torch.Tensor, device = "cuda") -> 
     edge_index = node_map[edge_index]
 
     # Create subgraph and move to specified device
-    return Data(
+    subgraph = Data(
         x=data.x.cpu()[subgraph_node_indices].to(DEVICE),
         edge_index=edge_index.to(DEVICE),
         y=data.y.cpu()[subgraph_node_indices].to(DEVICE),
         train_mask=data.train_mask.cpu()[node_mask].to(DEVICE),
         val_mask=data.val_mask.cpu()[node_mask].to(DEVICE),
         test_mask=data.test_mask.cpu()[node_mask].to(DEVICE)
+    )
+    return _attach_client_index_bookkeeping(
+        subgraph,
+        owned_global_ids=subgraph_node_indices,
+        communicate_global_ids=subgraph_node_indices,
+        owned_local_ids=torch.arange(len(subgraph_node_indices)),
     )
 
 def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int, device = "cuda", full_data: bool = False, fulltraining_flag: bool = True) -> tuple[Data, torch.Tensor, torch.Tensor]:
@@ -124,6 +156,12 @@ def create_k_hop_subgraph(data: Data, node_indices: torch.Tensor, num_hops: int,
 
     # Reset features and masks based on original nodes
     subgraph = reset_subgraph_features2(subgraph, mapping, full_data, fulltraining_flag)
+    subgraph = _attach_client_index_bookkeeping(
+        subgraph,
+        owned_global_ids=node_indices_cpu,
+        communicate_global_ids=subset,
+        owned_local_ids=mapping,
+    )
 
     return subgraph, node_map.to(DEVICE), mapping.to(DEVICE)
 
@@ -158,10 +196,137 @@ def get_in_comm_indexes(edge_index: torch.Tensor, split_data_indexes: list,
     return communicate_indexes, [], []
 
 
+def _process_client_fp_pe(
+    i, client_data, use_feature_prop, use_pe,
+    config, DEVICE, num_iterations, fp_tolerance, mode, log_file,
+    init_strategy, pe_r, pe_P, normalize, rfp_qr_max_nodes, experiment_seed,
+):
+    """Run FP then PE for a single client. Safe to call from multiple threads
+    as long as each thread receives a unique log_file path (or None)."""
+    import os, json
+
+    if hasattr(client_data, 'mapping'):
+        original_nodes_mask = torch.zeros(client_data.num_nodes, dtype=torch.bool, device=DEVICE)
+        original_nodes_mask[client_data.mapping] = True
+    else:
+        zero_vector_mask = (client_data.x == 0).all(dim=1)
+        original_nodes_mask = ~zero_vector_mask
+
+    # A4: Adaptive diffusion time — estimate subgraph diameter via BFS sampling
+    if use_feature_prop and config.get("adaptive_t", False):
+        import collections
+        n_nodes_subgraph = client_data.num_nodes
+        edge_idx = client_data.edge_index.cpu()
+        # Build adjacency list
+        adj_list = [[] for _ in range(n_nodes_subgraph)]
+        for u, v in edge_idx.t().tolist():
+            if u < n_nodes_subgraph and v < n_nodes_subgraph:
+                adj_list[u].append(v)
+                adj_list[v].append(u)
+        # BFS from a sample of nodes to estimate diameter
+        num_seeds = min(20, n_nodes_subgraph)
+        seed_nodes = list(range(n_nodes_subgraph))
+        np.random.seed(42 + i)  # reproducible per-client
+        seed_nodes = list(np.random.choice(n_nodes_subgraph, size=num_seeds, replace=False))
+        diameter_est = 0
+        for src in seed_nodes:
+            visited = [-1] * n_nodes_subgraph
+            q = collections.deque([src])
+            visited[src] = 0
+            max_dist = 0
+            while q:
+                node = q.popleft()
+                for nb in adj_list[node]:
+                    if visited[nb] == -1:
+                        visited[nb] = visited[node] + 1
+                        max_dist = visited[nb]
+                        q.append(nb)
+            diameter_est = max(diameter_est, max_dist)
+        # Compute adaptive t: scale t_base by (diameter / reference_diameter)
+        t_base = config.get("t_base", 1.0)
+        ref_diameter = config.get("reference_diameter", 4.0)  # Cora avg path length
+        computed_t = t_base * (diameter_est / ref_diameter)
+        computed_t = max(0.1, min(computed_t, 5.0))  # clamp to reasonable range
+        print(f"[A4 adaptive_t] client {i}: subgraph_nodes={n_nodes_subgraph}, diameter_est={diameter_est}, computed_t={computed_t:.3f}")
+        # Set computed t in a local config copy to avoid polluting other clients
+        config = dict(config)  # shallow copy
+        config["diffusion_t"] = computed_t
+
+    if use_feature_prop:
+        requested_fp_device = config.get("feature_prop_device", "cpu") if config is not None else "cpu"
+        fp_device = torch.device(requested_fp_device)
+        if fp_device.type == "cuda" and not cuda_usable():
+            print(f"[client {i}] feature_prop_device=cuda requested but CUDA unavailable; using CPU.")
+            fp_device = torch.device("cpu")
+
+        alpha = config.get("alpha", 0.5) if config is not None else 0.5
+
+        def _run_fp(device):
+            _x = client_data.x.to(device)
+            _ei = client_data.edge_index.to(device)
+            _mask = original_nodes_mask.to(device)
+            _out = propagate_features(
+                _x, _ei, _mask, device,
+                num_iterations=num_iterations, mode=mode, alpha=alpha,
+                client_id=i, log_file=log_file, tol=fp_tolerance,
+                config=config, init_strategy=init_strategy,
+            )
+            if config and config.get("multiscale_fusion", False):
+                from src.fedgnn.data.propagation import propagate_features_multiscale
+                _out = propagate_features_multiscale(
+                    client_data.x.to(device), _ei, _mask.to(device), device,
+                    scale_iterations=config.get("scale_iterations", [5, 20, 50]),
+                    scale_t=config.get("diffusion_t", 0.5),
+                    fusion_weights=config.get("fusion_weights", None),
+                    alpha=alpha, config=config,
+                    init_strategy=init_strategy,
+                )
+            return _out
+
+        x_fp = None
+        if fp_device.type == "cuda":
+            try:
+                x_fp = _run_fp(fp_device)
+                print(f"[client {i}] FP on GPU succeeded")
+            except (torch.cuda.OutOfMemoryError, RuntimeError) as _e:
+                _msg = str(_e)
+                if "CUDA" in _msg or "cuda" in _msg or "cusparse" in _msg or "out of memory" in _msg.lower():
+                    print(f"[client {i}] FP on GPU failed ({type(_e).__name__}: {_msg[:120]}); retrying on CPU")
+                    torch.cuda.empty_cache()
+                    import gc; gc.collect()
+                    fp_device = torch.device("cpu")
+                else:
+                    raise
+        if x_fp is None:
+            x_fp = _run_fp(fp_device)
+
+        client_data.x = x_fp.to(DEVICE)
+        del x_fp
+        if fp_device.type == "cuda":
+            torch.cuda.empty_cache()
+
+    if use_pe:
+        client_data.original_feature_dim = client_data.x.size(1)
+        rfp_seed = None if experiment_seed is None else int(experiment_seed) + int(i)
+        rfp = generate_rfp_encoding(
+            edge_index=client_data.edge_index,
+            num_nodes=client_data.num_nodes,
+            r=pe_r, P=pe_P, normalize=normalize, device=DEVICE,
+            seed=rfp_seed, qr_max_nodes=rfp_qr_max_nodes,
+        )
+        orig_features = F.normalize(client_data.x, p=2, dim=1)
+        rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5
+        client_data.x = torch.cat([orig_features, rfp_norm], dim=1)
+        if hasattr(client_data, 'num_features'):
+            client_data.num_features = client_data.x.size(1)
+
+    return client_data
+
+
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0,
                    use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False,
                    mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16,
-                   config: dict = None) -> tuple[list, list, list]:
+                   config: dict = None, return_masks: bool = False) -> tuple[list, list, list]:
     if fulltraining_flag:
         print("[C3] WARNING: fulltraining_flag=True — this is an ORACLE baseline that "
               "includes cross-client label leakage. Do not use as a federated condition.")
@@ -196,6 +361,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         num_iterations = config.get("num_iterations", 50)
         fp_tolerance = config.get("feature_prop_tolerance", 1e-3)
         init_strategy = config.get("feature_prop_init_strategy", "zero")
+        fp_max_concurrent = int(config.get("fp_max_concurrent", 1) or 1)
         if config.get("debug", False):
             print(f"Tolerance: {fp_tolerance}")
 
@@ -224,6 +390,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         rfp_qr_max_nodes = 50000
         num_iterations = 50
         fp_tolerance = 1e-3
+        fp_max_concurrent = 1
 
     # C5: experiment-level seed.  None/absent preserves the legacy hardcoded
     # 123 partition seed.  When an int is provided (via cfg.experiment_seed
@@ -285,85 +452,70 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         with open(json_file, 'w') as f:
             json.dump(experiment_data, f)
 
-    final_subgraphs = []
-    for i in range(num_clients):
-        # Determine original node mask
-        if hasattr(clients_data[i], 'mapping'):
-            original_nodes_mask = torch.zeros(clients_data[i].num_nodes, dtype=torch.bool, device=DEVICE)
-            original_nodes_mask[clients_data[i].mapping] = True
+    # Build per-client log file paths. In the serial path every client appends
+    # to the shared json_file (original behaviour). In the parallel path each
+    # client gets its own temp file to avoid a read-modify-write race; the temp
+    # files are merged back into json_file after all workers finish.
+    if use_feature_prop:
+        if fp_max_concurrent == 1:
+            client_log_files = [json_file] * num_clients
         else:
-            zero_vector_mask = (clients_data[i].x == 0).all(dim=1)
-            original_nodes_mask = ~zero_vector_mask
+            base, ext = os.path.splitext(json_file)
+            client_log_files = []
+            for _i in range(num_clients):
+                tmp = f"{base}_c{_i}{ext}"
+                with open(tmp, 'w') as _f:
+                    json.dump({"clients": []}, _f)
+                client_log_files.append(tmp)
+    else:
+        client_log_files = [None] * num_clients
 
-        # Step 1: Feature Propagation comes first
+    _fp_pe_kwargs = dict(
+        use_feature_prop=use_feature_prop, use_pe=use_pe,
+        config=config, DEVICE=DEVICE,
+        num_iterations=num_iterations, fp_tolerance=fp_tolerance,
+        mode=mode, init_strategy=init_strategy,
+        pe_r=pe_r, pe_P=pe_P, normalize=normalize,
+        rfp_qr_max_nodes=rfp_qr_max_nodes, experiment_seed=experiment_seed,
+    )
+
+    final_subgraphs = [None] * num_clients
+
+    if fp_max_concurrent == 1:
+        for i in range(num_clients):
+            final_subgraphs[i] = _process_client_fp_pe(
+                i, clients_data[i], log_file=client_log_files[i], **_fp_pe_kwargs
+            )
+    else:
+        print(f"  Running FP/PE for {num_clients} clients with fp_max_concurrent={fp_max_concurrent}")
+        with ThreadPoolExecutor(max_workers=fp_max_concurrent) as pool:
+            futures = {
+                pool.submit(
+                    _process_client_fp_pe,
+                    i, clients_data[i], log_file=client_log_files[i], **_fp_pe_kwargs
+                ): i
+                for i in range(num_clients)
+            }
+            for future in as_completed(futures):
+                i = futures[future]
+                final_subgraphs[i] = future.result()
+
+        # Merge per-client temp logs into the main experiment JSON
         if use_feature_prop:
-            # Decide FP device. If a config asks for CUDA on a CPU-only build,
-            # fall back to CPU so smoke/pilot runs fail on real model issues
-            # rather than environment availability.
-            requested_fp_device = (
-                config.get("feature_prop_device", "cpu") if config is not None else "cpu"
-            )
-            fp_device = torch.device(requested_fp_device)
-            if fp_device.type == "cuda" and not torch.cuda.is_available():
-                print("feature_prop_device=cuda requested, but CUDA is unavailable; using CPU.")
-                fp_device = torch.device("cpu")
-
-            # Move necessary tensors for FP to fp_device
-            x_fp = clients_data[i].x.to(fp_device)
-            edge_index_fp = clients_data[i].edge_index.to(fp_device)
-            original_nodes_mask_fp = original_nodes_mask.to(fp_device)
-
-            # Get alpha from config if provided
-            alpha = config.get("alpha", 0.5) if config is not None else 0.5
-
-            # Run FP on fp_device
-            x_fp = propagate_features(
-                x_fp,
-                edge_index_fp,
-                original_nodes_mask_fp,
-                fp_device,
-                num_iterations=num_iterations,
-                mode=mode,
-                alpha=alpha,
-                client_id=i,
-                log_file=json_file,
-                tol=fp_tolerance,
-                config=config,
-                init_strategy=init_strategy
-            )
-
-            # Move features back to original DEVICE for training/PE
-            clients_data[i].x = x_fp.to(DEVICE)
-
-            # Immediately clear GPU memory after propagation
-            del x_fp, edge_index_fp, original_nodes_mask_fp
-            if fp_device.type == "cuda":
-                torch.cuda.empty_cache()
-
-        # Step 2: Then Positional Encoding (if requested)
-        if use_pe:
-            clients_data[i].original_feature_dim = clients_data[i].x.size(1)
-            # Per-client RFP seed keeps encodings distinct across clients but
-            # reproducible across runs when experiment_seed is set.
-            rfp_seed = None if experiment_seed is None else int(experiment_seed) + int(i)
-            rfp = generate_rfp_encoding(
-                edge_index=clients_data[i].edge_index,
-                num_nodes=clients_data[i].num_nodes,
-                r=pe_r,
-                P=pe_P,
-                normalize=normalize,
-                device=DEVICE,
-                seed=rfp_seed,
-                qr_max_nodes=rfp_qr_max_nodes,
-            )
-            orig_features = F.normalize(clients_data[i].x, p=2, dim=1)
-            rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5
-            clients_data[i].x = torch.cat([orig_features, rfp_norm], dim=1)
-
-            if hasattr(clients_data[i], 'num_features'):
-                clients_data[i].num_features = clients_data[i].x.size(1)
-
-        final_subgraphs.append(clients_data[i])
+            with open(json_file, 'r') as f:
+                experiment_data = json.load(f)
+            all_metrics = []
+            for tmp_file in client_log_files:
+                try:
+                    with open(tmp_file, 'r') as f:
+                        all_metrics.extend(json.load(f).get("clients", []))
+                    os.remove(tmp_file)
+                except (FileNotFoundError, json.JSONDecodeError):
+                    pass
+            all_metrics.sort(key=lambda m: m.get("client_id", 0))
+            experiment_data["clients"] = all_metrics
+            with open(json_file, 'w') as f:
+                json.dump(experiment_data, f, indent=2)
 
     keep_on_gpu = config.get("keep_data_on_gpu", False) if config is not None else False
     if not keep_on_gpu:
@@ -382,6 +534,18 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     if use_feature_prop and config and config.get("debug", False):
         print(f"Feature propagation logs saved to: {json_file}")
+
+    if return_masks:
+        # Build per-client boolean mask: True = original client node, False = k-hop boundary neighbor.
+        client_masks = []
+        for subgraph in final_subgraphs:
+            if hasattr(subgraph, 'mapping'):
+                m = torch.zeros(subgraph.num_nodes, dtype=torch.bool)
+                m[subgraph.mapping] = True
+            else:
+                m = ~(subgraph.x == 0).all(dim=1).cpu()
+            client_masks.append(m)
+        return final_subgraphs, initial_subgraphs, split_data_indexes, client_masks
 
     return final_subgraphs, initial_subgraphs, split_data_indexes
 
