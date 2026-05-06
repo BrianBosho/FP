@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
+import os
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,6 +17,49 @@ from torch_geometric.data import Data
 
 
 SCHEMA_VERSION = 2
+
+# Lifecycle state sentinels written to disk so parallel workers never read
+# a partially-written cache.
+_STATE_BUILDING = "building"
+_STATE_READY = "ready"
+_STATE_CORRUPTED = "corrupted"
+
+
+@contextmanager
+def _exclusive_lock(lock_path: Path, timeout_s: float = 120.0):
+    """Acquire an exclusive advisory lock via fcntl; wait up to *timeout_s* seconds."""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fh = open(lock_path, "a")  # noqa: WPS515 – must stay open while locked
+    try:
+        deadline = time.monotonic() + timeout_s
+        while True:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() > deadline:
+                    raise TimeoutError(
+                        f"Could not acquire shard-cache lock after {timeout_s}s: {lock_path}"
+                    )
+                time.sleep(0.5)
+        yield
+    finally:
+        try:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        except Exception:
+            pass
+        fh.close()
+
+
+def _write_state(cache_dir: Path, state: str) -> None:
+    (cache_dir / "state").write_text(state)
+
+
+def _read_state(cache_dir: Path) -> str | None:
+    p = cache_dir / "state"
+    if not p.exists():
+        return None
+    return p.read_text().strip()
 
 
 @dataclass(frozen=True)
@@ -142,25 +189,48 @@ def write_shard_cache(
     metadata: dict[str, Any],
 ) -> list[ClientShardRef]:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    clients = []
-    for client_id, data in enumerate(client_data):
-        shard_path = cache_dir / f"client_{client_id:04d}.pt"
-        torch.save(data.to("cpu"), shard_path)
-        clients.append(_client_stats(client_id, shard_path, data))
+    lock_path = cache_dir / "build.lock"
+    with _exclusive_lock(lock_path):
+        # Another worker may have finished while we waited — reuse if ready.
+        existing = load_shard_cache(cache_dir, metadata)
+        if existing is not None:
+            print(f"[shard_cache] Cache already written by another worker: {cache_dir}")
+            return existing
 
-    manifest = {
-        "schema_version": SCHEMA_VERSION,
-        "metadata": metadata,
-        "clients": clients,
-    }
-    tmp_manifest = cache_dir / "manifest.json.tmp"
-    manifest_path = cache_dir / "manifest.json"
-    tmp_manifest.write_text(json.dumps(manifest, indent=2, sort_keys=True))
-    tmp_manifest.replace(manifest_path)
-    return refs_from_manifest(cache_dir, manifest)
+        _write_state(cache_dir, _STATE_BUILDING)
+        clients = []
+        try:
+            for client_id, data in enumerate(client_data):
+                shard_path = cache_dir / f"client_{client_id:04d}.pt"
+                torch.save(data.to("cpu"), shard_path)
+                stats = _client_stats(client_id, shard_path, data)
+                # Attach lightweight checksum so --verify can detect stale caches
+                stats["checksum"] = compute_dataset_checksum(data)
+                clients.append(stats)
+
+            manifest = {
+                "schema_version": SCHEMA_VERSION,
+                "metadata": metadata,
+                "clients": clients,
+            }
+            tmp_manifest = cache_dir / "manifest.json.tmp"
+            manifest_path = cache_dir / "manifest.json"
+            tmp_manifest.write_text(json.dumps(manifest, indent=2, sort_keys=True))
+            tmp_manifest.replace(manifest_path)
+            _write_state(cache_dir, _STATE_READY)
+        except Exception:
+            _write_state(cache_dir, _STATE_CORRUPTED)
+            raise
+        return refs_from_manifest(cache_dir, manifest)
 
 
 def load_shard_cache(cache_dir: Path, expected_metadata: dict[str, Any]) -> list[ClientShardRef] | None:
+    # Fast-path: never return a cache that's mid-build or corrupted.
+    state = _read_state(cache_dir)
+    if state is not None and state != _STATE_READY:
+        print(f"[shard_cache] Cache state is '{state}', skipping: {cache_dir}")
+        return None
+
     manifest_path = cache_dir / "manifest.json"
     if not manifest_path.exists():
         return None
@@ -203,3 +273,204 @@ def refs_from_manifest(cache_dir: Path, manifest: dict[str, Any]) -> list[Client
 
 def is_shard_ref(value: Any) -> bool:
     return isinstance(value, ClientShardRef)
+
+
+def compute_dataset_checksum(data: Any) -> dict[str, Any]:
+    """Compute a lightweight fingerprint of a loaded PyG Data object.
+
+    Hashes edge_index and x shapes + a small slice of x values so that a
+    feature-propagation re-run with different hyperparameters is caught.
+    Does not hash the full tensor (too slow for large graphs).
+    """
+    import hashlib as _hl
+
+    stats: dict[str, Any] = {}
+    try:
+        stats["num_nodes"] = int(data.num_nodes)
+    except Exception:
+        pass
+    try:
+        stats["num_edges"] = int(data.edge_index.size(1))
+    except Exception:
+        pass
+    try:
+        stats["num_features"] = int(data.x.size(1))
+    except Exception:
+        pass
+    try:
+        # Hash a 256-element sample from x; fast and still catches re-computation diffs
+        sample = data.x.flatten()[:256].cpu().numpy().tobytes()
+        stats["x_sample_sha256"] = _hl.sha256(sample).hexdigest()[:16]
+    except Exception:
+        pass
+    return stats
+
+
+def _dir_size_bytes(d: Path) -> int:
+    """Return total byte size of all files under *d* (non-recursive symlinks skipped)."""
+    total = 0
+    try:
+        for entry in d.rglob("*"):
+            if entry.is_symlink() or not entry.is_file():
+                continue
+            try:
+                total += entry.stat().st_size
+            except OSError:
+                pass
+    except OSError:
+        pass
+    return total
+
+
+def _cache_entries(root: Path) -> list[tuple[Path, str, int]]:
+    """Return [(cache_dir, state, size_bytes)] for every sub-directory under root."""
+    entries = []
+    if not root.exists():
+        return entries
+    for d in sorted(root.iterdir()):
+        if not d.is_dir():
+            continue
+        state = _read_state(d)
+        if state is None:
+            state = _STATE_READY if (d / "manifest.json").exists() else "incomplete"
+        size = _dir_size_bytes(d)
+        entries.append((d, state, size))
+    return entries
+
+
+def _run_gc(root: Path, max_size_gb: float | None, dry_run: bool = False) -> None:
+    """Delete the oldest non-ready caches first, then ready ones, until under budget."""
+    import shutil
+
+    entries = _cache_entries(root)
+    if not entries:
+        print(f"[shard_cache gc] No caches under {root}")
+        return
+
+    total_bytes = sum(sz for _, _, sz in entries)
+    total_gb = total_bytes / (1024 ** 3)
+    print(f"[shard_cache gc] Total cache size: {total_gb:.3f} GB  ({len(entries)} entries)")
+
+    if max_size_gb is None:
+        # Delete only corrupted / incomplete caches
+        for d, state, sz in entries:
+            if state in (_STATE_CORRUPTED, "incomplete", _STATE_BUILDING):
+                _evict(d, sz, dry_run, reason=state)
+        return
+
+    budget_bytes = int(max_size_gb * 1024 ** 3)
+    if total_bytes <= budget_bytes:
+        print(f"[shard_cache gc] Already under {max_size_gb} GB budget — nothing to do.")
+        return
+
+    # Sort: evict corrupted/incomplete first (by mtime asc), then ready by mtime asc
+    def _sort_key(entry: tuple[Path, str, int]) -> tuple[int, float]:
+        d, state, _ = entry
+        priority = 0 if state not in (_STATE_READY, "ready (legacy, no state file)") else 1
+        try:
+            mtime = d.stat().st_mtime
+        except OSError:
+            mtime = 0.0
+        return priority, mtime
+
+    ordered = sorted(entries, key=_sort_key)
+    freed = 0
+    for d, state, sz in ordered:
+        if total_bytes - freed <= budget_bytes:
+            break
+        freed += _evict(d, sz, dry_run, reason=state)
+
+    freed_gb = freed / (1024 ** 3)
+    verb = "Would free" if dry_run else "Freed"
+    print(f"[shard_cache gc] {verb} {freed_gb:.3f} GB")
+
+
+def _evict(d: Path, size_bytes: int, dry_run: bool, reason: str = "") -> int:
+    import shutil
+    note = f" ({reason})" if reason else ""
+    mb = size_bytes / (1024 * 1024)
+    if dry_run:
+        print(f"  [dry-run] would delete {d}  {mb:.1f} MB{note}")
+        return size_bytes
+    try:
+        shutil.rmtree(d)
+        print(f"  deleted {d}  {mb:.1f} MB{note}")
+        return size_bytes
+    except OSError as e:
+        print(f"  WARNING: could not delete {d}: {e}")
+        return 0
+
+
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Inspect or maintain local federated shard caches.")
+    parser.add_argument("--list", action="store_true", help="List cache directories under root with sizes")
+    parser.add_argument("--verify", type=str, metavar="PATH",
+                        help="Verify manifest, shard files, and schema_version")
+    parser.add_argument("--gc", action="store_true",
+                        help="Garbage-collect caches. Removes corrupted/incomplete entries; "
+                             "with --max-size-gb also evicts oldest ready entries to enforce a budget.")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Print what --gc would delete without actually deleting")
+    parser.add_argument("--max-size-gb", type=float, default=None,
+                        help="Target max total cache size for GC (GB)")
+    parser.add_argument("--root", type=str, default="artifacts/shard_cache",
+                        help="Shard cache root directory")
+    ns = parser.parse_args(argv)
+
+    root = Path(ns.root)
+
+    if ns.list:
+        entries = _cache_entries(root)
+        if not entries:
+            print(f"No shard cache root at {root}")
+            return
+        total = 0
+        for d, state, sz in entries:
+            mb = sz / (1024 * 1024)
+            total += sz
+            print(f"{state:12s}  {mb:8.1f} MB  {d.name}")
+        print(f"{'TOTAL':12s}  {total/(1024*1024):8.1f} MB  ({len(entries)} entries)")
+        return
+
+    if ns.verify:
+        cache_dir = Path(ns.verify)
+        mf = cache_dir / "manifest.json"
+        if not mf.exists():
+            raise SystemExit(f"missing manifest: {mf}")
+        try:
+            manifest = json.loads(mf.read_text())
+        except (OSError, json.JSONDecodeError) as e:
+            raise SystemExit(f"invalid manifest: {e}") from e
+
+        # Schema version check
+        sv = manifest.get("schema_version")
+        if sv != SCHEMA_VERSION:
+            raise SystemExit(
+                f"schema_version mismatch: cache has {sv!r}, current code expects {SCHEMA_VERSION!r}. "
+                f"Delete this cache and rebuild."
+            )
+
+        clients = manifest.get("clients") or []
+        missing = []
+        for c in clients:
+            p = Path(str(c.get("path", "")))
+            if not p.exists():
+                missing.append(str(p))
+        if missing:
+            raise SystemExit(f"missing shard files ({len(missing)}): {missing[:5]}...")
+
+        size_mb = _dir_size_bytes(cache_dir) / (1024 * 1024)
+        print(f"OK: {cache_dir}  ({len(clients)} shards, {size_mb:.1f} MB, schema_version={sv})")
+        return
+
+    if ns.gc:
+        _run_gc(root, ns.max_size_gb, dry_run=ns.dry_run)
+        return
+
+    parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

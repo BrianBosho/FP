@@ -5,6 +5,7 @@ from src.fedgnn.fl.client import FLClient
 from src.fedgnn.models import GCN, GAT, GCN_arxiv, GraphSAGEProducts, PubmedGAT, GAT_Arxiv
 from src.fedgnn.fl.server import Server
 from src.fedgnn.data.shard_cache import is_shard_ref
+from src.fedgnn.utils.telemetry import TelemetryCollector, config_hash as telemetry_config_hash
 import pandas as pd
 from src.fedgnn.utils.config import load_config
 from src.fedgnn.utils.wandb import initialize_wandb, log_client_training_metrics, log_test_metrics
@@ -30,6 +31,7 @@ from src.fedgnn.utils.run import (
     compute_experiment_statistics,
     generate_experiment_output,
     cuda_usable,
+    resolve_torch_device,
 )
 import gc
 from pathlib import Path
@@ -96,15 +98,6 @@ def ensure_ray_initialized(cfg, using_cuda_device: bool) -> bool:
     if object_store_memory:
         init_kwargs["object_store_memory"] = int(object_store_memory)
 
-    # When using CUDA, explicitly propagate CUDA_VISIBLE_DEVICES to workers.
-    # Ray workers can otherwise start without a visible GPU even when the
-    # driver process sees one.
-    if using_cuda_device:
-        import os
-        visible_gpu_count = int(ray_num_gpus) if int(ray_num_gpus) > 0 else max(1, torch.cuda.device_count())
-        cvd = os.environ.get("CUDA_VISIBLE_DEVICES", ",".join(str(i) for i in range(visible_gpu_count)))
-        init_kwargs["runtime_env"] = {"env_vars": {"CUDA_VISIBLE_DEVICES": cvd}}
-
     ray.init(**init_kwargs)
     return True
 
@@ -113,19 +106,19 @@ def _resolve_data_loading_device(device, cfg):
     """Choose a preprocessing device that avoids transient driver-side OOMs."""
     requested_device = cfg.get("data_loading_device")
     if requested_device is not None:
-        return torch.device(requested_device)
+        return resolve_torch_device(requested_device)
 
-    resolved_device = torch.device(device)
+    resolved_device = resolve_torch_device(device)
     if resolved_device.type != "cuda":
         return resolved_device
 
     keep_data_on_gpu = bool(cfg.get("keep_data_on_gpu", False))
-    feature_prop_device = str(cfg.get("feature_prop_device", "cpu")).lower()
+    feature_prop_device = resolve_torch_device(cfg.get("feature_prop_device", "cpu"))
 
     # Unless the run explicitly keeps client data on GPU and also requested GPU
     # preprocessing, build partitions on CPU. The actors can still move their
     # local graph to CUDA on demand during training.
-    if keep_data_on_gpu and feature_prop_device == "cuda":
+    if keep_data_on_gpu and feature_prop_device.type == "cuda":
         return resolved_device
     return torch.device("cpu")
 
@@ -327,7 +320,7 @@ def initialize_clients(full_data, dataset, clients_data, model_type, cfg, device
         if explicit is not None:
             return float(explicit)
 
-        resolved_device = torch.device(DEVICE)
+        resolved_device = resolve_torch_device(DEVICE)
         if resolved_device.type != "cuda":
             return 0
 
@@ -362,7 +355,17 @@ def _client_data_test_count(client_data) -> int:
 def _load_client_data_if_ref(client_data):
     return client_data.load() if is_shard_ref(client_data) else client_data
 
-def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop = 1, fulltraining_flag = False, config = None):
+def load_data(
+    data_loading_option,
+    num_clients,
+    beta,
+    dataset_name,
+    device,
+    hop=1,
+    fulltraining_flag=False,
+    config=None,
+    timing_sink=None,
+):
     """
     Args:
         dat_loading_option: full_dataset, split_dataset, split_dataset_with_khop, split_dataset_with_feature_prop
@@ -377,9 +380,13 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
 
     kh_options = ["page_rank", "random_walk", "asymmetric_random_walk", "diffusion", "efficient", "adjacency", "propagation", "zero", "propagation", "full", "chebyshev_diffusion", "chebyshev-diffusion", "chebyshev_diffusion_operator", "chebyshev-diffusion-operator", "appnp", "heat_kernel_exact"]
     if data_loading_option == "full_dataset":
-        return load_dataset(dataset_name, device)
+        t0 = time.time()
+        out = load_dataset(dataset_name, device)
+        if timing_sink is not None:
+            timing_sink["dataset_load_s"] = timing_sink.get("dataset_load_s", 0.0) + time.time() - t0
+        return out
     elif data_loading_option == "zero_hop":
-        return load_and_split(dataset_name, device, num_clients, beta, config=config)
+        return load_and_split(dataset_name, device, num_clients, beta, config=config, timing_sink=timing_sink)
 
     elif data_loading_option in kh_options:
         return load_and_split_with_khop(
@@ -390,7 +397,9 @@ def load_data(data_loading_option, num_clients, beta, dataset_name, device, hop 
             hop=hop,
             imputation_method=data_loading_option,
             fulltraining_flag=fulltraining_flag,
-            config=config        )
+            config=config,
+            timing_sink=timing_sink,
+        )
 
 
 def _test_server_on_test_data(server, test_data):
@@ -432,7 +441,19 @@ def _test_server_on_test_data(server, test_data):
     return macro, micro, values
 
 
-def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_type, cfg, device, hop = 1, fulltraining_flag = False):
+def run_with_server(
+    dataset_name,
+    num_clients,
+    beta,
+    data_loading_option,
+    model_type,
+    cfg,
+    device,
+    hop=1,
+    fulltraining_flag=False,
+    telemetry: TelemetryCollector | None = None,
+    durability_bundle=None,
+):
     DEVICE = device
     clients = []
     server = None
@@ -448,6 +469,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"data_loading_option: {data_loading_option}")
 
     import time
+
+    timing_sink: dict = {}
     _t_partition_start = time.time()
     data_loading_device = _resolve_data_loading_device(DEVICE, cfg)
     data, dataset, clients_data, test_data = load_data(
@@ -459,8 +482,12 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         hop=hop,
         fulltraining_flag=fulltraining_flag,
         config=cfg,
+        timing_sink=timing_sink,
     )
     _partition_secs = time.time() - _t_partition_start
+    if telemetry is not None:
+        telemetry.merge_loader_timings(timing_sink)
+        telemetry.note_peaks()
 
     # Move full graph to CPU only when not keeping data on GPU
     if not cfg.get("keep_data_on_gpu", False):
@@ -522,9 +549,19 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         except Exception as _e:
             print(f"[run] Warning: failed to apply experiment_seed={_es!r}: {_e}")
 
-    model = instantiate_model(model_type, input_dim, dataset.num_classes, DEVICE, dataset_name, cfg)
+    # Server model stays on CPU: it only aggregates weights and tests on CPU data.
+    # All CUDA compute happens inside Ray worker actors (FLClient). Keeping the
+    # server on CPU avoids the CUDA driver fork-safety issue (driver process
+    # cannot use CUDA after Ray has spawned CUDA-enabled workers).
+    _t_actor = time.time()
+    model = instantiate_model(model_type, input_dim, dataset.num_classes, "cpu", dataset_name, cfg)
     clients = initialize_clients(data, dataset, clients_data, model_type, cfg, DEVICE)
-    server = Server(clients, model, device, cfg)
+    server = Server(clients, model, "cpu", cfg)
+    _actor_init_secs = time.time() - _t_actor
+    if telemetry is not None:
+        telemetry.add_phase("actor_init", _actor_init_secs)
+        telemetry.set_model_and_comm(server.model, len(clients), int(cfg.get("num_rounds", 0) or 0))
+        telemetry.note_peaks()
 
     try:
         train_results = []
@@ -600,6 +637,19 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                         rec["global_test_error"] = repr(_gt_e)
                 round_history.append(rec)
 
+            if durability_bundle is not None:
+                try:
+                    _dur_rec = rec if log_per_round else {
+                        "fl_round": int(i),
+                        "avg_client_val_acc": float(avg_eval_acc) if hasattr(avg_eval_acc, "__float__") else None,
+                        "best_eval_acc_so_far": float(best_eval_acc),
+                        "patience": int(patience),
+                        "round_time_s": round(time.time() - _t_round_start, 3),
+                    }
+                    durability_bundle.round(_dur_rec)
+                except Exception:
+                    pass
+
             if patience >= patience_threshold:
                 print(f"Early stopping triggered at round {i}")
                 early_stopped_at = i
@@ -612,10 +662,14 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
                 print(f"  [Memory cleanup at round {i + 1}]")
 
         _train_secs = time.time() - _t_train_start
+        if telemetry is not None:
+            telemetry.add_phase("train", _train_secs)
+            telemetry.note_peaks()
         if debug:
             print(f"training_time_s: {round(_train_secs, 2)}")
         log_training_results(train_results, debug=debug)
 
+        _t_eval = time.time()
         eval_results = server.evaluate_clients()
         log_evaluation_results(eval_results, debug=debug)
 
@@ -739,6 +793,24 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
         print(f"Client test acc (micro): {global_test_acc_micro:.4f}")
         print(f"Global test acc ({global_test_surface}): {test_results}")
 
+        _eval_secs = time.time() - _t_eval
+        if telemetry is not None:
+            telemetry.add_phase("eval", _eval_secs)
+            telemetry.note_peaks()
+            # Collect actor-side peak GPU; this is more accurate than the driver peak
+            # because all CUDA training runs inside Ray worker processes.
+            try:
+                _actor_peaks = ray.get(
+                    [c.get_peak_gpu_mb.remote() for c in server.clients],
+                    timeout=10,
+                )
+                valid_peaks = [p for p in _actor_peaks if p is not None]
+                if valid_peaks:
+                    telemetry.actor_peak_gpu_mb = max(valid_peaks)
+                    telemetry.actor_peak_gpu_mb_per_client = valid_peaks
+            except Exception:
+                pass
+
         # Extra per-repetition summary (backward-compatible: legacy callers that
         # only unpack (global, client) still work because the two extra values
         # are ignored when the caller does a 2-tuple unpack inside a try.  The
@@ -752,6 +824,8 @@ def run_with_server(dataset_name, num_clients, beta, data_loading_option, model_
             "partition_time_s": round(_partition_secs, 3),
             "client_test_acc_micro": float(global_test_acc_micro),
             "global_test_surface": global_test_surface,
+            "best_eval_acc": float(best_eval_acc),
+            "loader_timing_sink_sec": dict(timing_sink),
         }
         if len(server.clients) > 1:
             run_extras["global_test_acc_macro"] = float(global_test_macro)
@@ -782,13 +856,11 @@ def main_experiment(
     hop = 1,
     fulltraining_flag = False,
     manage_ray_lifecycle = True,
+    durability_bundle = None,
 ):
     # Device configuration: read from config, default to auto
     device_cfg = cfg.get("device", "auto")
-    if device_cfg in ("auto", "cuda"):
-        DEVICE = torch.device("cuda" if cuda_usable() else "cpu")
-    else:
-        DEVICE = torch.device(device_cfg)
+    DEVICE = resolve_torch_device(device_cfg)
     using_cuda_device = DEVICE.type == "cuda"
     test_results = []
     client_test_results = []
@@ -801,11 +873,24 @@ def main_experiment(
     repetitions = cfg.get("repetitions", 1)
     num_iterations = cfg.get("num_iterations", 50)
 
-    # Adjust clients_num based on dataset to avoid OOM
-    adjusted_clients = clients_num
+    # Effective clients may differ from requested (dataset safety caps).
+    effective_clients = clients_num
     if dataset_name == "ogbn-products":
-        adjusted_clients = min(5, clients_num)
-        print(f"Adjusting number of clients from {clients_num} to {adjusted_clients} for {dataset_name} dataset to prevent memory issues")
+        effective_clients = min(5, clients_num)
+        if effective_clients != clients_num:
+            print(
+                f"Adjusting number of clients from {clients_num} to {effective_clients} "
+                f"for {dataset_name} dataset to prevent memory issues"
+            )
+
+    telemetry_coll = TelemetryCollector()
+    if effective_clients != clients_num:
+        telemetry_coll.adaptive_changes.append(
+            f"requested_num_clients={clients_num} -> effective_num_clients={effective_clients} "
+            f"(dataset cap for {dataset_name})"
+        )
+
+    _dur = durability_bundle  # shorthand; may be None
 
     results_data = {
         "experiment_config": {
@@ -814,10 +899,13 @@ def main_experiment(
             "model_type": model_type,
             "dataset": dataset_name,
             "num_clients": clients_num,
+            "requested_num_clients": clients_num,
+            "effective_num_clients": effective_clients,
             "beta": beta,
             "hop": hop,
             "fulltraining_flag": fulltraining_flag,
             "use_pe": cfg.get("use_pe"),
+            "experiment_seed": cfg.get("experiment_seed"),
         },
         "rounds": []
     }
@@ -830,10 +918,26 @@ def main_experiment(
     try:
         ensure_ray_initialized(cfg, using_cuda_device)
 
+        if _dur is not None:
+            _dur.event({"kind": "experiment_start", "dataset": dataset_name,
+                        "data_loading": data_loading_option, "model": model_type,
+                        "clients": effective_clients, "rounds": cfg.get("num_rounds"),
+                        "repetitions": cfg.get("repetitions")})
+
+        if using_cuda_device and torch.cuda.is_available():
+            try:
+                torch.cuda.reset_peak_memory_stats()
+            except RuntimeError:
+                pass
+
         # Adaptive device state — may flip to CPU after rep 0 if OOM or too slow
         _adaptive = cfg.get("adaptive_device", False)
         _adaptive_threshold = cfg.get("adaptive_time_threshold_sec", 120)
         _device_switched = False
+
+        best_eval_acc_across_reps = None
+        successful_reps: list[int] = []
+        failed_reps: list[int] = []
 
         for i in range(cfg.get("repetitions", 5)):
             try:
@@ -912,7 +1016,7 @@ def main_experiment(
                 try:
                     _rws_out = run_with_server(
                         dataset_name,
-                        clients_num,
+                        effective_clients,
                         beta,
                         data_loading_option,
                         model_type,
@@ -920,6 +1024,8 @@ def main_experiment(
                         DEVICE,
                         hop=hop,
                         fulltraining_flag=fulltraining_flag,
+                        telemetry=telemetry_coll,
+                        durability_bundle=_dur,
                     )
                 except torch.cuda.OutOfMemoryError:
                     _gb_free = torch.cuda.get_device_properties(0).total_memory / 1e9
@@ -952,10 +1058,12 @@ def main_experiment(
                 # Check if results are valid
                 if global_results is None or client_results is None:
                     print(f"Warning: Round {i+1} returned None results, skipping...")
+                    failed_reps.append(i + 1)
                     continue
 
                 test_results.append(global_results)
                 client_test_results.append(client_results)
+                successful_reps.append(i + 1)
                 if debug:
                     print(f"Round {i+1} is complete")
 
@@ -973,10 +1081,32 @@ def main_experiment(
                     for _k in ("rounds_executed", "early_stopped_at",
                                "training_time_s", "partition_time_s",
                                "client_test_acc_micro", "global_test_surface",
-                               "global_test_acc_macro", "global_test_client_values"):
+                               "global_test_acc_macro", "global_test_client_values",
+                               "best_eval_acc", "loader_timing_sink_sec"):
                         if _k in run_extras:
                             rep_record[_k] = run_extras[_k]
+                if run_extras.get("best_eval_acc") is not None:
+                    try:
+                        _be = float(run_extras["best_eval_acc"])
+                        best_eval_acc_across_reps = (
+                            _be if best_eval_acc_across_reps is None else max(best_eval_acc_across_reps, _be)
+                        )
+                    except (TypeError, ValueError):
+                        pass
                 results_data["rounds"].append(rep_record)
+
+                if _dur is not None:
+                    try:
+                        _dur.repetition({
+                            "rep": i + 1,
+                            "global_result": float(global_results),
+                            "client_result": float(client_results),
+                            "best_eval_acc": run_extras.get("best_eval_acc"),
+                            "rounds_executed": run_extras.get("rounds_executed"),
+                            "early_stopped_at": run_extras.get("early_stopped_at"),
+                        })
+                    except Exception:
+                        pass
 
                 # Log individual run results before finishing (only if wandb is enabled)
                 if use_wandb and wandb.run is not None:
@@ -990,6 +1120,12 @@ def main_experiment(
                 print(f"Error in round {i+1}: {e}")
                 import traceback
                 traceback.print_exc()
+                failed_reps.append(i + 1)
+                if _dur is not None:
+                    try:
+                        _dur.event({"kind": "rep_failed", "rep": i + 1, "error": repr(e)})
+                    except Exception:
+                        pass
                 # Clear resources even if there's an error
                 torch.cuda.empty_cache()
                 gc.collect()
@@ -997,6 +1133,19 @@ def main_experiment(
 
         print(f"The global test results: {test_results}")
         print(f"The client test results: {client_test_results}")
+        print(f"Successful reps: {successful_reps}, failed reps: {failed_reps}")
+
+        if not successful_reps:
+            raise RuntimeError(
+                f"All {len(failed_reps)} repetitions failed for "
+                f"{dataset_name}/{data_loading_option}/{model_type}. "
+                "No valid results produced."
+            )
+
+        _rep_status = (
+            "success" if not failed_reps
+            else "partial_failed"
+        )
 
         average_global_results = np.nanmean(test_results)
         average_client_results = np.nanmean(client_test_results)
@@ -1020,7 +1169,32 @@ def main_experiment(
             "average_global_result": float(average_global_results),
             "average_client_result": float(average_client_results),
             "std_global": float(std_global),
-            "std_client": float(std_client)        }
+            "std_client": float(std_client),
+            "successful_reps": successful_reps,
+            "failed_reps": failed_reps,
+            "status": _rep_status,
+        }
+
+        try:
+            from omegaconf import OmegaConf
+
+            _plain_cfg = OmegaConf.to_container(cfg, resolve=True) if OmegaConf.is_config(cfg) else dict(cfg)
+        except Exception:
+            _plain_cfg = dict(cfg) if hasattr(cfg, "items") else {}
+        results_data["config_hash"] = telemetry_config_hash(_plain_cfg)
+        results_data["telemetry"] = telemetry_coll.to_json_blob()
+        results_data["best_eval_acc_across_reps"] = best_eval_acc_across_reps
+
+        if _dur is not None:
+            try:
+                _dur.telemetry(telemetry_coll.to_json_blob())
+                _dur.event({"kind": "experiment_complete",
+                            "status": results_data.get("summary", {}).get("status"),
+                            "avg_global": float(average_global_results),
+                            "successful_reps": successful_reps,
+                            "failed_reps": failed_reps})
+            except Exception:
+                pass
 
         output = f"DEVICE: {DEVICE}\n"
         output += f"Data loading option is {data_loading_option}\n"

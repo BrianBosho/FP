@@ -1,6 +1,7 @@
 """Shared utilities for `fedgnn`."""
 
-from .config import load_config
+from .config import load_config, validate_config_keys
+from .durability import DurabilityBundle, JsonlWriter
 from .memory import (
     clear_cuda_cache,
     clear_memory_basic,
@@ -44,6 +45,10 @@ from .wandb import (
 __all__ = [
     # config
     "load_config",
+    "validate_config_keys",
+    # durability
+    "DurabilityBundle",
+    "JsonlWriter",
     # memory
     "clear_cuda_cache",
     "clear_memory_basic",

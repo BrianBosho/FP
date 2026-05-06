@@ -1,6 +1,9 @@
-# Phase 2 — Cora hop-depth comparison
-# Run matrix: 2 operators × 1 dataset × 1 beta × 3 seeds × hops {1,2} = 12 logical combinations
+# Phase 2 — Cora hop-depth × partition-heterogeneity comparison
+# Run matrix: 2 operators × 1 dataset × 2 betas × 3 seeds × hops {1,2} = 24 logical combinations
 # Recommended execution: one pass for hop=1, one pass for hop=2.
+# Research question: does L=2 hurt the IID β=10000 condition because the
+# expanded subgraph is dominated by remote/imputed nodes, while β=1 can look
+# better due to smaller or more class-coherent neighborhoods despite being non-IID?
 
 phase_name: phase_2_cora_ablation
 runner: intrinsic
@@ -13,7 +16,7 @@ operators:
 datasets:
   - Cora
 
-beta: [10000]
+beta: [10000, 1]
 seeds: [0, 1, 2]
 hop: 1
 

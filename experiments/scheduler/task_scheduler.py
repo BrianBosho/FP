@@ -337,15 +337,84 @@ def load_queue(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def get_pending_jobs(queue: dict, status: dict) -> List[dict]:
-    """Return all pending jobs sorted by priority."""
+def _job_to_condition_key(job: dict) -> str:
+    """Convert a scheduler job dict to a RunLedger condition_key."""
+    try:
+        from src.fedgnn.experiments.ledger import make_condition_key
+
+        def _as_bool(value) -> bool:
+            if isinstance(value, str):
+                return value.lower() in {"true", "1", "yes", "on"}
+            return bool(value)
+
+        seed = job.get("experiment_seed", job.get("seed"))
+        if seed is None and job.get("config_path"):
+            try:
+                import yaml
+                config_path = FP_ROOT / job["config_path"]
+                config = yaml.safe_load(config_path.read_text()) or {}
+                seed = config.get("experiment_seed")
+            except Exception:
+                seed = None
+
+        return make_condition_key(
+            dataset=str(job.get("dataset", "")),
+            data_loading=str(job.get("propagation", "")),
+            model=str(job.get("model", "")),
+            beta=float(job.get("beta", 1.0)),
+            clients=int(job.get("n_clients", 0)),
+            hop=int(job.get("hops", 1)),
+            use_pe=_as_bool(job.get("use_pe", False)),
+            seed=seed,
+        )
+    except Exception:
+        return ""
+
+
+def _ledger_completed_keys(runs_dir: Path) -> set:
+    """Load completed condition_keys from run_ledger.jsonl files under *runs_dir*."""
+    completed: set = set()
+    try:
+        from src.fedgnn.experiments.ledger import RunLedger
+
+        ledger_files = set()
+        for root in (runs_dir, FP_ROOT / "results_summary"):
+            if root.exists():
+                ledger_files |= set(root.rglob("run_ledger.jsonl"))
+
+        for ledger_file in ledger_files:
+            try:
+                ledger = RunLedger(ledger_file.parent)
+                completed |= ledger.completed_condition_keys()
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return completed
+
+
+def get_pending_jobs(queue: dict, status: dict, runs_dir: Optional[Path] = None) -> List[dict]:
+    """Return all pending jobs sorted by priority.
+
+    Checks both the status JSON and (when *runs_dir* is provided) the durable
+    run ledger so that jobs completed in a prior sweep are not re-launched even
+    if the status file was not updated.
+    """
     status_jobs = status.get("jobs", {})
+    ledger_done: set = _ledger_completed_keys(runs_dir) if runs_dir else set()
+
     pending = []
     for job in queue.get("jobs", []):
         job_id = job["job_id"]
         job_status = status_jobs.get(job_id, {}).get("execution_status", "pending")
-        if job_status == "pending":
-            pending.append(job)
+        if job_status != "pending":
+            continue
+        # Secondary check: ledger says this condition is already done
+        if ledger_done:
+            ckey = _job_to_condition_key(job)
+            if ckey and ckey in ledger_done:
+                continue
+        pending.append(job)
     pending.sort(key=lambda j: j["priority"])
     return pending
 
@@ -578,7 +647,7 @@ def tick(args: argparse.Namespace) -> None:
     launch_ok, gate_reason = check_resources(resource_state_path, _launch_policy)
 
     # Memory-aware slot calculation: how many jobs can we add right now?
-    pending = get_pending_jobs(queue, status)
+    pending = get_pending_jobs(queue, status, runs_dir=runs_dir)
     slots, slot_reason = compute_launch_slots(resource_state, runs_dir, _launch_policy, queue, pending)
     running_count = len(get_running_job_info(runs_dir, queue))
     max_parallel = _launch_policy.get("max_parallel_jobs", 40)
@@ -605,7 +674,7 @@ def tick(args: argparse.Namespace) -> None:
                 break
 
             # Re-fetch pending to account for the job we just launched
-            pending = get_pending_jobs(queue, status)
+            pending = get_pending_jobs(queue, status, runs_dir=runs_dir)
             if not pending:
                 break
 

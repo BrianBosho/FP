@@ -1,6 +1,6 @@
 # Intrinsic ablations — operator sensitivity sweeps
 # All Layer 1-3 only (no GNN training). Run after main matrix.
-# Total: 42 runs
+# Total: 48 runs
 
 # --- K sensitivity: Chebyshev order ---
 # chebyshev_k ∈ {3, 5, 10} on Pubmed, β=10000, 3 seeds = 9 runs
@@ -32,13 +32,13 @@ epsilon_sweep:
   seeds: [0, 1, 2]
   hop: 1
 
-# --- L=2 topology comparison ---
-# hop=1 vs hop=2 for Adj + Diff on Cora, β=10000, 3 seeds = 6 runs
+# --- Hop-depth × partition-heterogeneity comparison ---
+# hop=1 vs hop=2 for Adj + Diff on Cora, β={10000,1}, 3 seeds = 12 runs
 hop_depth_sweep:
   operators: [adjacency, diffusion]
   datasets: [Cora]
   hop: [1, 2]
-  beta: [10000]
+  beta: [10000, 1]
   seeds: [0, 1, 2]
 
 # Shared propagation settings

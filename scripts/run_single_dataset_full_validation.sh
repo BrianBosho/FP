@@ -13,4 +13,4 @@ LOG="$LOG_DIR/single_full_validation_${TS}.out"
 
 echo "$TS" > /tmp/single_full_validation_ts
 ray stop --force >/dev/null 2>&1 || true
-exec env PYTHONUNBUFFERED=1 "$PYTHON" -u -m src.fedgnn.experiments.run_experiments --config "$CFG" > "$LOG" 2>&1
+exec env PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "$PYTHON" -u -m src.fedgnn.experiments.run_experiments --config "$CFG" > "$LOG" 2>&1

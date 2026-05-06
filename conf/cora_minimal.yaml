@@ -24,23 +24,26 @@ use_wandb: false
 wandb_mode: disabled
 
 num_clients: [10]
-num_rounds: 50
-epochs: 2
+num_rounds: 400
+epochs: 3
 # β=10000 is near-IID; β=1 is non-IID-ish (more heterogeneous)
-beta: [10000, 1]
+beta: [10000]
 lr: 0.5
 optimizer: SGD
-data_loading: [zero_hop]
-models: [GCN]
-hop: 1
-use_pe: [False]
+data_loading: [adjacency, diffusion]
+models: [GAT]
+hop: 2
+use_pe: [True]
 repetitions: 1
 aggregation: fedavg_weighted
 
+early_stopping_patience: 20
+
+
 # Keep memory light: no minibatching, small model, CPU preprocessing
-device: cpu
+device: cuda
 max_concurrent_clients: 10
-feature_prop_device: cpu
+feature_prop_device: cuda
 keep_data_on_gpu: false
 
 # Same GCN architecture override as cora_config.yaml for consistency 

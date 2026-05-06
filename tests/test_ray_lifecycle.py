@@ -25,6 +25,26 @@ def test_resolve_data_loading_device_prefers_cpu_for_memory_bound_cuda_runs():
     assert str(resolved) == "cpu"
 
 
+def test_resolve_torch_device_accepts_gpu_alias(monkeypatch):
+    pytest.importorskip("torch")
+    from src.fedgnn.utils import run as run_utils
+
+    monkeypatch.setattr(run_utils, "cuda_usable", lambda: True)
+
+    assert str(run_utils.resolve_torch_device("gpu")) == "cuda"
+    assert str(run_utils.resolve_torch_device("gpu:0")) == "cuda:0"
+
+
+def test_resolve_torch_device_falls_back_when_gpu_unusable(monkeypatch):
+    pytest.importorskip("torch")
+    from src.fedgnn.utils import run as run_utils
+
+    monkeypatch.setattr(run_utils, "cuda_usable", lambda: False)
+
+    assert str(run_utils.resolve_torch_device("gpu")) == "cpu"
+    assert str(run_utils.resolve_torch_device("cuda")) == "cpu"
+
+
 def test_run_experiments_reuses_one_ray_runtime_across_conditions(tmp_path, monkeypatch):
     pytest.importorskip("ray")
     pytest.importorskip("torch")

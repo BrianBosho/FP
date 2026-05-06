@@ -8,7 +8,7 @@ from src.fedgnn.data.propagation import propagate_features, compute_dirichlet_en
 from src.fedgnn.data.positional_encoding import generate_rfp_encoding
 import torch.nn.functional as F
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from src.fedgnn.utils.run import cuda_usable
+from src.fedgnn.utils.run import cuda_usable, resolve_torch_device
 # from utils import propagate_features
 
 # DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -67,12 +67,12 @@ def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int
               historical behavior; callers should pass ``experiment_seed`` from
               the config to vary partitions across runs.
     """
-    min_size = 0
-    min_require_size = 10
+    min_require_size = max(1, min(10, N // (n_parties * K)))
     split_data_indexes = []
     np.random.seed(int(seed))
 
-    while min_size < min_require_size:
+    max_attempts = 1000
+    for _ in range(max_attempts):
         idx_batch = [[] for _ in range(n_parties)]
         for k in range(K):
             idx_k = np.where(labels == k)[0]
@@ -84,7 +84,10 @@ def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int
             proportions = proportions / proportions.sum()
             proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
             idx_batch = [idx_j + idx.tolist() for idx_j, idx in zip(idx_batch, np.split(idx_k, proportions))]
-            min_size = min([len(idx_j) for idx_j in idx_batch])
+
+        min_size = min(len(idx_j) for idx_j in idx_batch)
+        if min_size >= min_require_size:
+            break
 
     for j in range(n_parties):
         np.random.shuffle(idx_batch[j])
@@ -254,9 +257,14 @@ def _process_client_fp_pe(
 
     if use_feature_prop:
         requested_fp_device = config.get("feature_prop_device", "cpu") if config is not None else "cpu"
-        fp_device = torch.device(requested_fp_device)
+        fp_device = resolve_torch_device(requested_fp_device)
+        requested_fp_device_str = str(requested_fp_device).strip().lower()
+        if requested_fp_device_str.startswith(("gpu", "cuda")) and fp_device.type == "cpu":
+            print(f"[client {i}] feature_prop_device={requested_fp_device} requested but CUDA unavailable; using CPU.")
+        elif requested_fp_device_str.startswith("gpu") and fp_device.type == "cuda":
+            print(f"[client {i}] feature_prop_device={requested_fp_device} resolved to {fp_device}.")
         if fp_device.type == "cuda" and not cuda_usable():
-            print(f"[client {i}] feature_prop_device=cuda requested but CUDA unavailable; using CPU.")
+            print(f"[client {i}] feature_prop_device={requested_fp_device} requested but CUDA unavailable; using CPU.")
             fp_device = torch.device("cpu")
 
         alpha = config.get("alpha", 0.5) if config is not None else 0.5
@@ -326,7 +334,8 @@ def _process_client_fp_pe(
 def partition_data(data: Data, num_clients: int, beta: float, device, hop: int = 0,
                    use_feature_prop: bool = False, full_data: bool = False, fulltraining_flag: bool = False,
                    mode: str = "propagation", use_pe: bool = True, pe_r: int = 64, pe_P: int = 16,
-                   config: dict = None, return_masks: bool = False) -> tuple[list, list, list]:
+                   config: dict = None, return_masks: bool = False,
+                   timing_sink: dict | None = None) -> tuple[list, list, list]:
     if fulltraining_flag:
         print("[C3] WARNING: fulltraining_flag=True — this is an ORACLE baseline that "
               "includes cross-client label leakage. Do not use as a federated condition.")
@@ -349,7 +358,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         config: Configuration dictionary from YAML file (optional)
     """
     import time, os, json
-    DEVICE = torch.device(device) if isinstance(device, str) else device
+    DEVICE = resolve_torch_device(device) if isinstance(device, str) else device
 
     # Update parameters from config if provided (coalesce None to defaults)
     if config is not None:
@@ -481,6 +490,7 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
 
     final_subgraphs = [None] * num_clients
 
+    _t_fp_start = time.time()
     if fp_max_concurrent == 1:
         for i in range(num_clients):
             final_subgraphs[i] = _process_client_fp_pe(
@@ -499,23 +509,28 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
             for future in as_completed(futures):
                 i = futures[future]
                 final_subgraphs[i] = future.result()
+    if timing_sink is not None and use_feature_prop:
+        timing_sink["feature_propagation_s"] = (
+            timing_sink.get("feature_propagation_s", 0.0) + time.time() - _t_fp_start
+        )
 
-        # Merge per-client temp logs into the main experiment JSON
-        if use_feature_prop:
-            with open(json_file, 'r') as f:
-                experiment_data = json.load(f)
-            all_metrics = []
-            for tmp_file in client_log_files:
-                try:
-                    with open(tmp_file, 'r') as f:
-                        all_metrics.extend(json.load(f).get("clients", []))
-                    os.remove(tmp_file)
-                except (FileNotFoundError, json.JSONDecodeError):
-                    pass
-            all_metrics.sort(key=lambda m: m.get("client_id", 0))
-            experiment_data["clients"] = all_metrics
-            with open(json_file, 'w') as f:
-                json.dump(experiment_data, f, indent=2)
+    # Merge per-client temp logs into the main experiment JSON (parallel path only).
+    # This must run regardless of whether a timing_sink was supplied.
+    if fp_max_concurrent != 1 and use_feature_prop:
+        with open(json_file, 'r') as f:
+            experiment_data = json.load(f)
+        all_metrics = []
+        for tmp_file in client_log_files:
+            try:
+                with open(tmp_file, 'r') as f:
+                    all_metrics.extend(json.load(f).get("clients", []))
+                os.remove(tmp_file)
+            except (FileNotFoundError, json.JSONDecodeError):
+                pass
+        all_metrics.sort(key=lambda m: m.get("client_id", 0))
+        experiment_data["clients"] = all_metrics
+        with open(json_file, 'w') as f:
+            json.dump(experiment_data, f, indent=2)
 
     keep_on_gpu = config.get("keep_data_on_gpu", False) if config is not None else False
     if not keep_on_gpu:

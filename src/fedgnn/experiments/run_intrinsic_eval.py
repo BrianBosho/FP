@@ -27,7 +27,7 @@ from torch_geometric.utils import k_hop_subgraph
 from src.fedgnn.data.loaders import load_dataset
 from src.fedgnn.data.partitioning import label_dirichlet_partition
 from src.fedgnn.data.propagation import propagate_features, _compute_intrinsic_metrics
-from src.fedgnn.utils.run import cuda_usable
+from src.fedgnn.utils.run import resolve_torch_device
 
 
 # ---------------------------------------------------------------------------
@@ -53,9 +53,8 @@ def load_config(config_path: str) -> dict:
 def run_one(operator: str, dataset: str, beta: int, seed: int, cfg: dict) -> dict:
     """Run intrinsic eval for one (operator, dataset, beta, seed) combination."""
     device_str = cfg.get("feature_prop_device", "cpu")
-    if device_str == "cuda" and not cuda_usable():
-        device_str = "cpu"
-    device = torch.device(device_str)
+    device = resolve_torch_device(device_str)
+    device_str = str(device)
 
     hop = cfg.get("hop", 1)
     num_clients = cfg.get("num_clients", 10)

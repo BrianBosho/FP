@@ -41,6 +41,10 @@ For the first-pass intrinsic suite:
 
 **RQ5 — Heterophily:** Do operators that are not Dirichlet minimizers (APPNP, RW) behave differently on heterophilic graphs (Texas, Wisconsin)? Does low intrinsic recovery ratio predict low downstream accuracy gain?
 
+**RQ6 — Hop-depth × heterogeneity interaction:** When client-owned nodes are IID-balanced (β=10000), does increasing subgraph depth from L=1 to L=2 hurt communication-free propagation because each client receives a much larger remote/imputed neighborhood with only a small owned training boundary? Conversely, can non-IID partitions (β=1) sometimes look better because their expanded neighborhoods are smaller or more class-coherent, even though label balance is worse?
+
+This RQ is motivated by the Cora observation that β=10000 with 10 clients and L=2 gives nearly equal owned partitions, but each client expands from roughly 270 owned nodes to about 2,000 visible nodes. The propagator must then infer features for many remote nodes from only ~10-16 local training nodes per client. The experiment should distinguish a true IID/non-IID learning effect from a topology/imputation effect caused by the L-hop expansion.
+
 ---
 
 ## 2. Operators Under Study
@@ -125,13 +129,13 @@ For each client subgraph, hold out true features of k-hop neighbors, run propaga
 | Datasets | Cora, Citeseer, Pubmed, OGBN-Arxiv, Texas, Wisconsin | 6 |
 | Partitions (β) | 10000, 10, 1 | 3 |
 | Seeds | 0, 1, 2 | 3 |
-| Hop depth | L=1 | 1 |
+| Hop depth | L=1 default; L=2 Cora ablation | 1 + ablation |
 
 **Base runs:** 5 × 6 × 3 × 3 = **270 runs**
 
 **Heat kernel exact (O5):** Cora + Citeseer only, β=10000, 1 seed = **2 runs**
 
-**L=2 ablation:** Cora only, 5 operators × 3 β × 3 seeds = **45 runs**
+**L=2 ablation:** Cora only, 5 operators × 3 β × 3 seeds = **45 runs**. Primary contrast: compare L=1 vs L=2 under β=10000 and β=1 to test RQ6.
 
 **Total Layer 1-3:** **317 runs** (~4 hours estimated)
 
@@ -174,9 +178,9 @@ Heterophilic runs: 4 × 2 × 1 × 1 × 5 = **40 runs**
 | K sensitivity | Chebyshev order | K = 3, 5, 10 | Pubmed | 3 | 9 |
 | α sensitivity | APPNP α | 0.05, 0.1, 0.2 | Cora | 3 | 9 |
 | ε sensitivity | Convergence tol | 1e-2, 1e-3, 1e-4 | Cora, OGBN | 3 | 18 |
-| L=2 topology | Hop depth | L=1, L=2 | Cora | 3 | 6 |
+| Hop-depth × β topology | Hop depth × partition heterogeneity | L=1, L=2 × β=10000, β=1 | Cora | 3 | 12 |
 
-**Total ablations:** **42 runs** (intrinsic only, no training)
+**Total ablations:** **48 runs** (intrinsic only, no training)
 
 ---
 
@@ -186,8 +190,8 @@ Heterophilic runs: 4 × 2 × 1 × 1 × 5 = **40 runs**
 |----------|------|---------------|------------|
 | Layer 1-3 intrinsic | 317 | 1s – 5min | ~4 hours |
 | Layer 4 downstream | 580 | 2min – 30min | ~110 hours |
-| Ablations | 42 | 1s – 5min | ~30 min |
-| **Grand total** | **939** | | **~115 hours** |
+| Ablations | 48 | 1s – 5min | ~30 min |
+| **Grand total** | **945** | | **~115 hours** |
 
 Layer 4 dominates. Parallelize across GPUs. Layer 1-3 is fast enough to run sequentially.
 

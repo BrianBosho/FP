@@ -14,7 +14,28 @@ import shutil
 from glob import glob
 from src.fedgnn.utils.config import load_config
 from src.fedgnn.utils.project_paths import resolve_results_and_summary_dirs
+from src.fedgnn.utils.run import resolve_torch_device
 import wandb
+from omegaconf import OmegaConf
+from src.fedgnn.utils.telemetry import (
+    FP_CSV_HEADER,
+    build_fp_csv_fields,
+    config_hash,
+    format_fp_csv_result_row,
+    print_fp_csv_result_block,
+)
+from src.fedgnn.utils.durability import DurabilityBundle
+from src.fedgnn.experiments.ledger import (
+    RunLedger,
+    RunPacket,
+    make_condition_key,
+    STATUS_RUNNING,
+    STATUS_SUCCESS,
+    STATUS_FAILED,
+    STATUS_SKIPPED,
+    STATUS_PARTIAL,
+)
+from src.fedgnn.experiments.staged_policy import enrich_summary_with_ci
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Run federated GNN experiments and print results')
@@ -182,7 +203,8 @@ def format_time(seconds):
     minutes, seconds = divmod(remainder, 60)
     return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
 
-def save_summary_results(summary_rows, all_results, results_dir, summary_dir, config):
+def save_summary_results(summary_rows, all_results, results_dir, summary_dir, config,
+                         csv_rows: list[dict] | None = None):
     """Save summary results to a file in the parent results directory"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
@@ -273,9 +295,32 @@ def save_summary_results(summary_rows, all_results, results_dir, summary_dir, co
     with open(summary_json_path, 'w') as f:
         json.dump(summary_json, f, indent=2)
     
+    scalability_csv_path = None
+    if csv_rows:
+        from src.fedgnn.utils.telemetry import FP_CSV_HEADER, format_fp_csv_result_row
+        scalability_csv_path = os.path.join(summary_dir, f"scalability_{timestamp}.csv")
+        with open(scalability_csv_path, "w") as _csf:
+            _csf.write(FP_CSV_HEADER + "\n")
+            for _row in csv_rows:
+                _csf.write(format_fp_csv_result_row(_row) + "\n")
+
+    # Write sweep-level provenance bundle
+    try:
+        from src.fedgnn.utils.provenance import write_provenance
+        sweep_prov_path = write_provenance(
+            summary_dir,
+            filename=f"provenance_sweep_{timestamp}.json",
+            extra={"scalability_csv": scalability_csv_path, "summary_json": summary_json_path},
+        )
+        print(f"- Provenance: {sweep_prov_path}")
+    except Exception as _prov_err:
+        print(f"[save_summary_results] WARNING: provenance write failed: {_prov_err}")
+
     print(f"\nSummary results saved to:")
     print(f"- Text file: {summary_txt_path}")
     print(f"- JSON file: {summary_json_path}")
+    if scalability_csv_path:
+        print(f"- Scalability CSV: {scalability_csv_path}")
     print(f"- Detailed results saved to: {results_dir}")
     
     return summary_txt_path, summary_json_path
@@ -399,12 +444,19 @@ def run_experiments(args):
     # Create summary results directory
     summary_dir = str(resolved_paths.summary_dir)
     os.makedirs(summary_dir, exist_ok=True)
-    
+
+    # Durable run ledger — one file per summary_dir
+    _ledger = RunLedger(summary_dir)
+    _ledger_completed = _ledger.completed_condition_keys()
+
     # Store all experiment results
     all_results = []
-    
+
     # Create a summary table for the final output
     summary_rows = []
+
+    # Accumulate canonical CSV rows so we can write scalability.csv at the end
+    _csv_rows: list[dict] = []
     
     # Print experiment configuration
     print("\nExperiment Configuration:")
@@ -422,11 +474,7 @@ def run_experiments(args):
     print(f"- Hop: {hop_values}")
     print(f"- Full Training Flag: {fulltraining_flag}")
     
-    device_cfg = str(cfg.get("device", "cuda")).lower()
-    using_cuda_device = (
-        device_cfg == "cuda" or
-        (device_cfg == "auto" and torch.cuda.is_available())
-    )
+    using_cuda_device = resolve_torch_device(cfg.get("device", "cuda")).type == "cuda"
     ensure_ray_initialized(cfg, using_cuda_device)
 
     try:
@@ -452,7 +500,20 @@ def run_experiments(args):
                                                     num_iterations=num_iterations, diffusion_t=diffusion_t, alpha=alpha
                                                 )
 
+                                                _cond_key = make_condition_key(
+                                                    dataset_name, data_loading_option, model_type,
+                                                    beta, clients_num, hop, effective_use_pe,
+                                                    seed=cfg.get("experiment_seed"),
+                                                )
+
                                                 if resume_completed:
+                                                    # Prefer ledger over directory scan
+                                                    if _cond_key in _ledger_completed:
+                                                        print(f"\n{'='*80}")
+                                                        print(f"Skipping (ledger): {experiment_name}")
+                                                        print(f"{'='*80}")
+                                                        continue
+
                                                     completed_path, completed_result = find_completed_result(
                                                         exp_dir, cfg.get("repetitions", 1)
                                                     )
@@ -461,6 +522,26 @@ def run_experiments(args):
                                                         print(f"Skipping completed experiment: {experiment_name}")
                                                         print(f"Loaded existing result: {completed_path}")
                                                         print(f"{'='*80}")
+                                                        _skipped_duration = (
+                                                            completed_result.get("duration") or {}
+                                                        ).get("seconds")
+                                                        _ecfg_skip = completed_result.get("experiment_config") or {}
+                                                        _skip_csv = build_fp_csv_fields(
+                                                            completed_result,
+                                                            _skipped_duration,
+                                                            completed_path or "",
+                                                            dataset=dataset_name,
+                                                            model=model_type,
+                                                            data_loading=data_loading_option,
+                                                            beta=beta,
+                                                            clients=_ecfg_skip.get("effective_num_clients", clients_num),
+                                                            hop=hop,
+                                                            use_pe=effective_use_pe,
+                                                            seed=_ecfg_skip.get("experiment_seed"),
+                                                            status="skipped_cached",
+                                                        )
+                                                        print_fp_csv_result_block(_skip_csv)
+                                                        _csv_rows.append(_skip_csv)
                                                         summary_rows.append(build_summary_row(
                                                             completed_result,
                                                             dataset_name,
@@ -533,23 +614,82 @@ def run_experiments(args):
                                                 # Start time measurement
                                                 start_time = time.time()
 
-                                                # Run the experiment
-                                                result, output = main_experiment(
-                                                    clients_num,
-                                                    beta,
-                                                    data_loading_option,
-                                                    model_type,
-                                                    training_cfg,
-                                                    dataset_name=dataset_name,
-                                                    hop=hop,
-                                                    fulltraining_flag=fulltraining_flag,
-                                                    manage_ray_lifecycle=False,
+                                                # Register run in ledger
+                                                _packet = RunPacket(
+                                                    condition_key=_cond_key,
+                                                    status=STATUS_RUNNING,
+                                                    start_time=start_time,
+                                                    requested_config={
+                                                        "dataset": dataset_name,
+                                                        "data_loading": data_loading_option,
+                                                        "model": model_type,
+                                                        "beta": beta,
+                                                        "clients": clients_num,
+                                                        "hop": hop,
+                                                        "use_pe": effective_use_pe,
+                                                    },
                                                 )
+                                                try:
+                                                    _ledger.append(_packet)
+                                                except Exception:
+                                                    pass
+
+                                                _dur_bundle = DurabilityBundle(exp_dir, run_id=_packet.run_id)
+
+                                                _run_error: Exception | None = None
+                                                result, output = None, ""
+                                                try:
+                                                    result, output = main_experiment(
+                                                        clients_num,
+                                                        beta,
+                                                        data_loading_option,
+                                                        model_type,
+                                                        training_cfg,
+                                                        dataset_name=dataset_name,
+                                                        hop=hop,
+                                                        fulltraining_flag=fulltraining_flag,
+                                                        manage_ray_lifecycle=False,
+                                                        durability_bundle=_dur_bundle,
+                                                    )
+                                                except Exception as _exc:
+                                                    _run_error = _exc
+                                                    print(f"[run_experiments] Condition {experiment_name} failed: {_exc}")
+                                                    import traceback as _tb
+                                                    _tb.print_exc()
+                                                finally:
+                                                    _dur_bundle.close()
 
                                                 # Calculate experiment duration
                                                 end_time = time.time()
                                                 duration = end_time - start_time
                                                 duration_formatted = format_time(duration)
+
+                                                if _run_error is not None:
+                                                    try:
+                                                        _ledger.update_status(
+                                                            _packet.run_id, STATUS_FAILED,
+                                                            end_time=end_time,
+                                                            failure_kind=type(_run_error).__name__,
+                                                        )
+                                                    except Exception:
+                                                        pass
+                                                    _fail_csv = build_fp_csv_fields(
+                                                        {},
+                                                        duration,
+                                                        "",
+                                                        dataset=dataset_name,
+                                                        model=model_type,
+                                                        data_loading=data_loading_option,
+                                                        beta=beta,
+                                                        clients=clients_num,
+                                                        hop=hop,
+                                                        use_pe=effective_use_pe,
+                                                        seed=training_cfg.get("experiment_seed"),
+                                                        status="failed",
+                                                    )
+                                                    print_fp_csv_result_block(_fail_csv)
+                                                    _csv_rows.append(_fail_csv)
+                                                    continue
 
                                                 # Clean up driver-side references between conditions while
                                                 # keeping the shared Ray runtime alive across the sweep.
@@ -557,8 +697,12 @@ def run_experiments(args):
                                                 import gc
                                                 gc.collect()
 
-                                                device_cfg = str(training_cfg.get("device", cfg.get("device", "cuda"))).lower()
-                                                cleanup_cuda = device_cfg != "cpu" and torch.cuda.is_available()
+                                                cleanup_cuda = (
+                                                    resolve_torch_device(
+                                                        training_cfg.get("device", cfg.get("device", "cuda"))
+                                                    ).type == "cuda"
+                                                    and torch.cuda.is_available()
+                                                )
                                                 if cleanup_cuda:
                                                     try:
                                                         torch.cuda.empty_cache()
@@ -579,6 +723,32 @@ def run_experiments(args):
                                                     "formatted": duration_formatted
                                                 }
 
+                                                filename = f"results_{experiment_name}_{timestamp}.json"
+                                                filepath = os.path.join(exp_dir, filename)
+                                                _plain_tc = (
+                                                    OmegaConf.to_container(training_cfg, resolve=True)
+                                                    if OmegaConf.is_config(training_cfg)
+                                                    else dict(training_cfg)
+                                                )
+                                                result["training_config_hash"] = config_hash(_plain_tc)
+
+                                                ecfg = result.get("experiment_config") or {}
+                                                csv_fields = build_fp_csv_fields(
+                                                    result,
+                                                    duration,
+                                                    filepath if save_results else "",
+                                                    dataset=dataset_name,
+                                                    model=model_type,
+                                                    data_loading=data_loading_option,
+                                                    beta=beta,
+                                                    clients=ecfg.get("effective_num_clients", clients_num),
+                                                    hop=hop,
+                                                    use_pe=effective_use_pe,
+                                                    seed=training_cfg.get("experiment_seed"),
+                                                )
+                                                print_fp_csv_result_block(csv_fields)
+                                                _csv_rows.append(csv_fields)
+
                                                 # Add to summary table - now including sweep parameters
                                                 summary_rows.append(build_summary_row(
                                                     result,
@@ -594,20 +764,56 @@ def run_experiments(args):
                                                     alpha,
                                                 ))
 
+                                                _result_status = (
+                                                    STATUS_PARTIAL
+                                                    if (result.get("summary") or {}).get("status") == "partial_failed"
+                                                    else STATUS_SUCCESS
+                                                )
+                                                try:
+                                                    _ledger.update_status(
+                                                        _packet.run_id, _result_status,
+                                                        end_time=end_time,
+                                                        result_path=filepath if save_results else "",
+                                                    )
+                                                except Exception:
+                                                    pass
+
+                                                # Enrich summary with confidence intervals
+                                                try:
+                                                    if result.get("summary"):
+                                                        result["summary"] = enrich_summary_with_ci(
+                                                            result["summary"]
+                                                        )
+                                                except Exception:
+                                                    pass
+
                                                 # Save results if requested
                                                 if save_results:
-                                                    # Save detailed results
-                                                    filename = f"results_{experiment_name}_{timestamp}.json"
-                                                    filepath = os.path.join(exp_dir, filename)
-
                                                     with open(filepath, 'w') as f:
                                                         json.dump(result, f, indent=2)
 
-                                                    # Also save readable output with duration information
                                                     txt_filepath = os.path.join(exp_dir, f"results_{experiment_name}_{timestamp}.txt")
                                                     with open(txt_filepath, 'w') as f:
                                                         f.write(output)
                                                         f.write(f"\n\nExperiment Duration: {duration_formatted} (HH:MM:SS)\n")
+                                                        f.write("\nFP CSV FORMAT RESULT:\n")
+                                                        f.write(FP_CSV_HEADER + "\n")
+                                                        f.write(format_fp_csv_result_row(csv_fields) + "\n")
+
+                                                    # Write provenance bundle alongside the result JSON
+                                                    try:
+                                                        from src.fedgnn.utils.provenance import write_provenance
+                                                        write_provenance(
+                                                            exp_dir,
+                                                            config_hash=result.get("training_config_hash"),
+                                                            extra={
+                                                                "experiment_name": experiment_name,
+                                                                "result_file": filepath,
+                                                            },
+                                                            filename=f"provenance_{experiment_name}_{timestamp}.json",
+                                                        )
+                                                    except Exception as _prov_err:
+                                                        print(f"[run_experiments] WARNING: provenance write failed: {_prov_err}")
 
                                                     print(f"Results saved to {filepath}")
 
@@ -639,7 +845,8 @@ def run_experiments(args):
                 pass
 
     # Save summary results to the summary directory
-    save_summary_results(summary_rows, all_results, results_dir, summary_dir, cfg)
+    save_summary_results(summary_rows, all_results, results_dir, summary_dir, cfg,
+                         csv_rows=_csv_rows)
     
     return summary_rows, all_results
 

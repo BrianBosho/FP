@@ -11,6 +11,7 @@ from src.fedgnn.data.shard_cache import (
 )
 from typing import Tuple, List, Optional
 from src.fedgnn.data.positional_encoding import generate_rfp_encoding
+import time
 import torch
 import torch.nn.functional as F
 
@@ -40,7 +41,14 @@ def load_dataset(name: str, device, config: dict = None):
     dataset_loader = GraphDataset(device)
     return dataset_loader.load_dataset(name, device, config=config)
 
-def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, config: dict = None):
+def load_and_split(
+    name: str,
+    device,
+    num_clients: int = 10,
+    beta: float = 0.5,
+    config: dict = None,
+    timing_sink: dict | None = None,
+):
     """
     Regime 2: Load dataset and split into n subgraphs.
 
@@ -51,30 +59,44 @@ def load_and_split(name: str, device, num_clients: int = 10, beta: float = 0.5, 
         beta: Dirichlet concentration parameter
         config: Configuration dictionary from YAML file (optional)
     """
+    t0 = time.perf_counter()
     data, dataset = load_dataset(name, device, config=config)
+    if timing_sink is not None:
+        timing_sink["dataset_load_s"] = timing_sink.get("dataset_load_s", 0.0) + time.perf_counter() - t0
     cache_payload = build_cache_payload(name, "zero_hop", num_clients, beta, 0, False, config)
     cache_dir = get_cache_dir(name, "zero_hop", num_clients, beta, 0, False, config)
     if shard_cache_enabled(config):
+        t1 = time.perf_counter()
         refs = load_shard_cache(cache_dir, cache_payload)
+        dt = time.perf_counter() - t1
         if refs is not None:
+            if timing_sink is not None:
+                timing_sink["shard_cache_hit_s"] = timing_sink.get("shard_cache_hit_s", 0.0) + dt
             print(f"✓ Loaded {len(refs)} client shards from cache: {cache_dir}")
             return data, dataset, refs, refs
 
+    t2 = time.perf_counter()
     clients_data, test_data, split_data_indexes = partition_data(
         data,
         num_clients,
         beta,
         device,
         hop=0,
-        config=config
+        config=config,
+        timing_sink=timing_sink,
     )
+    if timing_sink is not None:
+        timing_sink["partition_s"] = timing_sink.get("partition_s", 0.0) + time.perf_counter() - t2
     if shard_cache_enabled(config):
+        t3 = time.perf_counter()
         refs = write_shard_cache(cache_dir, clients_data, cache_payload)
+        if timing_sink is not None:
+            timing_sink["shard_cache_write_s"] = timing_sink.get("shard_cache_write_s", 0.0) + time.perf_counter() - t3
         print(f"✓ Wrote {len(refs)} client shards to cache: {cache_dir}")
         return data, dataset, refs, refs
     return data, dataset, clients_data, test_data
 
-def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: float = 0.5, hop: int = 2, fulltraining_flag: bool = False, imputation_method: str = "zero", propagation_mode: str = "propagation", config: dict = None):
+def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: float = 0.5, hop: int = 2, fulltraining_flag: bool = False, imputation_method: str = "zero", propagation_mode: str = "propagation", config: dict = None, timing_sink: dict | None = None):
     """
     Regime 3: Load dataset, split into n subgraphs, and include k-hop neighbors.
 
@@ -147,7 +169,10 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         full_data = False
         print(f"Warning: Unrecognized imputation method '{imputation_method}'. Using default (zero imputation).")
 
+    t_ds = time.perf_counter()
     data, dataset = load_dataset(name, device, config=config)
+    if timing_sink is not None:
+        timing_sink["dataset_load_s"] = timing_sink.get("dataset_load_s", 0.0) + time.perf_counter() - t_ds
 
     cache_payload = build_cache_payload(
         name,
@@ -168,8 +193,12 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         config,
     )
     if shard_cache_enabled(config):
+        t_sh = time.perf_counter()
         refs = load_shard_cache(cache_dir, cache_payload)
+        dt_sh = time.perf_counter() - t_sh
         if refs is not None:
+            if timing_sink is not None:
+                timing_sink["shard_cache_hit_s"] = timing_sink.get("shard_cache_hit_s", 0.0) + dt_sh
             print(f"✓ Loaded {len(refs)} client shards from cache: {cache_dir}")
             return data, dataset, refs, refs
 
@@ -181,6 +210,7 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
     use_pe = use_feature_prop and _as_bool(use_pe)
 
     # Pass config to partition_data
+    t_pt = time.perf_counter()
     clients_data, test_data, _ = partition_data(
         data,
         num_clients,
@@ -191,11 +221,17 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         full_data=full_data,
         fulltraining_flag=fulltraining_flag,
         mode=propagation_mode,
-        config=config
+        config=config,
+        timing_sink=timing_sink,
     )
+    if timing_sink is not None:
+        timing_sink["partition_s"] = timing_sink.get("partition_s", 0.0) + time.perf_counter() - t_pt
 
     if shard_cache_enabled(config):
+        t_wr = time.perf_counter()
         refs = write_shard_cache(cache_dir, clients_data, cache_payload)
+        if timing_sink is not None:
+            timing_sink["shard_cache_write_s"] = timing_sink.get("shard_cache_write_s", 0.0) + time.perf_counter() - t_wr
         print(f"✓ Wrote {len(refs)} client shards to cache: {cache_dir}")
         return data, dataset, refs, refs
 
@@ -217,6 +253,7 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         if config is not None and config.get("experiment_seed") is not None:
             pe_seed = int(config.get("experiment_seed"))
 
+        t_pe = time.perf_counter()
         data.original_feature_dim = data.x.size(1)
         rfp = generate_rfp_encoding(
             edge_index=data.edge_index,
@@ -231,6 +268,10 @@ def load_and_split_with_khop(name: str, device, num_clients: int = 10, beta: flo
         orig_features = F.normalize(data.x.to(device), p=2, dim=1)
         rfp_norm = F.normalize(rfp, p=2, dim=1) * 0.5  # use same rfp_alpha as clients
         data.x = torch.cat([orig_features, rfp_norm], dim=1)
+        if timing_sink is not None:
+            timing_sink["positional_encoding_global_s"] = (
+                timing_sink.get("positional_encoding_global_s", 0.0) + time.perf_counter() - t_pe
+            )
 
     return data, dataset, clients_data, test_data
 

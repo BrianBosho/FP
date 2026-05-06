@@ -23,6 +23,30 @@ def cuda_usable() -> bool:
         return False
 
 
+def resolve_torch_device(device, *, fallback_to_cpu: bool = True) -> torch.device:
+    """Resolve config device aliases to valid ``torch.device`` values.
+
+    Historically some experiment configs/notebooks use ``gpu`` to mean CUDA,
+    but PyTorch only accepts ``cuda``.  Normalize that alias at the boundary and
+    optionally fall back when CUDA is requested but not usable.
+    """
+    if isinstance(device, torch.device):
+        requested = device
+    else:
+        device_str = str(device).strip().lower()
+        if device_str == "auto":
+            return torch.device("cuda" if cuda_usable() else "cpu")
+        if device_str == "gpu":
+            device_str = "cuda"
+        elif device_str.startswith("gpu:"):
+            device_str = "cuda:" + device_str.split(":", 1)[1]
+        requested = torch.device(device_str)
+
+    if requested.type == "cuda" and fallback_to_cpu and not cuda_usable():
+        return torch.device("cpu")
+    return requested
+
+
 def setup_logging(log_dir="logs"):
     """
     Set up logging configuration for experiments

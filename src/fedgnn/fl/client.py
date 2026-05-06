@@ -99,8 +99,10 @@ class FLClient:
         # Get model configuration from config file
         model_config = get_model_config(cfg, model_type, self.dataset_name)
 
-        # ogbn-products stays on CPU (large graph, OOM-prone)
-        _init_device = self.cpu_device if self.dataset_name == "ogbn-products" else self.target_device
+        # Always init model on CPU; _move_for_compute() moves it to target_device
+        # just before training. This avoids concurrent CUDA context initialisation
+        # across 10 Ray workers hitting the vGPU driver simultaneously.
+        _init_device = self.cpu_device
         if self.dataset_name == "ogbn-products":
             self._large_dataset = True
 
@@ -542,3 +544,12 @@ class FLClient:
             results_dict["epochs_data"].append(epoch_dict)
 
         return results_dict
+
+    def get_peak_gpu_mb(self) -> float | None:
+        """Return peak CUDA memory allocated in this worker process (MB), or None."""
+        if not torch.cuda.is_available():
+            return None
+        try:
+            return round(torch.cuda.max_memory_allocated() / (1024 * 1024), 3)
+        except Exception:
+            return None

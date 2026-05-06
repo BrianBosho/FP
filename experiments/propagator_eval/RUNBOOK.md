@@ -70,7 +70,7 @@ experiments/propagator_eval/
     ├── L4_downstream_operators.yaml   # 400 runs: 5 ops × 4 homophilic datasets × 2 β × 2 bb × 5 seeds
     ├── L4_downstream_heterophilic.yaml # 40 runs: 3 ops + zero_hop × Texas/Wisconsin × GCN × β=10000
     ├── L4_baselines.yaml              # 140 runs: zero_hop + oracle baselines
-    └── ablations_intrinsic.yaml       # 42 runs: K, α, ε, hop-depth sensitivity sweeps
+    └── ablations_intrinsic.yaml       # 48 runs: K, α, ε, hop-depth × β sensitivity sweeps
 ```
 
 ### 1.2 Modified source files (in repo root)
@@ -150,8 +150,8 @@ All already supported. `datasets.py` line 57 maps `"webkb": ["Texas", "Wisconsin
 | `L1_L3_primary.yaml` | 270 | 5 ops × 6 ds × 3 β × 3 seeds |
 | `L1_L3_heat_kernel_ref.yaml` | 2 | O5 × Cora+Citeseer × β=10000 × seed 0 |
 | `L1_L3_hop2_ablation.yaml` | 45 | 5 ops × Cora × 3 β × 3 seeds, hop=2 |
-| `ablations_intrinsic.yaml` | 42 | K/α/ε/hop sensitivity sweeps |
-| **Total L1–3** | **359** | ~4 hours |
+| `ablations_intrinsic.yaml` | 48 | K/α/ε/hop-depth × β sensitivity sweeps |
+| **Total L1–3** | **365** | ~4 hours |
 
 ### 4.2 Layer 4 (downstream, FL training)
 
@@ -162,7 +162,7 @@ All already supported. `datasets.py` line 57 maps `"webkb": ["Texas", "Wisconsin
 | `L4_downstream_heterophilic.yaml` | 40 | 3 ops + zero_hop × Texas/Wisc × GCN × β=10000 × 5 seeds |
 | **Total L4** | **580** | ~110 hours |
 
-### 4.3 Grand total: 939 runs, ~115 hours
+### 4.3 Grand total: 945 runs, ~115 hours
 
 ---
 
@@ -242,7 +242,7 @@ python -m src.fedgnn.experiments.run_intrinsic_eval \
 python -m src.fedgnn.experiments.run_intrinsic_eval \
     --config experiments/propagator_eval/configs/L1_L3_hop2_ablation.yaml
 
-# 4. Ablations (42 runs) — K, α, ε, hop sensitivity
+# 4. Ablations (48 runs) — K, α, ε, hop-depth × β sensitivity
 python -m src.fedgnn.experiments.run_intrinsic_eval \
     --config experiments/propagator_eval/configs/ablations_intrinsic.yaml
 ```
@@ -446,6 +446,6 @@ Before trusting results, verify:
 | 6 | L4 operators (400 runs) | ~80 hr | `--config L4_downstream_operators.yaml` |
 | 7 | L4 heterophilic (40 runs) | ~1 hr | `--config L4_downstream_heterophilic.yaml` |
 | 8 | Gap-closed computation | 1 min | `--compute-gaps` |
-| 9 | Ablations (42 runs) | 30 min | `--config ablations_intrinsic.yaml` |
+| 9 | Ablations (48 runs) | 30 min | `--config ablations_intrinsic.yaml` |
 
 **Emergency rule:** If Phase 4 (L4) is not finished by June 5, submit with Phase 2 (L1-3) results only and note downstream as preliminary.
