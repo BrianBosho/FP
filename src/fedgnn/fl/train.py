@@ -158,7 +158,7 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
         # Final validation
         final_val_loss, final_val_acc = evaluate(model, data, criterion)
 
-        return final_val_loss, training_acc, training_losses, training_accuracies
+        return final_val_loss, training_acc, training_losses, training_accuracies, final_val_acc
     finally:
         # Always remove hook to prevent memory leaks
         if hook_handle is not None:

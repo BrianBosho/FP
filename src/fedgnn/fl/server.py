@@ -237,21 +237,19 @@ class Server():
 
         log_client_training_metrics(active_results, current_global_epoch)
 
-        eval_results = self.evaluate_clients()
-        log_client_validation_metrics(eval_results, current_global_epoch)
-
-        # Clear memory after each training cycle to prevent accumulation
-        torch.cuda.empty_cache()
-        gc.collect()
-
+        # Use val_acc already returned from train_client (index 1) instead of a
+        # separate evaluate_clients() round-trip — saves 10 Ray IPC calls per round.
         def to_cpu_scalar(x):
             if hasattr(x, "detach") and hasattr(x, "cpu"):
                 return x.detach().cpu().item()
             return x
-        client_val_losses = [to_cpu_scalar(result[0]) for result in eval_results]
-        client_val_accuracies = [to_cpu_scalar(result[1]) for result in eval_results]
+        client_val_losses  = [to_cpu_scalar(r[0]) for r in active_results]
+        client_val_accs    = [to_cpu_scalar(r[1]) for r in active_results]
         avg_eval_loss = np.mean(client_val_losses)
-        avg_eval_acc = np.mean(client_val_accuracies)
+        avg_eval_acc  = np.mean(client_val_accs)
+
+        torch.cuda.empty_cache()
+        gc.collect()
 
         return train_results, avg_eval_acc, avg_eval_loss
 

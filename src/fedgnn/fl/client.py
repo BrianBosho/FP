@@ -355,7 +355,7 @@ class FLClient:
                     grad_clip_norm=self.grad_clip_norm,
                 )
             else:
-                loss, acc, loss_list, acc_list = train(
+                loss, acc, loss_list, acc_list, val_acc = train(
                     self.model,
                     self.data,
                     self.epochs,
@@ -380,7 +380,7 @@ class FLClient:
                 self._move_to_device(self.cpu_device)
                 self._clear_memory()
 
-            return loss, acc, True
+            return loss, val_acc, True
         except Exception as e:
             import traceback
             print(f"Error in client {self.client_id} training: {str(e)}")
