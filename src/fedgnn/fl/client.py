@@ -477,22 +477,27 @@ class FLClient:
             return 0
 
     def get_params(self) -> dict:
-        # Extract parameters on current device (GPU by default)
-        # Only move to CPU if explicitly configured
         if not self.keep_data_on_gpu:
             self._move_to_device(self.cpu_device)
         self.optimizer.zero_grad(set_to_none=True)
 
-        # Return CPU tensors to avoid keeping GPU memory references
-        # detach() prevents gradient computation, cpu() moves to CPU
         params_cpu = tuple(p.detach().cpu() for p in self.model.parameters())
         buffers_cpu = tuple(b.detach().cpu() for b in self.model.buffers())
         buffer_names = tuple(name for name, _ in self.model.named_buffers())
 
+        # Piggyback train sample count so the server avoids a separate
+        # get_num_train_samples.remote() round-trip for fedavg_weighted.
+        try:
+            tm = getattr(self.data, "train_mask", None)
+            n_train = int(tm.sum().item()) if tm is not None and hasattr(tm, "sum") else 0
+        except Exception:
+            n_train = 0
+
         return {
             'params': params_cpu,
             'buffers': buffers_cpu,
-            'buffer_names': buffer_names
+            'buffer_names': buffer_names,
+            'num_train_samples': n_train,
         }
 
     @torch.no_grad()

@@ -144,8 +144,21 @@ class Server():
         client weights for floating-point buffers; non-float buffers (e.g.
         ``num_batches_tracked``) retain the legacy "copy-from-first" rule.
         """
-        # Fetch sample counts in deterministic client order.
-        sample_counts = ray.get([c.get_num_train_samples.remote() for c in clients])
+        # Single get_params.remote() call per client; num_train_samples is
+        # piggybacked in the returned dict so we avoid a separate
+        # get_num_train_samples.remote() pre-pass (saves len(clients) Ray calls).
+        param_futures = [c.get_params.remote() for c in clients]
+
+        # First pass: collect sample counts to compute weights, accumulating
+        # params dicts so we don't fetch twice.
+        collected = {}  # future -> params_dict
+        remaining = list(param_futures)
+        while remaining:
+            ready, remaining = ray.wait(remaining, num_returns=1, timeout=None)
+            for t in ready:
+                collected[t] = ray.get(t)
+
+        sample_counts = [collected[f].get('num_train_samples', 0) for f in param_futures]
         total = int(sum(sample_counts))
         if total <= 0:
             weights = [1.0 / len(clients)] * len(clients)
@@ -157,39 +170,33 @@ class Server():
             print(f"[Server] fedavg_weighted: sample_counts={sample_counts}, "
                   f"weights={[round(w, 4) for w in weights]}")
 
-        # Map each param-future back to its client weight so we can keep the
-        # streaming ray.wait loop (memory-efficient for large models / many
-        # clients) while still applying the correct per-client weight.
-        param_futures = [c.get_params.remote() for c in clients]
         weight_by_future = {fut: w for fut, w in zip(param_futures, weights)}
 
         self.zero_params()
         self.zero_buffers()
 
+        # params_dicts already fetched above — iterate in-memory, no Ray calls.
         first_client = True
-        remaining = list(param_futures)
-        while remaining:
-            ready, remaining = ray.wait(remaining, num_returns=1, timeout=None)
-            for t in ready:
-                w = weight_by_future[t]
-                params_dict = ray.get(t)
+        fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
+        for fut in param_futures:
+            w = weight_by_future[fut]
+            params_dict = collected[fut]
 
-                for p, mp in zip(params_dict['params'], self.model.parameters()):
-                    mp.data += w * p.to(self.device)
+            for p, mp in zip(params_dict['params'], self.model.parameters()):
+                mp.data += w * p.to(self.device)
 
-                fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
-                buf_names = params_dict.get('buffer_names', [])
-                for b, mb, name in zip(params_dict['buffers'], self.model.buffers(), buf_names):
-                    if b.dtype.is_floating_point:
-                        if fedbn and self._is_bn_running_stat(name):
-                            pass  # FedBN: clients keep their own running stats
-                        else:
-                            mb.data += w * b.to(self.device)
-                    elif first_client:
-                        mb.data = b.to(self.device)
+            buf_names = params_dict.get('buffer_names', [])
+            for b, mb, name in zip(params_dict['buffers'], self.model.buffers(), buf_names):
+                if b.dtype.is_floating_point:
+                    if fedbn and self._is_bn_running_stat(name):
+                        pass  # FedBN: clients keep their own running stats
+                    else:
+                        mb.data += w * b.to(self.device)
+                elif first_client:
+                    mb.data = b.to(self.device)
 
-                first_client = False
-                del params_dict
+            first_client = False
+        del collected
         # No post-division: weights already sum to 1.
 
     @torch.no_grad()
