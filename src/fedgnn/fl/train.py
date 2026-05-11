@@ -149,14 +149,11 @@ def train(model, data, epochs, optimizer, criterion, writer, use_amp=False, seed
                 writer.add_scalar('Loss/train', loss, epoch)
                 writer.add_scalar('Accuracy/train', training_acc, epoch)
 
-            # Validation phase for monitoring only
-            val_loss, val_acc = evaluate(model, data, criterion)
-
             if writer is not None:
+                val_loss, val_acc = evaluate(model, data, criterion)
                 writer.add_scalar('Loss/val', val_loss, epoch)
                 writer.add_scalar('Accuracy/val', val_acc, epoch)
-
-            logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
+                logging.info(f'Epoch {epoch:>3}| Train Loss: {loss:.3f}| Train Accuracy: {training_acc:.3f}| Val Loss: {val_loss:.3f}| Val Accuracy: {val_acc:.3f}')
 
         # Final validation
         final_val_loss, final_val_acc = evaluate(model, data, criterion)
