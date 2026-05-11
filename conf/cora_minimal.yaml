@@ -37,7 +37,7 @@ early_stopping_patience: 20
 device: cuda
 max_concurrent_clients: 10
 feature_prop_device: cuda
-keep_data_on_gpu: false
+keep_data_on_gpu: true
 use_minibatch: false
 
 model_architecture:
