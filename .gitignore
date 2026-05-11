@@ -147,14 +147,11 @@ experiments/scheduler/queue_*.json
 experiments/scheduler/task_status.json
 
 ############################
-# Docs and run artifacts
+# Agent memory (never commit)
 ############################
-docs/
 memory/
-conf/
-run_cora_splits.sh
-check_r1.sh
-break_cora_config.py
-diagnose_diffusion.py
+
+############################
+# Misc root artifacts
+############################
 experiment_runner_phase1.zip
-test.ipynb
