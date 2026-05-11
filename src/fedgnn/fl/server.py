@@ -328,17 +328,19 @@ class Server():
 
     def broadcast_params(self, current_global_epoch: int, sync=False) -> None:
         params_dict = {
-            'params': tuple(self.model.parameters()),
-            'buffers': tuple(self.model.buffers()),
+            'params': tuple(p.detach().cpu() for p in self.model.parameters()),
+            'buffers': tuple(b.detach().cpu() for b in self.model.buffers()),
             'buffer_names': tuple(name for name, _ in self.model.named_buffers()),
         }
+        # Single serialisation into the plasma store; all actors get a
+        # zero-copy memory-mapped reference instead of N separate pickles.
+        params_ref = ray.put(params_dict)
         futures = []
         for trainer in self.clients:
-            future = trainer.update_params.remote(params_dict, current_global_epoch)
+            future = trainer.update_params.remote(params_ref, current_global_epoch)
             if sync:
                 futures.append(future)
 
-        # If sync=True, wait for all updates to complete before returning
         if sync:
             ray.get(futures)
 
