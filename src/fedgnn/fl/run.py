@@ -563,6 +563,15 @@ def run_with_server(
         telemetry.set_model_and_comm(server.model, len(clients), int(cfg.get("num_rounds", 0) or 0))
         telemetry.note_peaks()
 
+    # Partition + memory statistics (logged once per experiment, before training)
+    from src.fedgnn.utils.partition_stats import compute_partition_stats, print_partition_stats
+    _partition_stats = compute_partition_stats(data, clients_data)
+    try:
+        _mem_stats = ray.get([c.get_memory_stats.remote() for c in clients], timeout=15)
+    except Exception:
+        _mem_stats = None
+    print_partition_stats(_partition_stats, data, _mem_stats)
+
     try:
         train_results = []
         best_eval_acc = 0
@@ -826,6 +835,11 @@ def run_with_server(
             "global_test_surface": global_test_surface,
             "best_eval_acc": float(best_eval_acc),
             "loader_timing_sink_sec": dict(timing_sink),
+            "partition_stats": {
+                k: v for k, v in _partition_stats.items()
+                if k != 'client_stats'  # keep JSON compact; per-client table is in logs
+            },
+            "partition_stats_per_client": _partition_stats.get('client_stats', []),
         }
         if len(server.clients) > 1:
             run_extras["global_test_acc_macro"] = float(global_test_macro)

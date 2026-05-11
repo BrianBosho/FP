@@ -570,3 +570,11 @@ class FLClient:
             return round(torch.cuda.max_memory_allocated() / (1024 * 1024), 3)
         except Exception:
             return None
+
+    def get_memory_stats(self) -> dict:
+        """Return CPU RSS and peak GPU memory for this Ray worker process."""
+        import psutil
+        import os
+        cpu_rss_mb = round(psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024), 1)
+        peak_gpu_mb = self.get_peak_gpu_mb()
+        return {'cpu_rss_mb': cpu_rss_mb, 'peak_gpu_mb': peak_gpu_mb}
