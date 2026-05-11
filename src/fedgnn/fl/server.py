@@ -84,81 +84,86 @@ class Server():
         """Check if a buffer name belongs to a BatchNorm running-mean or running-var."""
         return "running_mean" in name or "running_var" in name
 
-    @torch.no_grad()
-    def _aggregate_mean(self, clients) -> None:
-        """Unweighted-mean aggregation with optional FedBN support."""
+    def _apply_params_list(self, params_list, weights=None) -> None:
+        """Accumulate a list of params dicts into the server model.
+
+        weights: per-client float weights summing to 1.0 (fedavg_weighted),
+                 or None for uniform 1/N mean (caller must divide afterwards).
+        Shared by both aggregation paths to avoid code duplication.
+        """
         fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
+        first_client = True
+        for idx, params_dict in enumerate(params_list):
+            w = weights[idx] if weights is not None else 1.0
+            for p, mp in zip(params_dict['params'], self.model.parameters()):
+                mp.data += w * p.to(self.device)
+            buf_names = params_dict.get('buffer_names', [])
+            for b, mb, name in zip(params_dict['buffers'], self.model.buffers(), buf_names):
+                if b.dtype.is_floating_point:
+                    if fedbn and self._is_bn_running_stat(name):
+                        pass
+                    else:
+                        mb.data += w * b.to(self.device)
+                elif first_client:
+                    mb.data = b.to(self.device)
+            first_client = False
+
+    def _fetch_params_streaming(self, clients):
+        """Fetch params from clients via streaming ray.wait (memory-safe for large models)."""
+        futures = [c.get_params.remote() for c in clients]
+        collected = {}
+        remaining = list(futures)
+        while remaining:
+            ready, remaining = ray.wait(remaining, num_returns=1, timeout=None)
+            for t in ready:
+                collected[t] = ray.get(t)
+        # Return in submission order so caller can zip with clients/weights.
+        return futures, collected
+
+    @torch.no_grad()
+    def _aggregate_mean(self, clients, prefetched_params=None) -> None:
+        """Unweighted-mean aggregation with optional FedBN support.
+
+        prefetched_params: ordered list of params dicts already in memory
+        (fuse_train_get_params path). None falls back to streaming ray.wait.
+        """
         active_count = len(clients)
-        params = [client.get_params.remote() for client in clients]
         self.zero_params()
         self.zero_buffers()
 
-        first_client = True
-        while True:
-            ready, left = ray.wait(params, num_returns=1, timeout=None)
-            if ready:
-                for t in ready:
-                    params_dict = ray.get(t)
-                    for p, mp in zip(params_dict['params'], self.model.parameters()):
-                        mp.data += p.to(self.device)
-
-                    buf_names = params_dict.get('buffer_names', [])
-                    for b, mb, name in zip(params_dict['buffers'], self.model.buffers(), buf_names):
-                        if b.dtype.is_floating_point:
-                            if fedbn and self._is_bn_running_stat(name):
-                                pass  # FedBN: clients keep their own running stats
-                            else:
-                                mb.data += b.to(self.device)
-                        elif first_client:
-                            mb.data = b.to(self.device)
-
-                    first_client = False
-                    del params_dict
-            params = left
-            if not params:
-                break
+        if prefetched_params is not None:
+            self._apply_params_list(prefetched_params, weights=None)
+        else:
+            futures, collected = self._fetch_params_streaming(clients)
+            self._apply_params_list([collected[f] for f in futures], weights=None)
 
         for p in self.model.parameters():
             p.data /= active_count
 
+        fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
         buf_names = tuple(name for name, _ in self.model.named_buffers())
         for b, name in zip(self.model.buffers(), buf_names):
             if b.dtype.is_floating_point and not (fedbn and self._is_bn_running_stat(name)):
                 b.data /= active_count
 
     @torch.no_grad()
-    def _aggregate_fedavg_weighted(self, clients) -> None:
-        """FedAvg-style weighted aggregation.
+    def _aggregate_fedavg_weighted(self, clients, prefetched_params=None) -> None:
+        """FedAvg-style weighted aggregation (McMahan et al. 2017).
 
-        Each client's parameters are scaled by ``|D_k| / sum_k |D_k|`` where
-        ``|D_k|`` is the number of training samples that client owns.  This is
-        the aggregation rule from McMahan et al. (2017) -- the existing
-        ``_aggregate_mean`` above collapses to this only when every client
-        has the same sample count.
+        Each client's parameters are scaled by |D_k| / sum_k |D_k|.
+        num_train_samples is piggybacked in the params dict to avoid a
+        separate get_num_train_samples.remote() pre-pass.
 
-        If every client reports 0 training samples (pathological, shouldn't
-        happen in practice), we fall back to uniform weights to avoid
-        division-by-zero, matching the legacy behavior in that degenerate case.
-
-        Buffers (e.g. BatchNorm running stats) are weighted with the same
-        client weights for floating-point buffers; non-float buffers (e.g.
-        ``num_batches_tracked``) retain the legacy "copy-from-first" rule.
+        prefetched_params: ordered list of params dicts already in memory
+        (fuse_train_get_params path). None falls back to streaming ray.wait.
         """
-        # Single get_params.remote() call per client; num_train_samples is
-        # piggybacked in the returned dict so we avoid a separate
-        # get_num_train_samples.remote() pre-pass (saves len(clients) Ray calls).
-        param_futures = [c.get_params.remote() for c in clients]
+        if prefetched_params is not None:
+            params_list = prefetched_params
+        else:
+            futures, collected = self._fetch_params_streaming(clients)
+            params_list = [collected[f] for f in futures]
 
-        # First pass: collect sample counts to compute weights, accumulating
-        # params dicts so we don't fetch twice.
-        collected = {}  # future -> params_dict
-        remaining = list(param_futures)
-        while remaining:
-            ready, remaining = ray.wait(remaining, num_returns=1, timeout=None)
-            for t in ready:
-                collected[t] = ray.get(t)
-
-        sample_counts = [collected[f].get('num_train_samples', 0) for f in param_futures]
+        sample_counts = [p.get('num_train_samples', 0) for p in params_list]
         total = int(sum(sample_counts))
         if total <= 0:
             weights = [1.0 / len(clients)] * len(clients)
@@ -170,61 +175,52 @@ class Server():
             print(f"[Server] fedavg_weighted: sample_counts={sample_counts}, "
                   f"weights={[round(w, 4) for w in weights]}")
 
-        weight_by_future = {fut: w for fut, w in zip(param_futures, weights)}
-
         self.zero_params()
         self.zero_buffers()
-
-        # params_dicts already fetched above — iterate in-memory, no Ray calls.
-        first_client = True
-        fedbn = self.cfg.get("bn_fl_strategy", "average") == "fedbn"
-        for fut in param_futures:
-            w = weight_by_future[fut]
-            params_dict = collected[fut]
-
-            for p, mp in zip(params_dict['params'], self.model.parameters()):
-                mp.data += w * p.to(self.device)
-
-            buf_names = params_dict.get('buffer_names', [])
-            for b, mb, name in zip(params_dict['buffers'], self.model.buffers(), buf_names):
-                if b.dtype.is_floating_point:
-                    if fedbn and self._is_bn_running_stat(name):
-                        pass  # FedBN: clients keep their own running stats
-                    else:
-                        mb.data += w * b.to(self.device)
-                elif first_client:
-                    mb.data = b.to(self.device)
-
-            first_client = False
-        del collected
+        self._apply_params_list(params_list, weights=weights)
         # No post-division: weights already sum to 1.
 
     @torch.no_grad()
     def train_clients(self, current_global_epoch: int) -> list:
         clients = self.clients
 
-        # Bounded concurrency: train K clients at a time
-        if self.max_concurrent_clients and self.max_concurrent_clients < len(clients):
-            print(f"Training clients in batches of {self.max_concurrent_clients} (total: {len(clients)})")
+        # fuse_train_get_params: combine train + param fetch into one Ray call.
+        # Disable for large datasets (big param tensors alongside training results
+        # prevent streaming aggregation and stress the object store).
+        # Ignored when using batched concurrency (batched path needs separate calls).
+        fuse = bool(self.cfg.get("fuse_train_get_params", True))
+        use_batched = bool(self.max_concurrent_clients and self.max_concurrent_clients < len(clients))
+
+        if use_batched:
             try:
                 torch.cuda.synchronize() if torch.cuda.is_available() else None
             except Exception:
-                pass  # GPU not actually usable; continue on CPU
+                pass
+            print(f"Training clients in batches of {self.max_concurrent_clients} (total: {len(clients)})")
             train_results = self._train_clients_batched(clients, self.max_concurrent_clients)
+            prefetched_params = None
+        elif fuse:
+            combined_futures = [c.train_and_get_params.remote() for c in clients]
+            combined = ray.get(combined_futures)
+            # combined[i] = (val_loss, val_acc, success, params_dict | None)
+            train_results = [(r[0], r[1], r[2]) for r in combined]
+            prefetched_params = [r[3] for r in combined]
         else:
-            train_futures = [client.train_client.remote() for client in clients]
+            train_futures = [c.train_client.remote() for c in clients]
             train_results = ray.get(train_futures)
+            prefetched_params = None
 
-        # B5: filter failed clients from aggregation
-        active_clients = []
-        active_results = []
-        for client_idx, (client, result) in enumerate(zip(clients, train_results)):
+        # Filter failed clients from aggregation
+        active_clients, active_results, active_prefetched = [], [], []
+        for idx, (client, result) in enumerate(zip(clients, train_results)):
             success = result[2] if len(result) > 2 else True
             if success:
                 active_clients.append(client)
                 active_results.append(result)
+                if prefetched_params is not None:
+                    active_prefetched.append(prefetched_params[idx])
             else:
-                print(f"[Server] Client {client_idx} failed; excluding from aggregation")
+                print(f"[Server] Client {idx} failed; excluding from aggregation")
 
         if len(active_clients) < len(clients):
             print(f"[Server] Aggregating {len(active_clients)}/{len(clients)} clients")
@@ -233,25 +229,23 @@ class Server():
             print("[Server] All clients failed this round; skipping aggregation")
             return train_results, 0.0, float('inf')
 
+        pre = active_prefetched if active_prefetched else None
         if self.aggregation == "fedavg_weighted":
-            self._aggregate_fedavg_weighted(active_clients)
+            self._aggregate_fedavg_weighted(active_clients, prefetched_params=pre)
         else:
-            self._aggregate_mean(active_clients)
+            self._aggregate_mean(active_clients, prefetched_params=pre)
 
-        # Broadcast params with sync=True when using batched training to ensure consistency
-        use_sync = self.max_concurrent_clients and self.max_concurrent_clients < len(clients)
+        use_sync = use_batched
         self.broadcast_params(current_global_epoch, sync=use_sync)
 
         log_client_training_metrics(active_results, current_global_epoch)
 
-        # Use val_acc already returned from train_client (index 1) instead of a
-        # separate evaluate_clients() round-trip — saves 10 Ray IPC calls per round.
         def to_cpu_scalar(x):
             if hasattr(x, "detach") and hasattr(x, "cpu"):
                 return x.detach().cpu().item()
             return x
-        client_val_losses  = [to_cpu_scalar(r[0]) for r in active_results]
-        client_val_accs    = [to_cpu_scalar(r[1]) for r in active_results]
+        client_val_losses = [to_cpu_scalar(r[0]) for r in active_results]
+        client_val_accs   = [to_cpu_scalar(r[1]) for r in active_results]
         avg_eval_loss = np.mean(client_val_losses)
         avg_eval_acc  = np.mean(client_val_accs)
 

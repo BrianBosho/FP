@@ -385,10 +385,22 @@ class FLClient:
             import traceback
             print(f"Error in client {self.client_id} training: {str(e)}")
             print(traceback.format_exc())
-            # Attempt to free memory and return default values
             self._move_to_device(self.cpu_device)
             self._clear_memory()
             return 0.0, 0.0, False
+
+    def train_and_get_params(self):
+        """Train and return params in one Ray call, saving a round-trip.
+
+        Enabled via fuse_train_get_params=true (default). Disable for large
+        datasets where returning big param tensors alongside training results
+        would prevent streaming aggregation and stress GPU memory.
+        Returns (val_loss, val_acc, success, params_dict | None).
+        """
+        loss, val_acc, success = self.train_client()
+        if not success:
+            return loss, val_acc, False, None
+        return loss, val_acc, True, self.get_params()
 
     def evaluate(self, criterion):
         # Move model/state to device. In mini-batch mode, keep graph data on CPU.

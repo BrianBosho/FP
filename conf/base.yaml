@@ -67,6 +67,11 @@ grad_clip_norm: 1.0
 max_concurrent_clients: 10  # Number of clients to train in parallel per batch
 client_num_gpus: null       # null => 1 / max_concurrent_clients when using CUDA
 ray_num_gpus: null          # null => torch.cuda.device_count()
+# Fuse train + get_params into one Ray call per client per round (saves N Ray
+# round-trips). Set to false for large models / large datasets where returning
+# big param tensors alongside training results stresses the object store and
+# prevents streaming aggregation (e.g. ogbn-products, large hidden_dim).
+fuse_train_get_params: true
 
 # Positional encoding settings
 use_pe: [false]
