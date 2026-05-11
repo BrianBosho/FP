@@ -89,6 +89,29 @@ results.csv
 !artifacts/generate_branch_diff_report.sh
 
 ############################
+# FedGraph baseline (local copy, not tracked — used for reference only)
+############################
+fedgraph/
+
+############################
+# Experiment result output directories
+############################
+experiments/*_results_prelim/
+experiments/*_results_test/
+experiments/propagator_eval/results/
+experiments/propagator_eval/figures/fig_*.png
+
+############################
+# Notebook output images
+############################
+notebooks/output/
+
+############################
+# Runtime / scheduler logs
+############################
+experiments/scheduler/run_log.jsonl
+
+############################
 # Known misplaced local artifacts (keep `src/` code-only)
 ############################
 src/*.png
