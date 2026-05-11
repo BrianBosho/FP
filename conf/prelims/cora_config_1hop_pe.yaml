@@ -6,8 +6,8 @@ datasets:
 results_dir: experiments/cora_results_test
 # Keep W&B off for unattended sweeps. The runtime reads use_wandb/wandb_mode;
 # keep the legacy wandb key only for older helpers.
-wandb: true
-use_wandb: true
+wandb: 
+use_wandb: false
 wandb_mode: disabled
 wandb_project: "TMLR Cora Pilot"  # Dataset-specific wandb project
 
@@ -18,9 +18,9 @@ beta: [10000, 1]
 lr: 0.5
 optimizer: SGD
 data_loading: [diffusion, adjacency]
-models: [GCN, GAT]
-hop: 2
-use_pe: [True, False]
+models: [GCN]
+hop: 1
+use_pe: [True]
 repetitions: 3
 aggregation: fedavg_weighted
 
@@ -34,4 +34,4 @@ model_architecture:
     normalization: "none"  # Try batch normalization (default: "none")
 
 
-# nohup python -m src.experiments.run_experiments --config conf/cora_config.yaml > cora_experiment.log 2>&1 &
+# nohup python -m src.experiments.run_experiments --config conf/prelims/cora_config_1hop_pe.yaml > cora_experiment_1hop_pe.log 2>&1 &

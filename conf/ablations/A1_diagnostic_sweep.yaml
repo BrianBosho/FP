@@ -1,0 +1,30 @@
+# FP Diagnostic Ablation: Cora & Citeseer
+# Target: Iterations x Diffusion_t x Propagator
+datasets:
+  - Cora
+  - Citeseer
+
+results_dir: results/ablation/fp_diagnostics
+use_wandb: false
+wandb_mode: disabled
+
+# Grid Sweep Parameters
+num_clients: [10]
+num_rounds: 50  # Reduced rounds for faster diagnostic sweep
+beta: [10000]   # IID to focus on structural recovery signal
+lr: 0.5
+optimizer: SGD
+models: [GCN]
+repetitions: 1  # 1 repetition for initial diagnostic sweep
+
+# FP Parameters to sweep
+# Note: we will run this config multiple times or modify it to sweep 
+# because the current runner might not support nested sweeps for all these.
+data_loading: [adjacency, diffusion]
+num_iterations: [5, 20, 50, 100]
+diffusion_t: [0.01, 0.1, 0.5]
+alpha: 1.0
+
+# Diagnostic Logging
+log_feature_prop_energy: true
+debug: true

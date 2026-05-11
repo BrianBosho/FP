@@ -1,58 +1,53 @@
-# ogbn-arxiv Dataset Configuration
-# Only dataset-specific settings - everything else inherited from base.yaml
+# ogbn-arxiv: zero_hop + full (no feature propagation)
+# zero_hop = raw features only; full = complete neighbourhood aggregation.
 
 datasets:
-   - ogbn-arxiv   # Note: This config is for ogbn-arxiv but uses Cora for testing
-results_dir: results/ogbn-arxiv
-wandb_project: "FGL4-Ogbn-Arxiv"  # Dataset-specific wandb project
+   - ogbn-arxiv
+results_dir: experiments/results/ogbn-arxiv/adjacency_diffusion_pe
+wandb_project: "TMLR"
 
-# ogbn-arxiv-specific experiment parameters
 num_clients: [10]
-num_rounds: 5
-beta: [10000]
-lr: 0.005
-optimizer: Adam
-hop: 1
+num_rounds: 400
+beta: [10000, 1]
+hop: 2
 save_results: true
-use_wandb: true  # Enable wandb for this experiment
-data_loading: [full]  # Use full data loading strategy for ogbn-arxiv
-models: [GAT]
-repetitions: 1
-use_pe: [true]
+use_wandb: true
+wandb_entity: bosho
+wandb_mode: online
+data_loading: [diffusion, adjacency]  
+models: [GCN]
+repetitions: 10
+use_pe: true
 use_unified_model: false
 
+max_concurrent_clients: 10
+client_num_gpus: 0.1
+use_minibatch: true
+batch_size: 1024
+num_neighbors: [10, 10]
+keep_data_on_gpu: false
+early_stopping_patience: 10
 
-
-# Override for large dataset - train fewer clients in parallel
-max_concurrent_clients: 2  # Reduced from 5 to 2 for ogbn-arxiv's large memory footprint
-
-# Disable keep_data_on_gpu for large dataset to prevent GPU OOM
-keep_data_on_gpu: false  # Large dataset - move data back to CPU after each operation
-
-# Override model architecture for ogbn-arxiv
-# This will override the settings from base.yaml for this specific experiment
 model_architecture:
   GCN_arxiv:
-    hidden_dim: 256        # Can change to 128, 512, etc.
-    num_layers: 3          # Can change to 2, 4, 5, etc.
-    dropout: 0.5           # Can change to 0.3, 0.6, etc.
-    normalization: "batch" # Can change to "layer", "group", or "none"
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
   GAT_Arxiv:
-    hidden_dim: 256        # Can change to 128, 512, etc.
-    num_layers: 3          # Can change to 2, 4, 5, etc.
-    dropout: 0.5           # Can change to 0.3, 0.6, etc.
-    normalization: "batch" # Can change to "layer", "group", or "none"
-    heads_hidden: 4        # Number of attention heads in hidden layers
-    heads_out: 6           # Number of attention heads in output layer
-    num_heads: 8           # For compatibility with unified GAT model
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+    heads_hidden: 4
+    heads_out: 6
+    num_heads: 8
 
-# Override training hyperparameters for ogbn-arxiv
 training:
   lr: 0.001
   optimizer: "Adam"
   weight_decay: 0.0005
   epochs: 3
-  patience: 15  # Early stopping patience for larger dataset
+  patience: 15
 
-# nohup command to run the experiment
-# nohup python -m src.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml
+# nohup python -m src.fedgnn.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > arxiv_adj_diff.out 2>&1 &

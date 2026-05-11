@@ -1,0 +1,33 @@
+# Citeseer 2-hop Prelim — GCN & GAT, PE vs no-PE
+# Quick 3-rep runs to fill gap: no existing hop-2 results for Citeseer (R1 is hop-1, R1b iter50/t=0.1)
+# Matches Cora pilot settings (cora_config.yaml) for direct comparison.
+
+datasets:
+  - Citeseer
+results_dir: experiments/citeseer_results_prelim
+
+use_wandb: false
+wandb_mode: disabled
+wandb_project: "TMLR Citeseer Prelim"
+
+num_clients: [10]
+num_rounds: 400
+beta: [10000, 1]
+lr: 0.5
+optimizer: SGD
+data_loading: [diffusion, adjacency, full]
+models: [GCN, GAT]
+hop: 2
+use_pe: [True, False]
+repetitions: 3
+aggregation: fedavg_weighted
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+# nohup python -m src.experiments.run_experiments --config conf/prelims/citeseer_config_2hop.yaml > citeseer_prelim_2hop.log 2>&1 &

@@ -1,0 +1,24 @@
+# A2b_w2: multiscale fusion with skewed weights
+datasets:
+  - Cora
+results_dir: results/ablations/A2b_skewed
+use_wandb: false
+wandb_mode: disabled
+num_clients: [10]
+num_rounds: 100
+early_stopping_patience: 15
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+models: [GCN]
+repetitions: 3
+data_loading: [diffusion]
+num_iterations: [50]
+diffusion_t: [1.0]
+alpha: 1.0
+hop: 2
+multiscale_fusion: true
+scale_iterations: [5, 20, 50]
+fusion_weights: [0.1, 0.2, 0.7]
+log_feature_prop_energy: true
+debug: false

@@ -2,8 +2,8 @@
 # zero_hop = raw features only; full = complete neighbourhood aggregation.
 
 datasets:
-   - computers
-results_dir: experiments/results/computers/adjacency_diffusion2
+   - ogbn-arxiv
+results_dir: experiments/results/ogbn-arxiv/zero_full2
 wandb_project: "TMLR"
 
 num_clients: [10]
@@ -14,7 +14,7 @@ save_results: true
 use_wandb: true
 wandb_entity: bosho
 wandb_mode: online
-data_loading: [diffusion, adjacency]
+data_loading: [full, zero_hop]
 models: [GCN]
 repetitions: 10
 use_pe: false
@@ -50,4 +50,5 @@ training:
   epochs: 3
   patience: 15
 
-# nohup python -m src.fedgnn.experiments.run_experiments --config conf/ogbn-arxiv_config.yaml > arxiv_adj_diff.out 2>&1 &
+# nohup python -m src.fedgnn.experiments.run_experiments --config conf/ogbn-arxiv_zero_full.yaml > arxiv_zero_full.out 2>&1 &
+

@@ -1,0 +1,26 @@
+beta:
+- 10000
+data_loading:
+- zero_hop
+datasets:
+- Cora
+hop: 1
+lr: 0.5
+model_architecture:
+  GCN:
+    dropout: 0.5
+    hidden_dim: 16
+    normalization: none
+    num_layers: 2
+models:
+- GCN
+num_clients:
+- 10
+num_rounds: 200
+optimizer: SGD
+repetitions: 3
+results_dir: results/IEEE/cora
+use_pe:
+- true
+wandb: false
+wandb_project: FGL7-Cora

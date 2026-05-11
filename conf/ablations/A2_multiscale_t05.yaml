@@ -1,0 +1,32 @@
+# A2 Multi-Scale Fusion: t=0.5 (Track 0)
+# 3 repetitions × 1 config = 3 experiments
+
+datasets:
+  - Cora
+
+results_dir: results/ablations/A2_multiscale
+use_wandb: false
+wandb_mode: disabled
+
+num_clients: [10]
+num_rounds: 100
+early_stopping_patience: 15
+
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+models: [GCN]
+repetitions: 3
+
+data_loading: [diffusion]
+num_iterations: [50]
+diffusion_t: [0.5]
+alpha: 1.0
+hop: 2
+
+# Multi-scale fusion config
+multiscale_fusion: true
+scale_iterations: [5, 20, 50]
+
+log_feature_prop_energy: true
+debug: false

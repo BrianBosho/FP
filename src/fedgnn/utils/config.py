@@ -11,7 +11,7 @@ from src.fedgnn.utils.project_paths import find_repo_root
 _KNOWN_TOP_LEVEL_KEYS: frozenset[str] = frozenset({
     # Sweep dimensions
     "datasets", "dataset_name", "data_loading", "models", "model_type",
-    "num_clients", "clients_num", "beta", "hop", "use_pe",
+    "num_clients", "clients_num", "beta", "hop", "use_pe", "use_unified_model",
     # Training loop
     "num_rounds", "epochs", "lr", "optimizer", "decay", "repetitions",
     "early_stopping_patience", "log_per_round", "log_global_test_per_round",

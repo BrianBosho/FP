@@ -1,20 +1,20 @@
-# ogbn-arxiv: zero_hop + full (no feature propagation)
-# zero_hop = raw features only; full = complete neighbourhood aggregation.
+# ogbn-arxiv: adjacency + diffusion (no feature propagation)
+# Propagation strategies that use graph structure but not full neighbourhood expansion.
 
 datasets:
-   - computers
-results_dir: experiments/results/computers/adjacency_diffusion2
-wandb_project: "TMLR"
+   - ogbn-arxiv
+results_dir: experiments/results/ogbn-arxiv/adj_diff
+wandb_project: "FGL4-Ogbn-Arxiv"
 
 num_clients: [10]
-num_rounds: 400
+num_rounds: 200
 beta: [10000, 1]
 hop: 2
 save_results: true
 use_wandb: true
 wandb_entity: bosho
 wandb_mode: online
-data_loading: [diffusion, adjacency]
+data_loading: [adjacency, diffusion]
 models: [GCN]
 repetitions: 10
 use_pe: false
@@ -26,7 +26,7 @@ use_minibatch: true
 batch_size: 1024
 num_neighbors: [10, 10]
 keep_data_on_gpu: false
-early_stopping_patience: 10
+early_stopping_patience: 20
 
 model_architecture:
   GCN_arxiv:

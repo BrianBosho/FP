@@ -1,0 +1,35 @@
+# Base configuration for propagator intrinsic evaluation
+# Used by run_intrinsic_eval.py and run_downstream_eval.py
+
+num_clients: 10
+hop: 1
+
+# Propagation hyperparameters (shared defaults)
+num_iterations: 100
+feature_prop_tolerance: 1.0e-4
+feature_prop_relative_tolerance: false
+
+# Operator-specific hyperparameters
+chebyshev_k: 5
+chebyshev_t: 0.9
+diffusion_t: 0.1
+appnp_alpha: 0.1       # Teleport probability for APPNP (weight on X^0); α in PPR literature
+alpha: 0.5             # Blending weight for adj/diffusion/chebyshev/asymm_rw modes (NOT teleport)
+
+# Intrinsic evaluation settings
+intrinsic_eval: true
+log_per_iter: true     # Record dirichlet_residual, feature_change_norm, reconstruction_mse per iteration
+log_feature_prop_energy: true
+
+# Output
+results_dir: experiments/propagator_eval/results
+save_results: true
+use_wandb: false
+
+# Runner backend
+intrinsic_runner_backend: threadpool  # "threadpool" or "ray"
+fp_max_concurrent: 1
+
+# Device
+feature_prop_device: cuda
+keep_data_on_gpu: true

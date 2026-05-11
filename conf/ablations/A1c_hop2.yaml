@@ -1,0 +1,26 @@
+# A1c: Hop-2 Deep Training Calibration — Diffusion only
+# Best diffusion settings, hop=2 vs hop=1 baseline
+datasets:
+  - Cora
+
+results_dir: results/ablations/A1c_hop2
+use_wandb: false
+wandb_mode: disabled
+
+num_clients: [10]
+num_rounds: 100
+early_stopping_patience: 15
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+models: [GCN]
+repetitions: 3
+
+data_loading: [diffusion]
+num_iterations: [50, 100]
+diffusion_t: [0.5, 1.0]
+alpha: 1.0
+hop: 2
+
+log_feature_prop_energy: true
+debug: false

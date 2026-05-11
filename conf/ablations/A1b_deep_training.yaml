@@ -1,0 +1,27 @@
+# A1b: Deep Training Calibration
+# 400 rounds, early stopping, Cora only
+# Tests whether 0.745 is a training-budget artifact or structural limit
+datasets:
+  - Cora
+
+results_dir: results/ablations/A1b_deep_training
+use_wandb: false
+wandb_mode: disabled
+
+num_clients: [10]
+num_rounds: 400
+early_stopping_patience: 20
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+models: [GCN]
+repetitions: 3
+
+# FP Parameters - full grid
+data_loading: [adjacency, diffusion]
+num_iterations: [50, 100, 200]
+diffusion_t: [0.1, 0.5, 1.0]
+alpha: 1.0
+
+log_feature_prop_energy: true
+debug: false
