@@ -48,6 +48,8 @@ runs/
 results/
 results_summary/
 archive/
+!experiments/configs/archive/
+!experiments/configs/archive/**
 artifacts/**
 
 nohup.out
@@ -136,8 +138,8 @@ experiments/scheduler/runs/*/attempt_*/wrapper.log
 ############################
 # Experiment artifacts
 ############################
-experiments/configs/
 experiments/results/
+experiments/all_results/
 experiments/logs/
 experiments/output/
 experiments/propagator_eval/.tmp_runner_configs/
