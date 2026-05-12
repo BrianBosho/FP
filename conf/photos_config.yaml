@@ -4,15 +4,16 @@
 datasets:
    - Photo
 results_dir: results/photos
-wandb_project: "FGL3-Photos"  # Dataset-specific wandb project
+wandb_project: "TMLR Computers"  # Dataset-specific wandb project
 
 # Citeseer-specific experiment parameters
-num_clients: [50]
-num_rounds: 20
-beta: [1]
+num_clients: [10]
+num_rounds: 400
+epochs: 3
+beta: [1, 10000]
 lr: 0.01
 optimizer: Adam
-data_loading: [full, zero_hop, adjacency]
+data_loading: [zero, full, adjacency, diffusion]
 models: [GCN]
 repetitions: 1
 model_architecture:

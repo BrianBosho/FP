@@ -9,7 +9,7 @@
 #   batch_size=-1      -> full batch (use_minibatch: false)
 #
 # Run:
-#   nohup python -m src.experiments.run_experiments --config conf/cora_minimal.yaml > cora_minimal.log 2>&1 &
+#   nohup python -m src.experiments.run_experiments --config conf/cora_minimal_full.yaml > cora_minimal_full.log 2>&1 &
 
 datasets:
   - Cora
@@ -20,16 +20,17 @@ use_wandb: false
 wandb_mode: disabled
 
 num_clients: 10
-num_rounds: 100
+num_rounds: 300
 epochs: 3
 beta: [10000]
+partition_seed: null  # Match fedgraph/test.py: no explicit NumPy seed before partitioning.
 lr: 0.5
 optimizer: SGD
 data_loading: [adjacency]
 models: [GCN]
 hop: 2
 use_pe: [False]
-repetitions: 1
+repetitions: 5
 aggregation: fedavg_weighted
 
 early_stopping_patience: 20
@@ -46,3 +47,7 @@ model_architecture:
     num_layers: 2
     dropout: 0.5
     normalization: "none"
+
+
+# nohup command to run the experiment
+# nohup python -m src.experiments.run_experiments --config conf/cora_minimal_full.yaml > cora_minimal_full.log 2>&1 &
