@@ -53,7 +53,7 @@ def _attach_client_index_bookkeeping(
     return subgraph
 
 def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int, beta: float,
-                              seed: int = 123) -> list:
+                              seed: int | None = 123) -> list:
     """
     Partition data using Dirichlet distribution for label distribution across clients.
 
@@ -64,12 +64,13 @@ def label_dirichlet_partition(labels: np.ndarray, N: int, K: int, n_parties: int
         n_parties: Number of clients
         beta: Dirichlet concentration parameter
         seed: RNG seed for the Dirichlet draw.  Defaults to 123 to preserve the
-              historical behavior; callers should pass ``experiment_seed`` from
-              the config to vary partitions across runs.
+              historical behavior.  Use ``None`` for fedgraph-style ambient
+              NumPy RNG partitioning.
     """
     min_require_size = max(1, min(10, N // (n_parties * K)))
     split_data_indexes = []
-    np.random.seed(int(seed))
+    if seed is not None:
+        np.random.seed(int(seed))
 
     max_attempts = 1000
     for _ in range(max_attempts):
@@ -402,13 +403,17 @@ def partition_data(data: Data, num_clients: int, beta: float, device, hop: int =
         fp_max_concurrent = 1
 
     # C5: experiment-level seed.  None/absent preserves the legacy hardcoded
-    # 123 partition seed.  When an int is provided (via cfg.experiment_seed
-    # threaded from run.py / the bench harness), we use it for both the
-    # Dirichlet draw and RFP generation so variance across runs is real.
+    # 123 partition seed.  Optional partition_seed overrides only the
+    # partitioner; set partition_seed: null for fedgraph-style ambient NumPy RNG.
     experiment_seed = None
+    partition_seed = 123
     if config is not None:
         experiment_seed = config.get("experiment_seed")
-    partition_seed = 123 if experiment_seed is None else int(experiment_seed)
+        if "partition_seed" in config:
+            raw_partition_seed = config.get("partition_seed")
+            partition_seed = None if raw_partition_seed is None else int(raw_partition_seed)
+        elif experiment_seed is not None:
+            partition_seed = int(experiment_seed)
 
     labels = data.y.cpu().numpy()
     N = len(labels)

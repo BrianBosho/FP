@@ -15,7 +15,7 @@ _KNOWN_TOP_LEVEL_KEYS: frozenset[str] = frozenset({
     # Training loop
     "num_rounds", "epochs", "lr", "optimizer", "decay", "repetitions",
     "early_stopping_patience", "log_per_round", "log_global_test_per_round",
-    "fulltraining_flag", "experiment_seed",
+    "fulltraining_flag", "experiment_seed", "partition_seed",
     # Aggregation / BN
     "aggregation", "bn_fl_strategy",
     # Data / features
