@@ -1,0 +1,36 @@
+# Ablation D: Full R1b SGD config — fedavg_weighted, SGD/0.5, 400 rounds, patience 30
+# Expected: ~63% (matches R1b_cora_gat_sgd_quickval)
+
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 400
+beta: [10000]
+data_loading: [full]
+models: [GAT]
+
+repetitions: 5
+experiment_seed: 0
+results_dir: experiments/results/ablation_gap
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+
+model_architecture:
+  GAT:
+    hidden_dim: 8
+    num_layers: 2
+    dropout: 0.6
+    num_heads: 8
+    normalization: "none"
+
+aggregation: "fedavg_weighted"
+hop: 2
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

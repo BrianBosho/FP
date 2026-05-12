@@ -1,0 +1,52 @@
+# S1-ablation-A: Training HP sweep — Adam lr x weight_decay x dropout
+# Purpose: Find the best learning rate and regularization for OGBN-Arxiv GCN.
+# Method: adjacency (representative FP mode), IID only (β=10000), 200 rounds, 3 reps.
+# Grid: 3 LRs × 2 weight_decays × 2 dropouts = 12 configs × 3 reps = 36 runs
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+data_loading: [adjacency]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 3
+experiment_seed: 342
+results_dir: experiments/results/scalability/ogbn_arxiv_ablation_A
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.3
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 5e-4
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+device: cuda
+feature_prop_device: cpu
+ray_num_gpus: 1
+keep_data_on_gpu: false
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 10
+use_amp: true
+prop_dtype: bfloat16
+convergence_check_interval: 5
+ray_object_store_memory_bytes: 4294967296

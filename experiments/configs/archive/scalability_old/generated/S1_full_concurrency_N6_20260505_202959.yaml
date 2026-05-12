@@ -1,0 +1,50 @@
+datasets:
+- ogbn-arxiv
+num_clients:
+- 10
+num_rounds: 5
+beta:
+- 10000
+data_loading:
+- full
+models:
+- GCN
+use_pe:
+- false
+repetitions: 1
+experiment_seed: 342
+results_dir: experiments/results/scalability/full_concurrency_sweep/N6
+save_results: true
+resume_completed: false
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 5
+log_per_round: true
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: batch
+training:
+  lr: 0.01
+  optimizer: Adam
+  weight_decay: 0
+  epochs: 3
+  patience: 5
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: fedavg_weighted
+device: cuda
+feature_prop_device: cpu
+ray_num_gpus: 1
+keep_data_on_gpu: false
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 6
+client_num_gpus: 0.1
+use_amp: true
+prop_dtype: bfloat16
+convergence_check_interval: 5
+ray_object_store_memory_bytes: 4294967296

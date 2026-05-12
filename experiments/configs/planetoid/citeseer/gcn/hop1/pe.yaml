@@ -1,0 +1,39 @@
+# R1: Core GCN accuracy table — Citeseer (PE)
+
+datasets: [Citeseer]
+num_clients: [10]
+num_rounds: 400
+beta: [10000, 10, 1]
+data_loading: [adjacency, diffusion, full]
+models: [GCN]
+
+repetitions: 10
+experiment_seed: 142
+results_dir: experiments/results/R1_citeseer_pe
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 20
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

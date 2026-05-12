@@ -1,0 +1,24 @@
+# R1b: Pubmed GAT PE — quickval (resource + accuracy check)
+# data_loading: adjacency + full, beta: 10000, 1 rep, 400 rounds, patience 30
+
+datasets: [Pubmed]
+num_clients: [10]
+num_rounds: 400
+beta: [10000]
+data_loading: [adjacency, full]
+models: [GAT]
+hop: 2
+use_pe: [true]
+
+repetitions: 1
+results_dir: experiments/results/R1b_pubmed_pe_quickval
+save_results: true
+use_wandb: false
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+early_stopping_patience: 30
+
+lr: 0.01
+optimizer: Adam

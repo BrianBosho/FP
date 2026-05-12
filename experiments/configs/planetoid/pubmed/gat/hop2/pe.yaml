@@ -1,0 +1,28 @@
+# R1b: GAT accuracy table — Pubmed (PE)
+# Matches R1 GCN structure; Pubmed uses Adam (per baseline.md)
+
+resume_completed: false
+
+datasets: [Pubmed]
+num_clients: [10]
+num_rounds: 400
+beta: [10000, 10, 1]
+data_loading: [adjacency, diffusion, full]
+models: [GAT]
+hop: 2
+use_pe: [true]
+
+repetitions: 10
+results_dir: experiments/results/R1b_pubmed_pe
+save_results: true
+use_wandb: false
+
+# Match R1 GCN settings
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+early_stopping_patience: 30
+
+# Optimizer settings (top level — Adam for Pubmed)
+lr: 0.01
+optimizer: Adam

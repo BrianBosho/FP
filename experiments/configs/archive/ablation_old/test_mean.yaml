@@ -1,0 +1,17 @@
+# Control: aggregation="mean", everything else minimal (null seed inherited)
+
+datasets:
+   - Cora
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+data_loading: [full]
+models: [GAT]
+hop: 2
+use_pe: [False]
+
+results_dir: experiments/results/ablation_aggregation
+save_results: true
+use_wandb: false

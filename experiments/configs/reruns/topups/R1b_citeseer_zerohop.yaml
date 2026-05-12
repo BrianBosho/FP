@@ -1,0 +1,24 @@
+# Rerun: Citeseer GAT — top-up for zero_hop β=10000 (7/10, need 3 more)
+# Running 5 fresh reps with seed=200 to ensure unique values after pooling
+
+datasets: [Citeseer]
+num_clients: [10]
+num_rounds: 400
+beta: [10000]
+data_loading: [zero_hop]
+models: [GAT]
+hop: 2
+use_pe: [false]
+
+repetitions: 5
+experiment_seed: 200
+results_dir: experiments/results/R1b_citeseer_rerun
+save_results: true
+use_wandb: false
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+early_stopping_patience: 30
+lr: 0.5
+optimizer: SGD

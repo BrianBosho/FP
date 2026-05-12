@@ -1,0 +1,29 @@
+# R1b: Pubmed GAT PE — adjacency only (3 conditions)
+
+datasets: [Pubmed]
+num_clients: [10]
+num_rounds: 400
+beta: [10000, 10, 1]
+data_loading: [adjacency]
+models: [GAT]
+hop: 2
+use_pe: [true]
+
+repetitions: 10
+results_dir: experiments/results/R1b_pubmed_pe_adj
+save_results: true
+use_wandb: false
+resume_completed: true
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+early_stopping_patience: 30
+
+lr: 0.01
+optimizer: Adam
+
+max_concurrent_clients: 10
+client_num_gpus: 0.1
+ray_object_store_memory_bytes: 8589934592
+ray_include_dashboard: false

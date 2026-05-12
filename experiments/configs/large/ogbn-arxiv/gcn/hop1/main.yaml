@@ -1,0 +1,42 @@
+# R1: Core GCN accuracy table — OGBN-Arxiv (No PE)
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 200
+beta: [10000, 10, 1]
+data_loading: [zero_hop, adjacency, diffusion, full]
+
+repetitions: 5
+experiment_seed: 342
+results_dir: experiments/results/R1
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 20
+
+model_architecture:
+  GCN_arxiv:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 20
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+# Large graph: keep CPU to avoid OOM.
+keep_data_on_gpu: false
+max_concurrent_clients: 2
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+
+device: cuda
+feature_prop_device: cuda

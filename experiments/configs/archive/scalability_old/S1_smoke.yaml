@@ -1,0 +1,49 @@
+# S1-smoke: OGBN-Arxiv pipeline smoke test.
+# Purpose: verify data loading → FL loop → result JSON end-to-end before any GPU run.
+# zero_hop = no propagation, hop=1 = smallest subgraphs → fastest possible CPU run (~10 min).
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 50
+beta: [10000]
+data_loading: [zero_hop]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 1
+experiment_seed: 342
+results_dir: experiments/results/scalability/ogbn_arxiv_smoke
+save_results: true
+resume_completed: false
+hop: 1
+use_wandb: false
+epochs: 3
+early_stopping_patience: 10
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 10
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+# CPU-only smoke test — no GPU needed for pipeline validation
+device: cpu
+feature_prop_device: cpu
+ray_num_gpus: 0
+keep_data_on_gpu: false
+adaptive_device: false
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 1
+use_amp: false

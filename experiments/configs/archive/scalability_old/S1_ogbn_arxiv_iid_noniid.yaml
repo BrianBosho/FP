@@ -1,0 +1,62 @@
+# S1: Scalability — OGBN-Arxiv downstream IID/non-IID
+# Grid: beta {10000, 1} x {full}
+# Hyperparameters start from the existing R1 OGBN-Arxiv configs.
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 1000
+beta: [10000, 1]
+data_loading: [full]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 5
+experiment_seed: 342
+results_dir: experiments/results/scalability/ogbn_arxiv
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+# Feature propagation tries GPU first (chebyshev path uses SpMM, not SpGEMM,
+# so the old cusparseSpGEMM crash no longer applies). Falls back to CPU
+# automatically if a CUDA error occurs at runtime.
+device: cuda
+feature_prop_device: cpu
+keep_data_on_gpu: false
+use_shard_cache: true
+shard_cache_dir: artifacts/shard_cache
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+# NeighborLoader keeps full-mode graph data on CPU and moves sampled batches to
+# GPU, so we can test all 10 federated clients concurrently.
+use_minibatch: true
+batch_size: 2048
+num_neighbors: [25, 25, 25]
+max_concurrent_clients: 10
+client_num_gpus: 0.1
+use_amp: true
+prop_dtype: bfloat16
+convergence_check_interval: 5
+ray_num_gpus: 1
+ray_object_store_memory_bytes: 4294967296

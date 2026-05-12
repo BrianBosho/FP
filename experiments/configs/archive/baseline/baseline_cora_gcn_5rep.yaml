@@ -1,0 +1,38 @@
+# Baseline test: Cora GCN, 5 reps, 400 rounds, early stopping
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 400
+beta: [10000]
+data_loading: [full]
+models: [GCN]
+repetitions: 5
+experiment_seed: 42
+results_dir: experiments/results/baseline_cora_gcn_5rep
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  momentum: 0.9
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

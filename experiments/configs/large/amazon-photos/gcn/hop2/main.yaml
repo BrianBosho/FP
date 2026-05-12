@@ -1,0 +1,43 @@
+# R7: Amazon Photo — 2-hop variant
+# Same as R7_photo but hop=2
+
+datasets: [Photo]
+num_clients: [10]
+num_rounds: 200
+beta: [10000, 10, 1]
+data_loading: [zero_hop, adjacency, diffusion, full]
+
+repetitions: 10
+experiment_seed: 942
+results_dir: experiments/results/R7
+save_results: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 10
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 10
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+# Device configuration
+device: cuda
+keep_data_on_gpu: true
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 10

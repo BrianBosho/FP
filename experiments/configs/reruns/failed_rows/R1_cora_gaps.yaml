@@ -1,0 +1,42 @@
+# Gap-fill: Cora GCN — diffusion β=1 (MISSING) and β=10 (8/10 → topup)
+# Fresh seed=300 ensures unique reps; consolidator will prefer the new 10-rep
+# file for β=10 over the existing 8-rep file.
+
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 400
+beta: [1, 10]
+data_loading: [diffusion]
+models: [GCN]
+hop: 1
+use_pe: [false]
+
+repetitions: 10
+experiment_seed: 300
+results_dir: experiments/results/R1_cora_gaps
+save_results: true
+use_wandb: false
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+early_stopping_patience: 30
+feature_prop_device: cuda
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

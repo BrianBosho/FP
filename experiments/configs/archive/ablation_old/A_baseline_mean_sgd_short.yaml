@@ -1,0 +1,36 @@
+# Ablation A: Baseline (working config) — aggregation=mean, SGD/0.5, 200 rounds, patience 10
+# Expected: ~81%
+
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+data_loading: [full]
+models: [GAT]
+
+repetitions: 5
+experiment_seed: 0
+results_dir: experiments/results/ablation_gap
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 10
+
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+
+model_architecture:
+  GAT:
+    hidden_dim: 8
+    num_layers: 2
+    dropout: 0.6
+    num_heads: 8
+    normalization: "none"
+
+aggregation: "mean"
+hop: 2
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

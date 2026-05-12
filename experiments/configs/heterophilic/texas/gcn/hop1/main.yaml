@@ -1,0 +1,42 @@
+# R6: Heterophilic limitation — Texas
+# Locked HPs: 2 layers, hidden 32, dropout 0.5, Adam, lr=0.01, wd=5e-4
+# Homophily ratio h=0.11
+
+datasets: [Texas]
+num_clients: [10]
+num_rounds: 200
+beta: [10000, 10, 1]
+data_loading: [zero_hop, adjacency, diffusion, full]
+
+repetitions: 10
+experiment_seed: 642
+results_dir: experiments/results/R6
+save_results: true
+hop: 1
+use_wandb: false
+epochs: 3
+early_stopping_patience: 20
+
+model_architecture:
+  GCN:
+    hidden_dim: 32
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 20
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+# Device configuration - all experiments default to GPU
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

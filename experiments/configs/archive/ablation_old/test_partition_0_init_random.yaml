@@ -1,0 +1,22 @@
+# Test: partition_seed=0 BUT random model init
+# Set experiment_seed=0 for partition, but we won't seed PyTorch init
+
+datasets:
+   - Cora
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+lr: 0.5
+optimizer: SGD
+data_loading: [full]
+models: [GAT]
+hop: 2
+use_pe: [False]
+
+# This controls partition seed but the code also seeds PyTorch init
+# We'll test what happens
+experiment_seed: 0
+
+results_dir: experiments/results/ablation_aggregation
+save_results: true
+use_wandb: false

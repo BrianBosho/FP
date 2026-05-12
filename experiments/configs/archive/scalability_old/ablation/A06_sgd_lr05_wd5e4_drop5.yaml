@@ -1,0 +1,16 @@
+# A06: SGD lr=0.5, wd=5e-4, dropout=0.5 — SGD (Cora-style HPs)
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 5e-4
+  epochs: 3
+  patience: 30
+
+results_dir: experiments/results/scalability/ogbn_arxiv_ablation/A06_sgd_lr05_wd5e4_drop5

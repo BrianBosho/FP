@@ -1,0 +1,36 @@
+# Ablation base — shared settings for all OGBN-Arxiv ablation runs.
+# Individual ablation configs override only: lr, optimizer, weight_decay, dropout, epochs.
+# All use adjacency mode, IID (β=10000), 200 rounds, 3 reps, 10 concurrent clients.
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 200
+beta: [10000]
+data_loading: [adjacency]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 3
+experiment_seed: 342
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+device: cuda
+feature_prop_device: cpu
+ray_num_gpus: 1
+keep_data_on_gpu: false
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 10
+use_amp: true
+prop_dtype: bfloat16
+convergence_check_interval: 5
+ray_object_store_memory_bytes: 4294967296

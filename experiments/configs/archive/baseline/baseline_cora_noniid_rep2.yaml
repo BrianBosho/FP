@@ -1,0 +1,38 @@
+# Cora GCN, non-IID (beta=1), rep 2
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 400
+beta: [1]
+data_loading: [full]
+models: [GCN]
+repetitions: 1
+experiment_seed: 242
+results_dir: experiments/results/baseline_cora_noniid_rep2
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  momentum: 0.9
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

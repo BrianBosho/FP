@@ -1,0 +1,59 @@
+# OGBN-Arxiv single-condition validation run
+# Purpose: verify we get correct full-mode results for one dataset before broader scheduling.
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 500
+beta: [10000]
+data_loading: [full]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 1
+experiment_seed: 342
+results_dir: experiments/results/scalability/ogbn_arxiv_single_full_validation
+save_results: true
+resume_completed: false
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+log_per_round: true
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+device: cuda
+feature_prop_device: cpu
+keep_data_on_gpu: false
+use_shard_cache: true
+shard_cache_dir: artifacts/shard_cache
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+# NeighborLoader keeps full-mode graph data on CPU and moves sampled batches to
+# GPU, so we can test all 10 federated clients concurrently.
+use_minibatch: true
+batch_size: 512
+num_neighbors: [10, 5, 3]
+max_concurrent_clients: 10
+client_num_gpus: 0.1
+use_amp: true
+prop_dtype: bfloat16
+convergence_check_interval: 5
+ray_num_gpus: 1
+ray_object_store_memory_bytes: 4294967296

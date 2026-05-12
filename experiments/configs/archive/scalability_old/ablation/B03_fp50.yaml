@@ -1,0 +1,17 @@
+# B03: FP 50 iterations — current default (baseline for comparison)
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+results_dir: experiments/results/scalability/ogbn_arxiv_ablation/B03_fp50

@@ -1,0 +1,52 @@
+# S3: Scalability — OGBN-Products downstream IID/non-IID
+# Grid: beta {10000, 1} x {zero_hop, full, adjacency, diffusion}
+# Product-specific settings use the code's GraphSAGEProducts path and should be
+# treated as provisional until smoke tests pass.
+
+datasets: [ogbn-products]
+num_clients: [10]
+num_rounds: 1000
+beta: [10000, 1]
+data_loading: [zero_hop, full, adjacency, diffusion]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 5
+experiment_seed: 1042
+results_dir: experiments/results/scalability/ogbn_products
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.003
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+# Products is large; clients force CPU-side data/model paths in the runner.
+device: cuda
+feature_prop_device: cpu
+keep_data_on_gpu: false
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 2
+auto_minibatch_if_large: true
+use_minibatch: true
+batch_size: 1024
+num_neighbors: [10, 10, 10]

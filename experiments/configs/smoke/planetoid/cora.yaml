@@ -1,0 +1,35 @@
+# Canonical smoke test — validates wiring end-to-end in < 30 s.
+# 1 client, 1 round, 1 rep, CPU-only, no wandb, no saved results.
+# Run with:
+#   python -m src.fedgnn.experiments.run_experiments --config experiments/configs/smoke/cora_smoke.yaml
+
+datasets: ["Cora"]
+data_loading: ["zero_hop"]
+models: ["GCN"]
+
+num_clients: [1]
+num_rounds: 1
+epochs: 1
+beta: [1.0]
+hop: 1
+use_pe: [false]
+repetitions: 1
+
+training:
+  lr: 0.1
+  optimizer: "SGD"
+  weight_decay: 0.0
+  epochs: 1
+
+results_dir: "runs/smoke"
+save_results: false
+resume_completed: false
+
+use_wandb: false
+wandb_mode: "disabled"
+
+device: "cpu"
+feature_prop_device: "cpu"
+max_concurrent_clients: 1
+early_stopping_patience: 9999
+debug: false

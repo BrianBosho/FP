@@ -1,0 +1,45 @@
+# A3: Propagation depth sensitivity — Pubmed
+# Sweeps num_iterations (T) ∈ {10, 25, 50, 100} for FedProp (Diff)
+# Locked design: β=10000 (IID), 5 seeds, 1 method = 4 T values × 5 seeds = 20 runs
+# Pubmed uses Adam per locked HP table
+
+datasets: [Pubmed]
+num_clients: [10]
+num_rounds: 600
+beta: [10000]
+data_loading: [diffusion]
+models: [GCN]
+hop: 1
+use_pe: [false]
+
+num_iterations: [10, 25, 50, 100]
+diffusion_t: 0.1
+
+repetitions: 5
+experiment_seed: 442
+results_dir: experiments/results/A3_pubmed
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 10
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 10
+
+aggregation: "fedavg_weighted"
+feature_prop_device: cuda
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

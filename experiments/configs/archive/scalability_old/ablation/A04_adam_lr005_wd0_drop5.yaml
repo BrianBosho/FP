@@ -1,0 +1,16 @@
+# A04: Adam lr=0.005, wd=0, dropout=0.5 — lower lr
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.005
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+results_dir: experiments/results/scalability/ogbn_arxiv_ablation/A04_adam_lr005_wd0_drop5

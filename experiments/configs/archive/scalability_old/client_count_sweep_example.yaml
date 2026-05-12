@@ -1,0 +1,17 @@
+# Example client-count scalability sweep (mirrors FedGraph NC2/NC5/NC10 style harness).
+# Run from repo root:
+#   python -m src.fedgnn.experiments.run_experiments --config experiments/configs/scalability/client_count_sweep_example.yaml
+
+datasets: [Cora]
+data_loading: [full]
+models: [GCN]
+beta: [10000]
+hop: [2]
+num_clients: [2, 5, 10, 15, 20]
+
+num_rounds: 8
+epochs: 2
+repetitions: 1
+save_results: true
+use_wandb: false
+results_dir: runs/scalability_example

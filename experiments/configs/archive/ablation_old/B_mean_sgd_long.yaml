@@ -1,0 +1,36 @@
+# Ablation B: Test training duration under mean — 400 rounds, patience 30
+# Expected: similar to A (~80-81%), small overfit possible
+
+datasets: [Cora]
+num_clients: [10]
+num_rounds: 400
+beta: [10000]
+data_loading: [full]
+models: [GAT]
+
+repetitions: 5
+experiment_seed: 0
+results_dir: experiments/results/ablation_gap
+save_results: true
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+lr: 0.5
+optimizer: SGD
+decay: 0.0005
+
+model_architecture:
+  GAT:
+    hidden_dim: 8
+    num_layers: 2
+    dropout: 0.6
+    num_heads: 8
+    normalization: "none"
+
+aggregation: "mean"
+hop: 2
+
+device: cuda
+keep_data_on_gpu: true
+max_concurrent_clients: 10

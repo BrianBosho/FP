@@ -1,0 +1,47 @@
+# S2: Scalability — Amazon Computers downstream IID/non-IID
+# Grid: beta {10000, 1} x {zero_hop, full, adjacency, diffusion}
+# Hyperparameters start from the existing R7 Amazon Computers configs.
+
+datasets: [Computers]
+num_clients: [10]
+num_rounds: 1000
+beta: [10000, 1]
+data_loading: [zero_hop, full, adjacency, diffusion]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 5
+experiment_seed: 842
+results_dir: experiments/results/scalability/amazon_computers
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 16
+    num_layers: 2
+    dropout: 0.5
+    normalization: "none"
+
+training:
+  lr: 0.5
+  optimizer: "SGD"
+  weight_decay: 0.0005
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+device: cuda
+# Hop-2 diffusion can exceed CUDA sparse SpGEMM resources on this dataset.
+feature_prop_device: cpu
+keep_data_on_gpu: true
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 10

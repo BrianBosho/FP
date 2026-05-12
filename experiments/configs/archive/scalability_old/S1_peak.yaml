@@ -1,0 +1,51 @@
+# S1-peak: peak performance diagnostic for OGBN-Arxiv.
+# All 4 propagation modes x 2 betas, 3 reps, 300 rounds.
+# Run this BEFORE the full S1 run to confirm accuracy targets are reachable.
+
+datasets: [ogbn-arxiv]
+num_clients: [10]
+num_rounds: 300
+beta: [10000, 1]
+data_loading: [zero_hop, full, adjacency, diffusion]
+models: [GCN]
+use_pe: [false]
+
+repetitions: 3
+experiment_seed: 342
+results_dir: experiments/results/scalability/ogbn_arxiv_peak
+save_results: true
+resume_completed: true
+hop: 2
+use_wandb: false
+epochs: 3
+early_stopping_patience: 30
+
+model_architecture:
+  GCN:
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.5
+    normalization: "batch"
+
+training:
+  lr: 0.01
+  optimizer: "Adam"
+  weight_decay: 0
+  epochs: 3
+  patience: 30
+
+num_iterations: 50
+diffusion_t: 0.1
+aggregation: "fedavg_weighted"
+
+device: cuda
+feature_prop_device: cpu           # propagation on CPU — decouples FP memory from training GPU
+ray_num_gpus: 1
+keep_data_on_gpu: false
+adaptive_device: true
+adaptive_time_threshold_sec: 120
+max_concurrent_clients: 10
+use_amp: true
+prop_dtype: bfloat16               # halves FP memory: 86 MB → 43 MB per client per iter
+convergence_check_interval: 5      # clone() every 5 iters instead of every iter
+ray_object_store_memory_bytes: 4294967296  # 4 GB cap; prevents Ray spill-to-disk hangs
